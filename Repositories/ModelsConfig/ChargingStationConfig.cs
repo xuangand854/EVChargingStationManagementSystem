@@ -1,0 +1,19 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Repositories.Models;
+
+namespace Repositories.ModelsConfig
+{
+    public class ChargingStationConfig : IEntityTypeConfiguration<ChargingStation>
+    {
+        public void Configure(EntityTypeBuilder<ChargingStation> builder)
+        {
+            builder.ToTable("ChargingStation");
+
+            builder.HasOne(cs => cs.OperatorNavigation)
+                   .WithMany(ua => ua.ChargingStations)
+                   .HasForeignKey(cs => cs.OperatorId)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}

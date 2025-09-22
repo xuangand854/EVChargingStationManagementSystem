@@ -1,17 +1,26 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import "./index.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+// import Layout from "./pages/Layout";
+import Layout from "./components/pages/Layout";
+import Home from "./components/pages/Home";
+import About from "./components/pages/About";
+import Contact from "./components/pages/Contact";
+import Login from "./components/login/Login";
+import Signup from "./components/signpage/Signup";
+// import NoPage from "./pages/NoPage";
 
-function App() {
-  const navigate = useNavigate();
-
+export default function App() {
   return (
-    <div className="homepage">
-      <h1>Welcome to My App 🚀</h1>
-      <p>This is your homepage. Click below to login.</p>
-      <button onClick={() => navigate("/login")}>Go to Login</button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="login" element={<Login />} />
+          <Route path="Signup" element={<Signup />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
-export default App;

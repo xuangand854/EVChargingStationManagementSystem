@@ -1,6 +1,6 @@
 import SocialLogin from "../account/SocialLogin";
 import InputField from "../account/InputField";
-
+import Signup from "../signpage/Signup";
 const Login = () => {
     return (
         <div className="Login-container">
@@ -17,7 +17,7 @@ const Login = () => {
                 <a href="#" className="forgot-pass-link">Forgot Password?</a>
                 <button className="login-button">Log In</button>
             </form>
-            <p className="signup-text">Don&apos;t have an account? <a href="#">Sign up now</a></p>
+            <p className="signup-text">Don&apos;t have an account? <a href="Signup">Sign up now</a></p>
         </div>
     )
 }

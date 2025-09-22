@@ -1,188 +1,72 @@
-/*Import Google Fonts - Montserrat */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-
-*{
-  margin:0;
+/* Reset cơ bản */
+* {
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Montserrat", sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-  background:#5F41E4;
+/* Toàn bộ body */
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #ffffffff, #e5ecf7ff);
+  color: #fff;
 }
 
-#root{
-  width :100%;
-  padding: 0 0.6rem;
-}
-
-.Login-container{
-  max-width:410px;
-  margin:0 auto;
-  border-radius: 0.5rem;
-  padding:2rem 1.5rem;
-  background:white;
-  box-shadow:0 10px 20px rgba(0,0,0,0.1);
-}
-
-
-.Login-container .form-title{
-  text-align:center;
-  font-size:1.37rem;
-  font-weight:600;
-  margin-bottom:1.87rem;
-}
-.Login-container .social-login{
-  display:flex;
-  gap: 1.31rem;
-}
-
-
-.social-login .social-button{
-  display:flex;
-  width:100%;
-  gap:0.81rem;
-  cursor:pointer;
-  font-size:1rem;
-  font-weight:500;
-  padding:0.75rem 0;
-  align-items:center;
-  border-radius:0.31rem;
-  justify-content:center;
-  background:#F9F8FF;
-  border:1px solid #D5CBFF;
-  transition:0.3s ease;
-}
-.social-login .social-button:hover{
-  background:#f1eff9;
-  border-color:#5F41E4;
-}
-
-.social-login .social-button .social-icon{
-  width:23px;
-
-}
-
-.Login-container .separator {
-  margin: 1.5rem 0;
+/* Container chính (homepage) */
+.homepage {
   text-align: center;
-  position:relative;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  animation: fadeIn 1s ease;
 }
 
-.Login-container .separator span {
-  position:relative;
-  z-index:1;
-  background:#fff;
-  padding:0 0.9rem;
-  font-size: 1.06rem;
-  font-weight:500;
-}
-.Login-container .separator::after{
-  position:absolute;
-  content:"";
-  left:0;
-  top:50%;
-  width:100%;
-  height:1px;
-  background:#bfb3f2;
-}
-.Login-form .input-wrapper{
-  height:54px;
-  width:100%;
-  position:relative;
-  margin-bottom:1.5rem;
+/* Tiêu đề */
+.homepage h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  font-weight: bold;
 }
 
-.Login-form .input-wrapper .input-field{
-  height:100%;
-  width:100%;
-  outline:none;
-  font-size:1.06rem;
-  border-radius:0.31rem;
-  border:1px solid #bfb3f2;
-  padding :0 1.25rem 0 3.12rem;
-  transition:0.2s ease;
+/* Mô tả */
+.homepage p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  color: #e0e0e0;
 }
 
-.Login-form .input-wrapper .input-field:focus{
-  border-color:#5F41E4;
+/* Nút */
+.homepage button {
+  background: #ff9800;
+  border: none;
+  padding: 12px 28px;
+  font-size: 1rem;
+  color: #fff;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.Login-form .input-wrapper .input-field::placeholder{
-  color:#a395e0;
+.homepage button:hover {
+  background: #e68900;
+  transform: scale(1.05);
 }
 
-
-.Login-form .input-wrapper i{
-  color:#a395e0;
-  position:absolute;
-  top :50%;
-  transform:translateY(-50%);
-  transition:0.2s ease;
-}
-
-.Login-form .input-wrapper i:not(.eye-icon){
-  left:0.9rem;
-  pointer-events:none;
-}
-
-.Login-form .input-wrapper .input-field:focus ~ i:not(.eye-icon){
-  color:#5F41E4;
-}
-
-.Login-form .input-wrapper i.eye-icon{
-  font-size:1.25rem;
-  cursor:pointer;
-  right:0.9rem;
-  display:none;
-}
-
-.Login-form .input-wrapper .input-field:valid ~ i.eye-icon{
-  display:block;
-}
-
-.Login-form .forgot-pass-link{
-  display:block;
-  width:fit-content;
-  margin-top:-0.46rem;
-}
-
-.Login-form .login-button{
-  width:100%;
-  height:54px;
-  cursor:pointer;
-  outline:none;
-  border:none;
-  color:#fff;
-  font-weight:500;
-  font-size:1.125rem;
-  background:#5F41E4;
-  margin-top:2.19rem;
-  border-radius:0.31rem;
-  transition:0.2s ease;
-}
-
-.Login-form .login-button:hover{
-  background:#4320df;
-}
-
-.Login-container .signup-text{
-  text-align:center;
-  font-weight:500;
-  margin:1.75rem 0 0.31rem;
-}
-
-.Login-container a{
-  color:#5F41E4;
-  font-weight:500;
-  text-decoration:none;
-}
-
-.Login-container a:hover{
-  text-decoration:underline;
+/* Hiệu ứng fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

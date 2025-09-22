@@ -1,14 +1,22 @@
-
-
-
-import React from "react";
+import React, { useEffect } from "react";
+import "../signpage/Signup.css" // file CSS riêng
 
 const Signup = () => {
+  useEffect(() => {
+    // set class cho body khi Signup mount
+    document.body.className = "signup-body";
+
+    // cleanup khi rời trang
+    return () => {
+      document.body.className = "";
+    };
+  }, []);
+
   return (
-    <div className="Login-container">
+    <div className="Signup-container">
       <h2 className="form-title">Create an Account</h2>
 
-      <form className="Login-form">
+      <form className="Signup-form">
         <div className="input-wrapper">
           <input
             type="text"
@@ -57,7 +65,7 @@ const Signup = () => {
       </form>
 
       <p className="signup-text">
-        Already have an account? <a href="/Login">Log in</a>
+        Already have an account? <a href="/login">Log in</a>
       </p>
     </div>
   );

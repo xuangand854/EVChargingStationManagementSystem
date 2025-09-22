@@ -8,13 +8,13 @@
   font-family: "Montserrat", sans-serif;
 }
 
-body{
+/* body{
   display:flex;
   align-items:center;
   justify-content:center;
   min-height:100vh;
   background:#5F41E4;
-}
+} */
 
 #root{
   width :100%;

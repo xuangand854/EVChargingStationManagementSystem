@@ -12,6 +12,7 @@ const Login = () => {
   }, []);
 
   return (
+    
     <div className="Login-container">
       <h2 className="form-title">
         <a href="/google-connection">Login in with</a>

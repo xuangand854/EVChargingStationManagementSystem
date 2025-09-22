@@ -4,10 +4,18 @@ body {
 }
 
 nav {
+    position: fixed;
+    /* Đưa navbar lên trên cùng */
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Chiều rộng toàn màn hình */
     background: linear-gradient(90deg, #ff7e5f, #feb47b);
-    /* Gradient effect */
+    /* Hiệu ứng gradient */
     padding: 10px 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    /* Đảm bảo navbar luôn ở trên các thành phần khác */
 }
 
 nav ul {
@@ -33,9 +41,14 @@ nav ul li a {
 nav ul li a:hover {
     color: #ffdfba;
     transform: scale(1.1);
-    /* Slight zoom effect on hover */
+    /* Hiệu ứng phóng to nhẹ khi hover */
 }
 
 nav ul li a:active {
     color: #ff7e5f;
+}
+
+main {
+    margin-top: 60px;
+    /* Đẩy nội dung xuống dưới để không bị che bởi navbar */
 }

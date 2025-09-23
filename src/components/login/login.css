@@ -8,21 +8,22 @@
   font-family: "Montserrat", sans-serif;
 }
 
+/* Body background full screen */
 .login-body {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   background: #5F41E4;  
-
+  overflow: hidden;
 }
-
 
 #root{
-  width :100%;
-  padding: 0 0.6rem;
+  width: 100%;
+  padding: 0;
 }
 
+/* Container form với animation */
 .Login-container{
   max-width:410px;
   margin:0 auto;
@@ -30,8 +31,20 @@
   padding:2rem 1.5rem;
   background:white;
   box-shadow:0 10px 20px rgba(0,0,0,0.1);
+
+  /* animation */
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: fadeInUp 0.6s forwards;
 }
 
+/* Keyframes animation */
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .Login-container .form-title{
   text-align:center;
@@ -39,11 +52,11 @@
   font-weight:600;
   margin-bottom:1.87rem;
 }
+
 .Login-container .social-login{
   display:flex;
   gap: 1.31rem;
 }
-
 
 .social-login .social-button{
   display:flex;
@@ -58,16 +71,16 @@
   justify-content:center;
   background:#F9F8FF;
   border:1px solid #D5CBFF;
-  transition:0.3s ease;
+  transition:0.3s ease, transform 0.2s;
 }
 .social-login .social-button:hover{
   background:#f1eff9;
   border-color:#5F41E4;
+  transform: translateY(-2px); /* hover nhẹ */
 }
 
 .social-login .social-button .social-icon{
   width:23px;
-
 }
 
 .Login-container .separator {
@@ -93,6 +106,7 @@
   height:1px;
   background:#bfb3f2;
 }
+
 .Login-form .input-wrapper{
   height:54px;
   width:100%;
@@ -108,17 +122,17 @@
   border-radius:0.31rem;
   border:1px solid #bfb3f2;
   padding :0 1.25rem 0 3.12rem;
-  transition:0.2s ease;
+  transition:0.2s ease, box-shadow 0.2s;
 }
 
 .Login-form .input-wrapper .input-field:focus{
   border-color:#5F41E4;
+  box-shadow: 0 0 5px rgba(95, 65, 228, 0.5); /* thêm hiệu ứng focus */
 }
 
 .Login-form .input-wrapper .input-field::placeholder{
   color:#a395e0;
 }
-
 
 .Login-form .input-wrapper i{
   color:#a395e0;
@@ -166,11 +180,12 @@
   background:#5F41E4;
   margin-top:2.19rem;
   border-radius:0.31rem;
-  transition:0.2s ease;
+  transition:0.2s ease, transform 0.2s;
 }
 
 .Login-form .login-button:hover{
   background:#4320df;
+  transform: translateY(-2px); /* hover nhẹ */
 }
 
 .Login-container .signup-text{

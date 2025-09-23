@@ -6,6 +6,7 @@ import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
 import Login from "./components/login/Login";
 import Signup from "./components/signpage/Signup";
+import Forgotpassword from "./components/forgotpass/Forgotpassword";
 // import NoPage from "./pages/NoPage";
 
 export default function App() {
@@ -17,7 +18,9 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="login" element={<Login />} />
-          <Route path="Signup" element={<Signup />} />
+          <Route path="sign-up" element={<Signup />} />
+          <Route path="forgot-password" element={<Forgotpassword />} />
+
         </Route>
       </Routes>
     </BrowserRouter>

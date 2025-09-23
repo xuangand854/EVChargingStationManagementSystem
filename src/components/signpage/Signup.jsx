@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "../signpage/Signup.css" // file CSS riêng
+import { Link } from "react-router-dom";
 
 const Signup = () => {
   useEffect(() => {
@@ -65,7 +66,7 @@ const Signup = () => {
       </form>
 
       <p className="signup-text">
-        Already have an account? <a href="/login">Log in</a>
+        Already have an account? <Link to="/login">Log in</Link>
       </p>
     </div>
   );

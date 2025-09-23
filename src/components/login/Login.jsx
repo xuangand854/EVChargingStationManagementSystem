@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import InputField from "../account/InputField";
 import SocialLogin from "../account/SocialLogin";
+import { Link } from "react-router-dom";
 import "./login.css";
 
 const Login = () => {
@@ -27,11 +28,11 @@ const Login = () => {
         <InputField type="email" placeholder="Email address" icon="mail" />
         <InputField type="password" placeholder="Password" icon="lock" />
 
-        <a href="#" className="forgot-pass-link">Forgot Password?</a>
+        <a href="/forgot-password" className="forgot-pass-link">Forgot Password?</a>
         <button className="login-button">Log In</button>
       </form>
       <p className="signup-text">
-        Don&apos;t have an account? <a href="/sign-up">Sign up now</a>
+        Don&apos;t have an account? <Link to="/sign-up">Sign up now</Link>
       </p>
     </div>
   );

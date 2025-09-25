@@ -19,6 +19,10 @@ namespace Repositories.ModelsConfig
                     .WithMany(uv => uv.ChargingSessions)
                     .HasForeignKey(cs => cs.UserVehicleId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(cs => cs.StartedByNavigation)
+                    .WithMany(ev => ev.ChargingSessions)
+                    .HasForeignKey(cs => cs.StartedBy);
         }
     }
 }

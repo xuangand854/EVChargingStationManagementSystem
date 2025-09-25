@@ -39,6 +39,8 @@ public class UserAccount : IdentityUser<Guid>
     public ICollection<EVDriver> EVDrivers { get; set; } = [];
     public ICollection<SCStaff> SCStaffs { get; set; } = [];
     public ICollection<Booking> Bookings { get; set; } = [];
+    public ICollection<VehicleModel> VehicleModels { get; set; } = [];
+    public ICollection<UserVehicle> UserVehicles { get; set; } = [];
     public ICollection<ChargingStation> ChargingStations { get; set; } = [];
     public ICollection<ChargingSession> ChargingSessions { get; set; } = [];
 
@@ -47,7 +49,7 @@ public class UserAccount : IdentityUser<Guid>
 
     [InverseProperty("RecordedByNavigation")]
     public ICollection<Transaction> TransactionsRecorded { get; set; } = [];
-
+    public ICollection<Notification> Notifications { get; set; } = [];
     public ICollection<NotificationRecipient> NotificationRecipients { get; set; } = [];
     [InverseProperty("SystemConfigurationCreatedByNavigation")]
     public ICollection<SystemConfiguration> SystemConfigurationsCreator { get; set; } = [];

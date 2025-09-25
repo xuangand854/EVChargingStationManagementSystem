@@ -51,10 +51,15 @@ namespace Repositories.Data
             builder.ApplyConfiguration(new SystemConfigurationConfig());
             builder.ApplyConfiguration(new BookingConfig());
             builder.ApplyConfiguration(new ChargingStationConfig());
+            builder.ApplyConfiguration(new ChargingPostConfig());
+            builder.ApplyConfiguration(new NotificationConfig());
             builder.ApplyConfiguration(new NotificationRecipientConfig());
             builder.ApplyConfiguration(new UserVehicleConfig());
+            builder.ApplyConfiguration(new VehicleModelConfig());
             builder.ApplyConfiguration(new ChargingSessionConfig());
             builder.ApplyConfiguration(new TransactionConfig());
+            builder.ApplyConfiguration(new SCStaffConfig());
+            builder.ApplyConfiguration(new EVDriverConfig());
         }
     }
 }

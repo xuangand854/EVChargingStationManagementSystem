@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.AuthDto;
+using Common.DTOs.ProfileStaffDto;
 using Mapster;
 using MapsterMapper;
 using Repositories.Models;
@@ -27,6 +28,10 @@ namespace APIs.Configs
                 .Map(dest => dest.PhoneNumber, src => src.Phone)
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
+
+            TypeAdapterConfig<SCStaff, StaffViewDto>.NewConfig()
+                .Map(dest => dest.Name, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Name : null)
+                .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);
 
             return services;
         }

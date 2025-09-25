@@ -6,22 +6,17 @@ using Repositories.IUnitOfWork;
 using ServiceLayer.Base;
 using Services.Base;
 using Services.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.Services
 {
     public class SCStaffService(IUnitOfWork unitOfWork) : ISCStaffService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        public  async Task<IServiceResult> GetById(Guid StaffId)
+        public async Task<IServiceResult> GetById(Guid StaffId)
         {
             var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
                 predicate: s => s.Id == StaffId,
-                include : s => s.Include(s => s.UserAccountNavigation),
+                include: s => s.Include(s => s.UserAccountNavigation),
                 asNoTracking: true// lấy ra để xem là true và create giống thế 
                 );
             if (staff == null)
@@ -43,6 +38,6 @@ namespace Services.Services
                  );
 
             }
-            }
+        }
     }
 }

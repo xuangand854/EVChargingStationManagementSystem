@@ -1,8 +1,8 @@
-import axios from 'axios';
-// import { jwtDecode } from 'jwt-decode';
-// import  { roleSlugMap } from '../Utils/RoleSlugMap';
+import { useState } from 'react';
+import jwtDecode from 'jwt-decode';
+import api from './axios';
+import { roleSlugMap } from '../Utils/RoleSlugMap';
 
-const BASE_URL = 'https://localhost:7252/api'; // Thay thế bằng URL của backend
 
 /**
  * Gửi yêu cầu đăng nhập đến API backend.
@@ -11,29 +11,34 @@ const BASE_URL = 'https://localhost:7252/api'; // Thay thế bằng URL của ba
  * @param {boolean} useSessionCookies - Sử dụng cookie phiên.
  * @returns {Promise} - Kết quả trả về từ API.
  */
-export const login = async (credentials, useCookies = false, useSessionCookies = false) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/login?useCookies=${useCookies}&useSessionCookies=${useSessionCookies}`,
-      credentials,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error during login:', error);
-    throw error;
-  }
-};
+export async function login(email: string, password: string): Promise<DecodedToken> {
+  const response = await api.post("/Auth/login", { email, password });
 
-export const register = async (email, password) => { // đăng kí tài khoản
+  const token = response.data;
+
+  if (!token || typeof token !== "string") {
+    throw new Error("Đăng nhập thất bại: Token không hợp lệ");
+  }
+
+  const decoded: DecodedToken = jwtDecode(token);
+  const roleSlug = roleSlugMap[decoded.role] ?? "unknown";
+
+  localStorage.setItem("token", token);
+  localStorage.setItem("user_id", decoded.nameid);
+  localStorage.setItem("user_name", decoded.name);
+  localStorage.setItem("email", decoded.email);
+  localStorage.setItem("user_role", roleSlug);
+  localStorage.setItem("user_role_raw", decoded.role);
+  localStorage.setItem("user_avatar", decoded.avatar || "");
+
+  return decoded;
+}
+
+export const register = async (email, password, name, phone) => { // đăng kí tài khoản
   try {
     const response = await axios.post(
-      `${BASE_URL}/register`,
-      { email, password },
+      `${BASE_URL}/Auth/register`,
+      { email, password, name, phone },
       {
         headers: {
           'Content-Type': 'application/json',
@@ -83,3 +88,4 @@ export const resendConfirmationEmail = async (email) => { // gửi lại email x
     throw error;
   }
 }
+

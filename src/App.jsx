@@ -4,7 +4,8 @@ import Layout from "./components/pages/Layout";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
-import Login from "./components/login/Login";
+import Login from "./components/login/login";
+
 import Signup from "./components/signpage/Signup";
 import Forgotpassword from "./components/forgotpass/Forgotpassword";
 // import NoPage from "./pages/NoPage";
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
+          
 
         </Route>
       </Routes>

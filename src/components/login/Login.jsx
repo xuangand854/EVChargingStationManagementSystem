@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import "./login.css";
 import { login } from "../../API/Auth";
 
+
 const Login = () => {
   useEffect(() => {
     document.body.className = "login-body"; // set body class
@@ -17,7 +18,7 @@ const Login = () => {
     
     <div className="Login-container">
       <h2 className="form-title">
-        <a href="/google-connection">Login in with</a>
+        <a href="#">Login in with</a>
       </h2>
       <SocialLogin />
 

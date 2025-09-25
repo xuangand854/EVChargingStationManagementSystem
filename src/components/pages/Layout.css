@@ -4,6 +4,7 @@ body {
 }
 
 nav {
+    
     position: fixed;
     /* Đưa navbar lên trên cùng */
     top: 0;
@@ -15,6 +16,7 @@ nav {
     padding: 10px 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+    
     /* Đảm bảo navbar luôn ở trên các thành phần khác */
 }
 

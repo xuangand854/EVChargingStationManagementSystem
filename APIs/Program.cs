@@ -2,6 +2,7 @@ using APIs.Configs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Repositories.Data;
+using Repositories.IUnitOfWork;
 using Repositories.Models;
 using Services.IServices;
 using Services.Services;
@@ -15,7 +16,10 @@ builder.Services.AddDbContext<EVCSMSContext>(options => options.UseSqlServer(con
 
 builder.Services.ExtensionServices();
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISCStaffService, SCStaffService>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<UserAccount>()

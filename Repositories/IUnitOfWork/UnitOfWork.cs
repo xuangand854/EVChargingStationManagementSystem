@@ -1,10 +1,24 @@
 ﻿using Repositories.Data;
+using Repositories.IRepository;
+using Repositories.Repository;
 
 namespace Repositories.IUnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
+        private ISCStaffRepository? sCStaffRepository;
         private readonly EVCSMSContext context;
+
+      
+
+       public ISCStaffRepository SCStaffRepository
+        {
+get
+            {
+                return sCStaffRepository ??= new SCStaffRepository(context);
+            }
+        }
+
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 

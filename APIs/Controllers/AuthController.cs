@@ -25,5 +25,27 @@ namespace APIs.Controllers
             //return Ok(new { Message = "Register success!" });
             return Ok(result.Message);
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            //try
+            //{
+            //    var result = await _authService.Login(dto);
+            //    return Ok(result.Data);
+            //}
+            //catch (UnauthorizedAccessException ex)
+            //{
+            //    return Unauthorized(new { message = ex.Message });
+            //}
+            var result = await _authService.Login(dto);
+
+            if (result.Status == Const.FAIL_READ_CODE)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
     }
 }

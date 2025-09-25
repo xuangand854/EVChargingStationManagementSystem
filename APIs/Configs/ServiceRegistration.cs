@@ -23,12 +23,14 @@ namespace APIs.Configs
             services.AddSingleton(config);
             services.AddScoped<IMapper, Mapper>();
 
+            // Map dto vào model
             TypeAdapterConfig<RegisterAccountDto, UserAccount>.NewConfig()
                 .Map(dest => dest.UserName, src => src.Email)
                 .Map(dest => dest.PhoneNumber, src => src.Phone)
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
 
+            // Map model vào dto
             TypeAdapterConfig<SCStaff, StaffViewDto>.NewConfig()
                 .Map(dest => dest.Name, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Name : null)
                 .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);

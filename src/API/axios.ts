@@ -1,11 +1,10 @@
 import axios, { AxiosInstance } from "axios";
 import { HTTP_ERROR_MESSAGES } from "./constants/httpErrors";
 
-const apiUrl = process.env.BASE_URL;
-
-if (!apiUrl) {
-  throw new Error("API URL is not defined in environment variables.");
-}
+// Đọc biến môi trường theo Vite, fallback về localhost để dev nhanh
+const apiUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
+  (typeof process !== 'undefined' ? (process as any).env?.VITE_API_URL : undefined) ||
+  'https://localhost:7252/api';
 
 const api: AxiosInstance = axios.create({
   baseURL: apiUrl,
@@ -63,7 +62,6 @@ api.interceptors.response.use(
 
       // Xử lý lỗi xác thực (401 Unauthorized)
       if (status === 401) {
-        // Kiểm tra xem có đang ở trang login không để tránh hiển thị dialog trùng lặp
         const isLoginPage = typeof window !== 'undefined' &&
           (window.location.pathname === '/auth/login' ||
             window.location.pathname.includes('/auth/login'));

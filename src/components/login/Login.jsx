@@ -3,7 +3,6 @@ import InputField from "../account/InputField";
 import SocialLogin from "../account/SocialLogin";
 import { Link } from "react-router-dom";
 import "./login.css";
-import { login } from "../../API/Auth";
 
 
 const Login = () => {
@@ -15,7 +14,7 @@ const Login = () => {
   }, []);
 
   return (
-    
+
     <div className="Login-container">
       <h2 className="form-title">
         <a href="#">Login in with</a>

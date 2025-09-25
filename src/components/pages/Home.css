@@ -4,6 +4,7 @@
     text-align: center;
     background: #f9f9f9;
     color: #333;
+    padding-top: 150px;
 }
 
 .home-header {
@@ -16,7 +17,7 @@
 }
 
 .home-header p {
-    font-size: 1.2rem;
+    font-size: 1.2rem;  
     color: #555;
 }
 

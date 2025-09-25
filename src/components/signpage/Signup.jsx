@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "../signpage/Signup.css" // file CSS riêng
+import "../signpage/Signup.css"; // file CSS riêng
 import { Link } from "react-router-dom";
 
 const Signup = () => {
@@ -18,16 +18,7 @@ const Signup = () => {
       <h2 className="form-title">Create an Account</h2>
 
       <form className="Signup-form">
-        <div className="input-wrapper">
-          <input
-            type="text"
-            placeholder="Full Name"
-            required
-            className="input-field"
-          />
-          <i className="bx bx-user"></i>
-        </div>
-
+        {/* Email */}
         <div className="input-wrapper">
           <input
             type="email"
@@ -38,6 +29,18 @@ const Signup = () => {
           <i className="bx bx-envelope"></i>
         </div>
 
+        {/* Full Name */}
+        <div className="input-wrapper">
+          <input
+            type="text"
+            placeholder="Full Name"
+            required
+            className="input-field"
+          />
+          <i className="bx bx-user"></i>
+        </div>
+
+        {/* Password */}
         <div className="input-wrapper">
           <input
             type="password"
@@ -49,15 +52,15 @@ const Signup = () => {
           <i className="bx bx-hide eye-icon"></i>
         </div>
 
+        {/* Phone */}
         <div className="input-wrapper">
           <input
-            type="password"
-            placeholder="Confirm Password"
+            type="tel"
+            placeholder="Phone number"
             required
             className="input-field"
           />
-          <i className="bx bx-lock-alt"></i>
-          <i className="bx bx-hide eye-icon"></i>
+          <i className="bx bx-phone"></i>
         </div>
 
         <button type="submit" className="login-button">

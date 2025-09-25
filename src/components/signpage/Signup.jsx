@@ -1,7 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import "../signpage/Signup.css" // file CSS riêng
 import { Link, useNavigate } from "react-router-dom";
 import { register as registerApi } from "../../API/Auth";
+
+
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -62,33 +65,39 @@ const Signup = () => {
     <div className="Signup-container">
       <h2 className="form-title">Create an Account</h2>
 
+
       <form className="Signup-form" onSubmit={handleSubmit}>
         <div className="input-wrapper">
           <input
             name="name"
             type="text"
             placeholder="Full Name"
+
             required
             className="input-field"
             value={formValues.name}
             onChange={handleChange}
           />
-          <i className="bx bx-user"></i>
+          <i className="bx bx-envelope"></i>
         </div>
 
+        {/* Full Name */}
         <div className="input-wrapper">
           <input
+
             name="email"
             type="email"
             placeholder="Email address"
+
             required
             className="input-field"
             value={formValues.email}
             onChange={handleChange}
           />
-          <i className="bx bx-envelope"></i>
+          <i className="bx bx-user"></i>
         </div>
 
+        {/* Password */}
         <div className="input-wrapper">
           <input
             name="phone"
@@ -115,18 +124,20 @@ const Signup = () => {
           <i className="bx bx-hide eye-icon"></i>
         </div>
 
+        {/* Phone */}
         <div className="input-wrapper">
           <input
+
             name="confirmPassword"
             type="password"
             placeholder="Confirm Password"
+
             required
             className="input-field"
             value={formValues.confirmPassword}
             onChange={handleChange}
           />
-          <i className="bx bx-lock-alt"></i>
-          <i className="bx bx-hide eye-icon"></i>
+          <i className="bx bx-phone"></i>
         </div>
 
         {error && <p style={{ color: "#d00", marginBottom: "12px" }}>{error}</p>}

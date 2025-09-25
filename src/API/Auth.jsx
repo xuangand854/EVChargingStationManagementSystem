@@ -1,49 +1,55 @@
 import { useState } from 'react';
-import jwtDecode from 'jwt-decode';
+// import jwtDecode from 'jwt-decode';
 import api from './axios';
-import { roleSlugMap } from '../Utils/RoleSlugMap';
+// import { roleSlugMap } from '../Utils/RoleSlugMap';
 
+const BASE_URL = '/Auth';
 
-/**
- * Gửi yêu cầu đăng nhập đến API backend.
- * @param {Object} credentials - Thông tin đăng nhập gồm email, password, twoFactorCode, và twoFactorRecoveryCode.
- * @param {boolean} useCookies - Sử dụng cookie trong phiên đăng nhập.
- * @param {boolean} useSessionCookies - Sử dụng cookie phiên.
- * @returns {Promise} - Kết quả trả về từ API.
- */
-export async function login(email: string, password: string): Promise<DecodedToken> {
-  const response = await api.post("/Auth/login", { email, password });
+export const useAuth = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const token = response.data;
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
 
-  if (!token || typeof token !== "string") {
-    throw new Error("Đăng nhập thất bại: Token không hợp lệ");
-  }
+    try {
+      const response = await api.post(`${BASE_URL}/login`, { email, password });
+      const token = response.data;
 
-  const decoded: DecodedToken = jwtDecode(token);
-  const roleSlug = roleSlugMap[decoded.role] ?? "unknown";
+      if (!token || typeof token !== 'string') {
+        throw new Error('Đăng nhập thất bại: Token không hợp lệ');
+      }
 
-  localStorage.setItem("token", token);
-  localStorage.setItem("user_id", decoded.nameid);
-  localStorage.setItem("user_name", decoded.name);
-  localStorage.setItem("email", decoded.email);
-  localStorage.setItem("user_role", roleSlug);
-  localStorage.setItem("user_role_raw", decoded.role);
-  localStorage.setItem("user_avatar", decoded.avatar || "");
+      const decoded = jwtDecode(token);
+      const roleSlug = roleSlugMap[decoded.role] ?? 'unknown';
 
-  return decoded;
-}
+      // Lưu thông tin vào localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user_id', decoded.nameid);
+      localStorage.setItem('user_name', decoded.name);
+      localStorage.setItem('email', decoded.email);
+      localStorage.setItem('user_role', roleSlug);
+      localStorage.setItem('user_role_raw', decoded.role);
+      localStorage.setItem('user_avatar', decoded.avatar || '');
+
+      return decoded;
+    } catch (err) {
+      setError(err.message || 'Đăng nhập thất bại');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { login, loading, error };
+};
 
 export const register = async (email, password, name, phone) => { // đăng kí tài khoản
   try {
-    const response = await axios.post(
-      `${BASE_URL}/Auth/register`,
-      { email, password, name, phone },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await api.post(
+      `${BASE_URL}/register`,
+      { email, password, name, phone }
     );
     return response.data;
   } catch (error) {
@@ -54,14 +60,9 @@ export const register = async (email, password, name, phone) => { // đăng kí 
 
 export const confirmEmail = async (userId, code) => { // xác nhận email
   try {
-    const response = await axios.get(
-      `${BASE_URL}/confirm-email`,
-      { userId, code },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await api.get(
+      `/confirm-email`,
+      { params: { userId, code } }
     );
     return response.data;
   } catch (error) {
@@ -72,17 +73,12 @@ export const confirmEmail = async (userId, code) => { // xác nhận email
 
 export const resendConfirmationEmail = async (email) => { // gửi lại email xác nhận
   try {
-    const response = await axios.post(
-      `${BASE_URL}/resend-confirmation-email`,
-      { email },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await api.post(
+      `/resend-confirmation-email`,
+      { email }
     );
     return response.data;
-    
+
   } catch (error) {
     console.error('Error during resending confirmation email:', error);
     throw error;

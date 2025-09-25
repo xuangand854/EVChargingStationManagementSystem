@@ -3,6 +3,7 @@ import InputField from "../account/InputField";
 import SocialLogin from "../account/SocialLogin";
 import { Link } from "react-router-dom";
 import "./login.css";
+import { login } from "../../API/Auth";
 
 const Login = () => {
   useEffect(() => {
@@ -37,5 +38,18 @@ const Login = () => {
     </div>
   );
 };
+// const handleLogin = async () => {
+//   const credentials = {
+//     email: 'user@example.com',
+//     password: 'password123',
+//   };
+
+//   try {
+//     const result = await login(credentials);
+//     console.log('Login successful:', result);
+//   } catch (error) {
+//     console.error('Login failed:', error);
+//   }
+// };
 
 export default Login;

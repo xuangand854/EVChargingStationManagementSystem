@@ -21,19 +21,10 @@ export const useAuth = () => {
         throw new Error('Đăng nhập thất bại: Token không hợp lệ');
       }
 
-      const decoded = jwtDecode(token);
-      const roleSlug = roleSlugMap[decoded.role] ?? 'unknown';
-
-      // Lưu thông tin vào localStorage
+      // Chỉ lưu token, không decode tại đây
       localStorage.setItem('token', token);
-      localStorage.setItem('user_id', decoded.nameid);
-      localStorage.setItem('user_name', decoded.name);
-      localStorage.setItem('email', decoded.email);
-      localStorage.setItem('user_role', roleSlug);
-      localStorage.setItem('user_role_raw', decoded.role);
-      localStorage.setItem('user_avatar', decoded.avatar || '');
 
-      return decoded;
+      return token;
     } catch (err) {
       setError(err.message || 'Đăng nhập thất bại');
       throw err;
@@ -55,6 +46,20 @@ export const register = async (email, password, name, phone) => { // đăng kí 
   } catch (error) {
     console.error('Error during registration:', error);
     throw error;
+  }
+}
+
+export const login = async (email, password) => { // đăng nhập
+  try {
+    const response = await api.post(
+      `${BASE_URL}/login`,
+      { email, password }
+    );
+    return response.data; // trả về token
+  } catch (error) {
+    console.error('Error during login:', error);
+    throw error;
+
   }
 }
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Repositories.Models
@@ -7,6 +8,7 @@ namespace Repositories.Models
     {
         [Key]
         public Guid Id { get; set; }
+        [Precision(18, 2)]
         public decimal Amount { get; set; }
         public string PaymentMethod { get; set; } // e.g., Credit Card, PayPal, etc.
         public string Status { get; set; } = "Initiated"; // initiated, success, failed, refunded…

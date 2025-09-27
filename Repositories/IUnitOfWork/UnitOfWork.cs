@@ -1,23 +1,15 @@
 ﻿using Repositories.Data;
-using Repositories.IRepository;
-using Repositories.Repository;
+using Repositories.IRepositories;
+using Repositories.Repositories;
 
 namespace Repositories.IUnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private ISCStaffRepository? sCStaffRepository;
         private readonly EVCSMSContext context;
 
-      
-
-       public ISCStaffRepository SCStaffRepository
-        {
-get
-            {
-                return sCStaffRepository ??= new SCStaffRepository(context);
-            }
-        }
+        private ISCStaffRepository? sCStaffRepository;
+        private IVehicleModelRepository? vehicleModelRepository;
 
         public UnitOfWork()
             => context ??= new EVCSMSContext();
@@ -39,7 +31,26 @@ get
             return await context.SaveChangesAsync();
         }
 
-        // Thêm method Dispose để implement IDisposable
-        public void Dispose() => context?.Dispose();
+        public void Dispose()
+        {
+            context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        public ISCStaffRepository SCStaffRepository
+        {
+            get
+            {
+                return sCStaffRepository ??= new SCStaffRepository(context);
+            }
+        }
+
+        public IVehicleModelRepository VehicleModelRepository
+        {
+            get
+            {
+                return vehicleModelRepository ??= new VehicleModelRepository(context);
+            }
+        }
     }
 }

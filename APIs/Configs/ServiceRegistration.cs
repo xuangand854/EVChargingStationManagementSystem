@@ -1,5 +1,6 @@
 ﻿using Common.DTOs.AuthDto;
 using Common.DTOs.ProfileStaffDto;
+using Common.DTOs.VehicleModelDto;
 using Mapster;
 using MapsterMapper;
 using Repositories.Models;
@@ -34,6 +35,9 @@ namespace APIs.Configs
             TypeAdapterConfig<SCStaff, StaffViewDto>.NewConfig()
                 .Map(dest => dest.Name, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Name : null)
                 .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);
+
+            TypeAdapterConfig<VehicleModelUpdateDto, VehicleModel>.NewConfig()
+                .IgnoreNullValues(true);
 
             return services;
         }

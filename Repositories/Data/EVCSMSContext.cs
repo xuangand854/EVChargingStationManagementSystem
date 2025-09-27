@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Repositories.Data.Seed;
 using Repositories.Models;
 using Repositories.ModelsConfig;
 
@@ -60,6 +61,11 @@ namespace Repositories.Data
             builder.ApplyConfiguration(new TransactionConfig());
             builder.ApplyConfiguration(new SCStaffConfig());
             builder.ApplyConfiguration(new EVDriverConfig());
+
+            // Seed data
+            builder.ApplyConfiguration(new RoleSeed());
+            builder.ApplyConfiguration(new UserAccountSeed());
+            builder.ApplyConfiguration(new UserRolesSeed());
         }
     }
 }

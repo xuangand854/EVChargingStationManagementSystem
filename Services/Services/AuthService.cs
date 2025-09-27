@@ -1,12 +1,10 @@
 ﻿using Common;
 using Common.DTOs.AuthDto;
 using Mapster;
-using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Repositories.Models;
-using ServiceLayer.Base;
 using Services.Base;
 using Services.IServices;
 using System.IdentityModel.Tokens.Jwt;
@@ -53,7 +51,7 @@ namespace Services.Services
 
         public async Task<IServiceResult> Login(LoginDto dto)
         {
-            var user = await _userManager.FindByNameAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
                 return new ServiceResult(Const.FAIL_READ_CODE, "Invalid email or email not exist");
 
@@ -64,6 +62,8 @@ namespace Services.Services
 
             var authClaims = new List<Claim>
             {
+                new("userId", user.Id.ToString()),
+                //new("username", user.UserName.ToString()),
                 new("email", user.Email),
                 new("name", user.Name),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

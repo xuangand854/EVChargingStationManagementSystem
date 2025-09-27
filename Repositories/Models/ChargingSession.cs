@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Repositories.Models
@@ -10,6 +11,7 @@ namespace Repositories.Models
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; } // Nullable for ongoing sessions
         public double EnergyDeliveredKWh { get; set; } // Total energy delivered in kWh
+        [Precision(18, 2)]
         public decimal Cost { get; set; } // Total cost of the session
         public string Status { get; set; } = "InProgress"; // e.g., InProgress, Completed, Cancelled
         public DateTime CreatedAt { get; set; } = DateTime.Now;

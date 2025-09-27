@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Repositories.Models
@@ -11,9 +12,9 @@ namespace Repositories.Models
         public string Name { get; set; }
 
         public string Description { get; set; }
-
+        [Precision(18, 2)]
         public decimal? MinValue { get; set; }
-
+        [Precision(18, 2)]
         public decimal? MaxValue { get; set; }
 
         public string Unit { get; set; }

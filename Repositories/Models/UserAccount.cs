@@ -22,15 +22,10 @@ public class UserAccount : IdentityUser<Guid>
 
     public DateTime? LastLogin { get; set; }
 
-    public bool EmailVerified { get; set; } = false;
-
-    public string VerificationCode { get; set; }
-
-    public bool IsVerified { get; set; } = false;
-
     public string LoginType { get; set; } = "System";
 
     public string Status { get; set; } = "Active";
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 

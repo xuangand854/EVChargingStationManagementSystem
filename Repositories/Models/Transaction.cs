@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -12,9 +13,8 @@ namespace Repositories.Models
     {
         [Key]
         public Guid Id { get; set; }
-        [Required]
+        [Precision(18, 2)]
         public decimal Amount { get; set; }
-        [Required]
         public string TransactionType { get; set; } // e.g., Deposit, Withdrawal, Payment
         public string Status { get; set; } = "Pending"; // e.g., Pending, Completed, Failed
         public string Note { get; set; }

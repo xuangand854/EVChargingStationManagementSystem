@@ -1,7 +1,6 @@
-﻿using Services.Base;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-namespace ServiceLayer.Base
+namespace Services.Base
 {
     public class ServiceResult : IServiceResult
     {

@@ -1,0 +1,196 @@
+/* Profile.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+  }
+  
+  .profile-page-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+  
+  /* Bên trái menu */
+  .profile-left {
+    width: 220px;
+    background: #4f46e5;
+    color: #fff;
+    padding: 4rem 1rem 2rem 1rem; /* tăng padding-top lên 4rem */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: sticky;
+    top: 0; /* giữ menu bên trái cố định khi scroll */
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .profile-left h3 {
+    margin-bottom: 1rem;
+  }
+  
+  .profile-left button {
+    padding: 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: #7c3aed;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .profile-left button:hover {
+    background: #9333ea;
+  }
+  
+  /* Giữa: nội dung */
+  .profile-center {
+    flex: 1;
+    padding: 4rem 2rem 2rem 2rem; /* padding top để không bị che */
+    background: #fff;
+    color: #1f2937;
+    overflow-y: auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  /* Avatar */
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+  }
+  
+  .profile-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #7c3aed;
+  }
+  
+  /* Profile info */
+  .profile-info {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .profile-info h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-info p {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  /* Profile form */
+  .profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .profile-form input {
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  
+  .form-buttons button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #7c3aed;
+    color: #fff;
+    transition: 0.2s;
+  }
+  
+  .form-buttons button:hover {
+    background: #9333ea;
+  }
+  
+  /* Thông báo lỗi/success */
+  .error {
+    color: #d00;
+    text-align: center;
+  }
+  .success {
+    color: #0a0;
+    text-align: center;
+  }
+  
+  /* ChooseCar */
+  .choose-car-section {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .car-list {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+  }
+  
+  .car-item {
+    flex: 0 0 120px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .car-item.selected {
+    border-color: #7c3aed;
+    background: #ede9fe;
+  }
+  
+  .car-item:hover {
+    background: #f3f3f3;
+  }
+  
+  /* Chưa login */
+  .profile-not-logged-in {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: #1f2937;
+  }
+  
+  .profile-not-logged-in button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 6px;
+    background: #7c3aed;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .profile-not-logged-in button:hover {
+    background: #9333ea;
+  }
+  

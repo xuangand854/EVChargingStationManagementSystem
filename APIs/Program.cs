@@ -23,6 +23,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISCStaffService, SCStaffService>();
+builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
 
 
 // Cấu hình JWT Authentication

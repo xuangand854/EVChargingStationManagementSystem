@@ -27,6 +27,7 @@ logs/
 *.ilk
 *.ipdb
 *.rsp
+Migrations/*.Designer.cs
 
 ########################################
 # 👉 DEBUG & RELEASE (Visual Studio tạo khi build)

@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Repositories.Data;
-using Repositories.IUnitOfWork;
-using Repositories.Models;
-using Services.IServices;
-using Services.Services;
+using Infrastructure.Data;
+using Infrastructure.IUnitOfWork;
+using Infrastructure.Models;
 using System.Text;
+using BusinessLogic.IServices;
+using BusinessLogic.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

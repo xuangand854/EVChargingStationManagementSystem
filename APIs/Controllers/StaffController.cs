@@ -1,9 +1,6 @@
-﻿using Common;
-using Common.DTOs.AuthDto;
-using Common.DTOs.ProfileStaffDto;
+﻿using BusinessLogic.IServices;
+using Common;
 using Microsoft.AspNetCore.Mvc;
-using Services.IServices;
-using Services.Services;
 
 namespace APIs.Controllers
 {

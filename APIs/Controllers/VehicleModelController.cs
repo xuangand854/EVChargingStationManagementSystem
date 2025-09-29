@@ -1,10 +1,10 @@
-﻿using Common;
+﻿using BusinessLogic.IServices;
+using Common;
 using Common.DTOs.VehicleModelDto;
 using Common.Enum.VehicleModel;
 using Common.Helpler;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Services.IServices;
 
 namespace APIs.Controllers
 {

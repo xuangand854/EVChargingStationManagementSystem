@@ -1,7 +1,7 @@
-﻿using Common;
+﻿using BusinessLogic.IServices;
+using Common;
 using Common.DTOs.AuthDto;
 using Microsoft.AspNetCore.Mvc;
-using Services.IServices;
 
 namespace APIs.Controllers
 {

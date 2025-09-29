@@ -5,6 +5,7 @@ import { HTTP_ERROR_MESSAGES } from "./constants/httpErrors";
 const apiUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
   (typeof process !== 'undefined' ? (process as any).env?.VITE_API_URL : undefined) ||
   'https://localhost:7252/api';
+// const apiUrl = "https://localhost:7252/api";
 
 const api: AxiosInstance = axios.create({
   baseURL: apiUrl,

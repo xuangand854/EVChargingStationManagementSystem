@@ -4,7 +4,7 @@ import Layout from "./components/pages/Layout";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
-import Login from "./components/pages/Login"
+import Login from "./components/pages/login";
 import Profile from "./components/profile/Profile";
 
 

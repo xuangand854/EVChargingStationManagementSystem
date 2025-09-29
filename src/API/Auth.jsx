@@ -1,9 +1,10 @@
 import { useState } from 'react';
-// import jwtDecode from 'jwt-decode';
 import api from './axios';
 // import { roleSlugMap } from '../Utils/RoleSlugMap';
 
 const BASE_URL = '/Auth';
+//lay value goi api theo key 
+
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,8 @@ export const useAuth = () => {
     try {
       const response = await api.post(`${BASE_URL}/login`, { email, password });
       const token = response.data;
+
+
 
       if (!token || typeof token !== 'string') {
         throw new Error('Đăng nhập thất bại: Token không hợp lệ');
@@ -89,4 +92,5 @@ export const resendConfirmationEmail = async (email) => { // gửi lại email x
     throw error;
   }
 }
+
 

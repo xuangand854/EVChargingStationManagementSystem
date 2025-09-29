@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import "../signpage/Signup.css" // file CSS riêng
+import "../pages/Signup.css" // file CSS riêng
 import { Link, useNavigate } from "react-router-dom";
 import { register as registerApi } from "../../API/Auth";
 

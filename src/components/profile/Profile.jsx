@@ -22,26 +22,19 @@
 
     useEffect(() => {
         // ===== Demo profile để test bố cục =====
-        setUser({
-        name: "Nguyen Van A",
-        email: "a@example.com",
-        phone: "0123456789",
-        role: "staff", // customer | staff | admin
-        avatar: "", // nếu để trống, sẽ lấy avatar mặc định theo role
-        });
-        setFormData({
-        name: "Nguyen Van A",
-        email: "a@example.com",
-        phone: "0123456789",
-        role: "staff",
-        avatar: "",
-        });
+        
 
         // ====== NOTE: Gọi API lấy profile ở đây ======
         // apiGetProfile().then(data => {
         //   setUser(data);
         //   setFormData(data);
         // }).catch(() => setUser(null));
+
+        
+
+
+
+
     }, []);
 
     const handleInputChange = (e) => {

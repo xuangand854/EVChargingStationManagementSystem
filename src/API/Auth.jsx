@@ -1,11 +1,9 @@
-import { useState } from 'react';
-// import jwtDecode from 'jwt-decode';
+// import { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import api from './axios';
 // import { roleSlugMap } from '../Utils/RoleSlugMap';
 
 const BASE_URL = '/Auth';
-//lay value goi api theo key 
-
 
 
 export const getAuthStatus = () => {
@@ -16,26 +14,40 @@ export const getAuthStatus = () => {
 
   if (token) {
     try {
-      const response = await api.post(`${BASE_URL}/login`, { email, password });
-      const token = response.data;
+      const decoded = jwtDecode(token);
 
-      if (!token || typeof token !== 'string') {
-        throw new Error('Đăng nhập thất bại: Token không hợp lệ');
+      // Debug: Log decoded data để kiểm tra
+      console.log('JWT Decoded:', decoded);
+
+      return {
+        isAuthenticated: true,
+        user: {
+          email: decoded.email,
+          name: decoded.name,
+          role: decoded.role || [],
+          // Thêm các field khác có thể có trong JWT
+          userId: decoded.userId || decoded.sub || decoded.id,
+          phone: decoded.phone,
+          avatar: decoded.avatar,
+          // Log tất cả các field có trong JWT
+          ...decoded
+        },
       }
-
-      // Chỉ lưu token, không decode tại đây
-      localStorage.setItem('token', token);
-
-      return token;
-    } catch (err) {
-      setError(err.message || 'Đăng nhập thất bại');
-      throw err;
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Lỗi khi decode JWT:', error);
+      // Nếu decode lỗi, xóa token cũ
+      localStorage.removeItem('token');
+      return {
+        isAuthenticated: false,
+        user: null,
+      }
     }
-  };
+  }
 
-  return { login, loading, error };
+  return {
+    isAuthenticated: false,
+    user: null,
+  }
 };
 
 export const register = async (email, password, name, phone) => { // đăng kí tài khoản
@@ -145,5 +157,3 @@ export const resendConfirmationEmail = async (email) => { // gửi lại email x
     throw error;
   }
 }
-
-

@@ -3,7 +3,7 @@ using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.VehicleModelDto;
 using Mapster;
 using MapsterMapper;
-using Repositories.Models;
+using Infrastructure.Models;
 
 namespace APIs.Configs
 {

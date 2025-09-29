@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Repositories.Models;
+using Infrastructure.Models;
 
 namespace APIs.Controllers
 {

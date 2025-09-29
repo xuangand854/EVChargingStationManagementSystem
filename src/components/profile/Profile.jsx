@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { getAuthStatus } from "../../API/Auth";
-import { jwtDecode } from "jwt-decode";
+
 
 // Default avatars theo role
 const defaultAvatars = {

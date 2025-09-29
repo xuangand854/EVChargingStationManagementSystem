@@ -11,8 +11,8 @@ namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
     /// 
-    [DbContext(typeof(EVCSMSContext))]
-    [Migration("20250929080729_InitialCreate")]
+    //[DbContext(typeof(EVCSMSContext))]
+    //[Migration("20250929080729_InitialCreate")]
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />

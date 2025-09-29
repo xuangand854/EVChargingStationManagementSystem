@@ -28,7 +28,7 @@ logs/
 *.ipdb
 *.rsp
 
-Infrastructure/Migrations/**/*.Designer.cs
+#Infrastructure/Migrations/**/*.Designer.cs
 #**/*.Designer.csS
 
 

@@ -21,6 +21,23 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState("profile"); // "profile" | "choose-car"
     const [selectedCar, setSelectedCar] = useState(null); // Loại xe chọn
 
+<<<<<<< HEAD
+    useEffect(() => {
+        // ===== Demo profile để test bố cục =====
+        
+
+        // ====== NOTE: Gọi API lấy profile ở đây ======
+        // apiGetProfile().then(data => {
+        //   setUser(data);
+        //   setFormData(data);
+        // }).catch(() => setUser(null));
+
+        
+
+
+
+
+=======
     // useEffect(() => {
     //     // ===== Demo profile để test bố cục =====
     //     setUser({
@@ -87,6 +104,7 @@ const Profile = () => {
         };
 
         loadUserProfile();
+>>>>>>> main
     }, []);
 
 

@@ -4,12 +4,12 @@ import Layout from "./components/pages/Layout";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
-import Login from "./components/login/login";
+import Login from "./components/pages/login";
 import Profile from "./components/profile/Profile";
 
 
-import Signup from "./components/signpage/Signup";
-import Forgotpassword from "./components/forgotpass/Forgotpassword";
+import Signup from "./components/pages/Signup";
+import Forgotpassword from "./components/pages/Forgotpassword";
 // import NoPage from "./pages/NoPage";
 
 export default function App() {

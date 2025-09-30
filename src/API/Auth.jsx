@@ -105,6 +105,11 @@ export const login = async (email, password) => { // đăng nhập
     localStorage.setItem("user_role_raw", decoded.role || "customer");
     localStorage.setItem("user_avatar", decoded.avatar || "");
 
+    // Phát sự kiện để UI biết auth state đã thay đổi
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
+
     // Log để debug
     console.log('Token đã lưu:', actualToken);
     console.log('User info đã lưu:', {
@@ -157,3 +162,23 @@ export const resendConfirmationEmail = async (email) => { // gửi lại email x
     throw error;
   }
 }
+
+// Thêm hàm logout để xóa dữ liệu người dùng
+export const logout = () => {
+  try {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('email');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_role_raw');
+    localStorage.removeItem('user_avatar');
+  } finally {
+    // Phát sự kiện để UI biết auth state đã thay đổi
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.location.href = '/login';
+    }
+  }
+}
+

@@ -6,7 +6,7 @@ const BASE_URL = '/Role';
 
 export const create = async (roleName) => {
     try {
-        const response = await api.post(`${BASE_URL} / create`,
+        const response = await api.post(`${BASE_URL}/create`,
             { roleName });
         return response.data; // trả về vai trò vừa tạo
     } catch (error) {
@@ -17,7 +17,7 @@ export const create = async (roleName) => {
 
 export const addToUser = async (userId, roleName) => {
     try {
-        const response = await api.post(`${BASE_URL} / add-to-user`,
+        const response = await api.post(`${BASE_URL}/add-to-user`,
             { userId, roleName });
         return response.data; // trả về thông tin cập nhật của user
     } catch (error) {

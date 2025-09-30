@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { getAuthStatus } from "../../API/Auth";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 
 // Default avatars theo role
 const defaultAvatars = {
@@ -180,7 +180,7 @@ const Profile = () => {
                                 <p>Phone: {user.phone}</p>
                                 <p>Role: {user.role}</p>
                                 {/* Hiển thị thêm thông tin từ JWT nếu có */}
-                                {user.userId && <p>User ID: {user.userId}</p>}
+                                {/* {user.userId && <p>User ID: {user.userId}</p>} */}
                             </div>
                         ) : (
                             <div className="profile-form">

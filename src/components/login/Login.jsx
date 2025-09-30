@@ -35,11 +35,10 @@ const Login = () => {
 
     try {
       setSubmitting(true);
-      const token = await loginApi(formValues.email, formValues.password);
-      if (typeof token === 'string' && token.length > 0) {
-        localStorage.setItem('token', token);
-      }
-      navigate("/");
+      const result = await loginApi(formValues.email, formValues.password);
+      // loginApi đã lưu token vào localStorage và phát sự kiện auth-changed
+      // Điều hướng thẳng đến trang private
+      navigate("/", { replace: true });
     } catch (err) {
       const msg = typeof err === "string" ? err : (err?.message || "Đăng nhập thất bại");
       setError(msg);

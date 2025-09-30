@@ -10,8 +10,8 @@ import Logout from "./components/pages/Logout";
 import PrivateRoute from "./components/pages/PrivateRoute";
 
 
-import Signup from "./components/signpage/Signup";
-import Forgotpassword from "./components/forgotpass/Forgotpassword";
+import Signup from "./components/pages/Signup";
+import Forgotpassword from "./components/pages/Forgotpassword";
 // import NoPage from "./pages/NoPage";
 
 export default function App() {

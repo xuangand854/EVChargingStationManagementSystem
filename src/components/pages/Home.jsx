@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Home.css";
+//xin chao
 
 const Home = () => {
     const [location, setLocation] = useState("");

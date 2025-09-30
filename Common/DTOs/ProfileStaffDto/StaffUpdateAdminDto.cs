@@ -2,15 +2,16 @@
 
 namespace Common.DTOs.ProfileStaffDto
 {
-    public class StaffCreateProfileDto
+    public class StaffUpdateAdminDto
     {
-        [Required(ErrorMessage = "Tên là bắt buộc")]
-        [StringLength(100, ErrorMessage = "Tên không vượt quá 100 ký tự.")]
-        public string Name { get; set; } = string.Empty;
+        [Required(ErrorMessage = "StaffId là bắt buộc")]
+        public Guid StaffId { get; set; }
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
+        [StringLength(100, ErrorMessage = "Tên không vượt quá 100 ký tự.")]
+        public string? Name { get; set; }
+
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? PhoneNumber { get; set; }
@@ -23,8 +24,7 @@ namespace Common.DTOs.ProfileStaffDto
         [StringLength(200, ErrorMessage = "Nơi làm việc không vượt quá 200 ký tự.")]
         public string? WorkingLocation { get; set; }
 
-        [Required(ErrorMessage = "Trạng thái không được để trống")]
         [RegularExpression("Active|Inactive", ErrorMessage = "Trạng thái chỉ được là Active hoặc Inactive.")]
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; }
     }
 }

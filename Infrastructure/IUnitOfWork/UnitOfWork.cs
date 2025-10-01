@@ -10,6 +10,7 @@ namespace Infrastructure.IUnitOfWork
 
         private ISCStaffRepository? sCStaffRepository;
         private IVehicleModelRepository? vehicleModelRepository;
+        private IChargingStationRepository? chargingStationRepository;
 
         public UnitOfWork()
             => context ??= new EVCSMSContext();
@@ -50,6 +51,14 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return vehicleModelRepository ??= new VehicleModelRepository(context);
+            }
+        }
+
+        public IChargingStationRepository ChargingStationRepository
+        {
+            get
+            {
+                return chargingStationRepository ??= new ChargingStationRepository(context);
             }
         }
     }

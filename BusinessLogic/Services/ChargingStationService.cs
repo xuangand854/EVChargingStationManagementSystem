@@ -1,35 +1,37 @@
-﻿using Common;
+﻿using BusinessLogic.Base;
+using BusinessLogic.IServices;
+using Common;
+using Common.DTOs.ChargingStationDto;
 using Common.DTOs.VehicleModelDto;
+using Common.Enum.ChargingStation;
 using Common.Enum.VehicleModel;
-using Mapster;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
-using BusinessLogic.Base;
-using BusinessLogic.IServices;
+using Mapster;
 
 namespace BusinessLogic.Services
 {
-    public class VehicleModelService(IUnitOfWork unitOfWork) : IVehicleModelService
+    public class ChargingStationService(IUnitOfWork unitOfWork) : IChargingStationService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
         public async Task<IServiceResult> GetList()
         {
 
             try
             {
-                var vehicleModels = await _unitOfWork.VehicleModelRepository.GetAllAsync(
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetAllAsync(
                     predicate: v => !v.IsDeleted,
                     orderBy: q => q.OrderByDescending(v => v.CreatedAt)
                     );
-                if (vehicleModels == null || vehicleModels.Count == 0)
+                if (chargingStation == null || chargingStation.Count == 0)
                     return new ServiceResult(
-                        Const.SUCCESS_READ_CODE,
-                        "Không tìm thấy mẫu xe nào",
-                        new List<VehicleModelViewGeneralDto>());
+                        Const.FAIL_READ_CODE,
+                        "Không tìm thấy trạm sạc nào");
 
                 else
                 {
-                    var response = vehicleModels.Adapt<List<VehicleModelViewGeneralDto>>();
+                    var response = chargingStation.Adapt<List<ChargingStationViewGeneralDto>>();
                     return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
                 }
             }
@@ -39,23 +41,23 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> GetById(Guid vehicleModelId)
+        public async Task<IServiceResult> GetById(Guid StationId)
         {
 
             try
             {
-                var vehicleModels = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == vehicleModelId
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
+                    predicate: v => !v.IsDeleted && v.Id == StationId
                     );
-                if (vehicleModels == null)
+                if (chargingStation == null)
                     return new ServiceResult(
-                        Const.SUCCESS_READ_CODE,
-                        "Không tìm thấy mẫu xe nào"
+                        Const.FAIL_READ_CODE,
+                        "Không tìm thấy trạm sạc nào"
                     );
 
                 else
                 {
-                    var response = vehicleModels.Adapt<VehicleModelViewDetailDto>();
+                    var response = chargingStation.Adapt<ChargingStationViewGeneralDto>();
                     return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
                 }
             }
@@ -65,20 +67,21 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> Create(VehicleModelCreateDto dto, Guid adminId)
+        public async Task<IServiceResult> Create(ChargingStationCreateDto dto)
         {
             try
             {
-                var vehicleModel = dto.Adapt<VehicleModel>();
-                vehicleModel.Id = Guid.NewGuid();
-                vehicleModel.Status = "Inactive";
-                vehicleModel.CreatedBy = adminId;
+                var chargingStation = dto.Adapt<ChargingStation>();
+                chargingStation.Id = Guid.NewGuid();
+                chargingStation.Status = "Inactive";
+                chargingStation.CreatedAt = DateTime.Now;
+                chargingStation.UpdatedAt = DateTime.Now;
 
-                await _unitOfWork.VehicleModelRepository.CreateAsync(vehicleModel);
+                await _unitOfWork.ChargingStationRepository.CreateAsync(chargingStation);
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var response = vehicleModel.Adapt<VehicleModelViewDetailDto>();
+                    var response = chargingStation.Adapt<ChargingStationViewGeneralDto>();
                     return new ServiceResult(Const.SUCCESS_CREATE_CODE, Const.SUCCESS_CREATE_MSG, response);
                 }
                 else
@@ -90,24 +93,24 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> Update(VehicleModelUpdateDto dto, Guid vehicleModelId)
+        public async Task<IServiceResult> Update(ChargingStationUpdateDto dto, Guid stationId)
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
+                var charingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
+                    predicate: c => c.Id == stationId,
                     asNoTracking: false
                     );
-                if (vehicleModel == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                if (charingStation == null)
+                    return new ServiceResult(Const.FAIL_READ_CODE, "Trạm sạc không tồn tại");
 
-                vehicleModel = dto.Adapt(vehicleModel);
-                vehicleModel.UpdatedAt = DateTime.UtcNow;
+                charingStation = dto.Adapt(charingStation);
+                charingStation.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var response = vehicleModel.Adapt<VehicleModelViewDetailDto>();
+                    var response = charingStation.Adapt<ChargingStationViewGeneralDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
                 }
                 else
@@ -119,24 +122,24 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> UpdateStatus(VehicleModelStatus status, Guid vehicleModelId)
+        public async Task<IServiceResult> UpdateStatus(ChargingStationStatus status, Guid stationId)
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
+                    predicate: c => c.Id == stationId,
                     asNoTracking: false
                     );
-                if (vehicleModel == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                if (chargingStation == null)
+                    return new ServiceResult(Const.FAIL_READ_CODE, "Trạm sạc không tồn tại");
 
-                vehicleModel.Status = status.ToString();
-                vehicleModel.UpdatedAt = DateTime.UtcNow;
+                chargingStation.Status = status.ToString();
+                chargingStation.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var response = vehicleModel.Adapt<VehicleModelViewDetailDto>();
+                    var response = chargingStation.Adapt<ChargingStationViewGeneralDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
                 }
                 else
@@ -148,19 +151,19 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> Delete(Guid vehicleModelId)
+        public async Task<IServiceResult> Delete(Guid stationId)
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
+                    predicate: c => c.Id == stationId,
                     asNoTracking: false
                     );
-                if (vehicleModel == null)
+                if (chargingStation == null)
                     return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
 
-                vehicleModel.IsDeleted = true;
-                vehicleModel.UpdatedAt = DateTime.UtcNow;
+                chargingStation.IsDeleted = true;
+                chargingStation.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)

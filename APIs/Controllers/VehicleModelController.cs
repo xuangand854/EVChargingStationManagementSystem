@@ -57,13 +57,15 @@ namespace APIs.Controllers
             {
                 return Unauthorized(new { message = "Không xác định được userId từ token." });
             }
+
             var result = await _service.Create(dto, userId);
 
             if (result.Status == Const.FAIL_CREATE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
-            if (result.Status == Const.SUCCESS_CREATE_CODE)
-                return Ok(new { data = result.Data, message = result.Message });
+            if (result.Status == Const.SUCCESS_CREATE_CODE && result.Data is VehicleModelViewDetailDto viewDto)
+                return CreatedAtAction(nameof(GetBydId), new { vehicleModelId = viewDto.Id },
+                        new { data = result.Data, message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
         }
@@ -74,19 +76,14 @@ namespace APIs.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            Guid userId;
-            try
-            {
-                userId = User.GetUserId();
-            }
-            catch
-            {
-                return Unauthorized(new { message = "Không xác định được userId từ token." });
-            }
+
             var result = await _service.Update(dto, vehicleModelId);
 
+            if (result.Status == Const.FAIL_READ_CODE)
+                return NotFound(new { message = result.Message });
+
             if (result.Status == Const.FAIL_UPDATE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -100,22 +97,14 @@ namespace APIs.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            Guid userId;
-            try
-            {
-                userId = User.GetUserId();
-            }
-            catch
-            {
-                return Unauthorized(new { message = "Không xác định được userId từ token." });
-            }
+
             var result = await _service.UpdateStatus(status, vehicleModelId);
 
             if (result.Status == Const.FAIL_READ_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -127,27 +116,16 @@ namespace APIs.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid vehicleModelId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            Guid userId;
-            try
-            {
-                userId = User.GetUserId();
-            }
-            catch
-            {
-                return Unauthorized(new { message = "Không xác định được userId từ token." });
-            }
             var result = await _service.Delete(vehicleModelId);
 
             if (result.Status == Const.FAIL_READ_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_DELETE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_DELETE_CODE)
-                return Ok(new { message = result.Message });
+                return NoContent();
 
             return StatusCode(500, new { message = result.Message });
         }

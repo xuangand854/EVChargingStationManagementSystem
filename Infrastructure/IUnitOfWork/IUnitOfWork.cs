@@ -8,5 +8,7 @@ namespace Infrastructure.IUnitOfWork
         ISCStaffRepository SCStaffRepository { get; }
         IVehicleModelRepository VehicleModelRepository { get; }
 
+        IChargingStationRepository ChargingStationRepository { get; }
+
     }
 }

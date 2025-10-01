@@ -1,9 +1,10 @@
 ﻿using Common.DTOs.AuthDto;
+using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.VehicleModelDto;
+using Infrastructure.Models;
 using Mapster;
 using MapsterMapper;
-using Infrastructure.Models;
 
 namespace APIs.Configs
 {
@@ -37,6 +38,9 @@ namespace APIs.Configs
                 .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);
 
             TypeAdapterConfig<VehicleModelUpdateDto, VehicleModel>.NewConfig()
+                .IgnoreNullValues(true);
+
+            TypeAdapterConfig<ChargingStationUpdateDto, ChargingStation>.NewConfig()
                 .IgnoreNullValues(true);
 
             return services;

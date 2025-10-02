@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import "./Layout.css";
 import { getAuthStatus } from "../../API/Auth";
 import { useEffect, useState } from "react";
+import ProfileMenu from "../profile/ProfileMenu";
 
 
 const Layout = () => {
@@ -46,11 +47,9 @@ const Layout = () => {
                     {isAuthenticated && (
                         <>
                             <li>
-                                <Link to="/profile">Profile</Link>
-                            </li>
-                            <li>
-                                <Link to="/Logout">Logout</Link>
-                            </li>
+                            {/* Thay vì hiện Profile/Logout link → hiện avatar dropdown */}
+                            <ProfileMenu />
+                        </li>
                         </>
                     )}
                     {/* Admin */}

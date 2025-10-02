@@ -6,8 +6,11 @@ import About from "./components/pages/About";
 import Contact from "./components/pages/Contact";
 import Login from "./components/pages/Login";
 import Profile from "./components/profile/Profile";
+
 import Logout from "./components/pages/Logout";
 import PrivateRoute from "./components/pages/PrivateRoute";
+import Order from "./components/profile/Order"
+import Car from "./components/profile/Car"
 
 
 import Signup from "./components/pages/Signup";
@@ -25,8 +28,15 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
+
           <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="Logout" element={<Logout />} />
+          <Route path="orders" element={<Order />} />
+          <Route path="car" element={<Car />} />
+
+          
+
+
 
 
 

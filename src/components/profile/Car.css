@@ -1,0 +1,51 @@
+/* MyVehicles.css */
+.my-vehicles-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 25px;
+    border: 2px solid #ddd;
+    border-radius: 16px;
+    background: #f9f9f9;
+  }
+  .my-vehicles-container h2 {
+    color: #333; /* hoặc bất cứ màu nào nổi bật hơn nền */
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+  
+  .vehicle-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+  }
+  
+  .vehicle-image {
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+  }
+  
+  .vehicle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 450px;
+  }
+  
+  .vehicle-info label {
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  
+  .vehicle-info select {
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  

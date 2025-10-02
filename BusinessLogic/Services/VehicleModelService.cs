@@ -23,7 +23,7 @@ namespace BusinessLogic.Services
                     );
                 if (vehicleModels == null || vehicleModels.Count == 0)
                     return new ServiceResult(
-                        Const.SUCCESS_READ_CODE,
+                        Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy mẫu xe nào",
                         new List<VehicleModelViewGeneralDto>());
 
@@ -49,7 +49,7 @@ namespace BusinessLogic.Services
                     );
                 if (vehicleModels == null)
                     return new ServiceResult(
-                        Const.SUCCESS_READ_CODE,
+                        Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy mẫu xe nào"
                     );
 
@@ -99,7 +99,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (vehicleModel == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
                 vehicleModel = dto.Adapt(vehicleModel);
                 vehicleModel.UpdatedAt = DateTime.UtcNow;
@@ -128,7 +128,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (vehicleModel == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
                 vehicleModel.Status = status.ToString();
                 vehicleModel.UpdatedAt = DateTime.UtcNow;
@@ -157,7 +157,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (vehicleModel == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
                 vehicleModel.IsDeleted = true;
                 vehicleModel.UpdatedAt = DateTime.UtcNow;

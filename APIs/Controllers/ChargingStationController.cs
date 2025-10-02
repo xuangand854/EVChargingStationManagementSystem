@@ -20,7 +20,7 @@ namespace APIs.Controllers
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
@@ -34,7 +34,7 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
@@ -71,7 +71,7 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
@@ -89,7 +89,7 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
@@ -107,7 +107,7 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_DELETE_CODE)
                 return NoContent();
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_DELETE_CODE)

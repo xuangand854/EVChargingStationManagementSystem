@@ -1,0 +1,147 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Reset cơ bản */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Background body cho Signup */
+.signup-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #7519e0ff;
+  /* màu nền Signup */
+}
+
+/* Container form với animation */
+.Signup-container {
+  max-width: 410px;
+  margin: 80px auto 0;
+  /* thêm khoảng cách trên cùng */
+  border-radius: 0.5rem;
+  padding: 2rem 1.5rem;
+  background: white;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+
+  opacity: 0;
+  transform: translateY(-50px);
+  animation: fadeInUp 0.6s forwards;
+}
+
+/* Keyframes animation */
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tiêu đề form */
+.Signup-container .form-title {
+  text-align: center;
+  font-size: 1.37rem;
+  font-weight: 600;
+  margin-bottom: 1.87rem;
+  color: #000000;
+  /* màu đen */
+}
+
+/* Form */
+.Signup-form .input-wrapper {
+  height: 54px;
+  width: 100%;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.Signup-form .input-wrapper .input-field {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  font-size: 1.06rem;
+  border-radius: 0.31rem;
+  border: 1px solid #bfb3f2;
+  padding: 0 1.25rem 0 3.12rem;
+  transition: 0.2s ease;
+}
+
+.Signup-form .input-wrapper .input-field:focus {
+  border-color: #983af5ff;
+  /* màu xanh riêng Signup */
+}
+
+.Signup-form .input-wrapper .input-field::placeholder {
+  color: #a395e0;
+}
+
+.Signup-form .input-wrapper i {
+  color: #a395e0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: 0.2s ease;
+}
+
+.Signup-form .input-wrapper i:not(.eye-icon) {
+  left: 0.9rem;
+  pointer-events: none;
+}
+
+.Signup-form .input-wrapper .input-field:focus~i:not(.eye-icon) {
+  color: #a92df1ff;
+}
+
+.Signup-form .input-wrapper i.eye-icon {
+  font-size: 1.25rem;
+  cursor: pointer;
+  right: 0.9rem;
+  display: none;
+}
+
+.Signup-form .input-wrapper .input-field:valid~i.eye-icon {
+  display: block;
+}
+
+/* Button */
+.Signup-form .login-button {
+  width: 100%;
+  height: 54px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  font-size: 1.125rem;
+  background: #9a35f3ff;
+  margin-top: 2.19rem;
+  border-radius: 0.31rem;
+  transition: 0.2s ease, transform 0.2s;
+}
+
+.Signup-form .login-button:hover {
+  background: #ab33e7ff;
+  transform: translateY(-2px);
+}
+
+/* Text dưới form */
+.Signup-container .signup-text {
+  text-align: center;
+  font-weight: 500;
+  margin: 1.75rem 0 0.31rem;
+}
+
+.Signup-container a {
+  color: #d230f3ff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.Signup-container a:hover {
+  text-decoration: underline;
+}

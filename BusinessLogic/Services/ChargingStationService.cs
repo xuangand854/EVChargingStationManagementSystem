@@ -26,7 +26,7 @@ namespace BusinessLogic.Services
                     );
                 if (chargingStation == null || chargingStation.Count == 0)
                     return new ServiceResult(
-                        Const.FAIL_READ_CODE,
+                        Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy trạm sạc nào");
 
                 else
@@ -51,7 +51,7 @@ namespace BusinessLogic.Services
                     );
                 if (chargingStation == null)
                     return new ServiceResult(
-                        Const.FAIL_READ_CODE,
+                        Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy trạm sạc nào"
                     );
 
@@ -102,7 +102,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (charingStation == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Trạm sạc không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 
                 charingStation = dto.Adapt(charingStation);
                 charingStation.UpdatedAt = DateTime.UtcNow;
@@ -131,7 +131,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (chargingStation == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Trạm sạc không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 
                 chargingStation.Status = status.ToString();
                 chargingStation.UpdatedAt = DateTime.UtcNow;
@@ -160,7 +160,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (chargingStation == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Mẫu xe không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
                 chargingStation.IsDeleted = true;
                 chargingStation.UpdatedAt = DateTime.UtcNow;

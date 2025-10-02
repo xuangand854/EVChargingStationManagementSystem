@@ -19,7 +19,7 @@ namespace APIs.Controllers
         {
             var result = await _service.GetList();
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_READ_CODE)
@@ -33,7 +33,7 @@ namespace APIs.Controllers
         {
             var result = await _service.GetById(vehicleModelId);
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_READ_CODE)
@@ -79,7 +79,7 @@ namespace APIs.Controllers
 
             var result = await _service.Update(dto, vehicleModelId);
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
@@ -100,7 +100,7 @@ namespace APIs.Controllers
 
             var result = await _service.UpdateStatus(status, vehicleModelId);
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
@@ -118,7 +118,7 @@ namespace APIs.Controllers
         {
             var result = await _service.Delete(vehicleModelId);
 
-            if (result.Status == Const.FAIL_READ_CODE)
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_DELETE_CODE)

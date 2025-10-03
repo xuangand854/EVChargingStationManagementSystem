@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { getAuthStatus } from "../../API/Auth";
-// Nếu cần decode JWT thì bật dòng dưới
-// import { jwtDecode } from "jwt-decode";
 
 const defaultAvatars = {
   customer: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
@@ -20,7 +18,7 @@ const Profile = () => {
     phone: "",
     role: "customer",
     avatar: "",
-    vehicle: "",
+    car: "",   
   });
   const [passwordData, setPasswordData] = useState({
     oldPass: "",
@@ -28,16 +26,10 @@ const Profile = () => {
     confirmPass: "",
   });
 
-  // tab menu bên trái
-  const [activeTab, setActiveTab] = useState("profile");
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedCar, setSelectedCar] = useState(null);
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const authStatus = await getAuthStatus();
-        console.log("API trả về:", authStatus);
 
         if (authStatus.isAuthenticated && authStatus.user) {
           const roleRaw = Array.isArray(authStatus.user.role)
@@ -51,7 +43,7 @@ const Profile = () => {
             phone: authStatus.user.phone || "Chưa cập nhật",
             role,
             avatar: authStatus.user.avatar || "",
-            vehicle: authStatus.user.vehicle || "Chưa có xe",
+            car: authStatus.user.car || "Chưa có xe", 
           };
           setUser(userData);
           setFormData(userData);
@@ -93,121 +85,158 @@ const Profile = () => {
   if (!user) return <p>Bạn chưa đăng nhập</p>;
 
   return (
-    <div className="profile-page-container">
-      {/* Bên trái: menu */}
-      <div className="profile-left">
-        <h3>Menu</h3>
-        <button onClick={() => { setActiveTab("profile"); setIsEditing(false); }}>
-          Xem thông tin
-        </button>
-        <button onClick={() => { setActiveTab("profile"); setIsEditing(true); }}>
-          Chỉnh sửa thông tin
-        </button>
-        <button onClick={() => { setActiveTab("choose-car"); setIsEditing(false); }}>
-          Chọn loại xe
-        </button>
-      </div>
+    <div className="profile-wrapper">
+      {/* Sidebar bên trái */}
+      <div className="profile-sidebar">
+        <div className="sidebar-card user-card">
+          <img
+            src={user.avatar || defaultAvatars[user.role]}
+            alt="avatar"
+            className="avatar"
+          />
+          <p className="welcome">Xin chào,</p>
+          <h3>{user.name}</h3>
+        </div>
 
-      {/* Giữa: nội dung hiển thị */}
-      <div className="profile-center">
-        {activeTab === "profile" && (
-          <>
-            <div className="profile-avatar">
-              <img
-                src={user.avatar || defaultAvatars[user.role] || defaultAvatars.customer}
-                alt="User Avatar"
-              />
-            </div>
-
-            {!isEditing ? (
-              <div className="profile-info">
-                <h2>{user.name}</h2>
-                <p>Email: {user.email}</p>
-                <p>Phone: {user.phone}</p>
-                <p>Role: {user.role}</p>
-                <p>Loại xe: {user.vehicle}</p>
-              </div>
-            ) : (
-              <div className="profile-form">
-                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="Name" />
-                <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" />
-                <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone" />
-                <div className="form-buttons">
-                  <button onClick={handleSaveProfile}>Save</button>
-                  <button onClick={() => setIsEditing(false)}>Cancel</button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === "choose-car" && (
-          <div className="choose-car-section">
-            <h2>Chọn loại xe</h2>
-            <div className="car-list">
-              {["VF8", "VF9", "VF e34"].map((car) => (
-                <div
-                  key={car}
-                  className={`car-item ${selectedCar === car ? "selected" : ""}`}
-                  onClick={() => setSelectedCar(car)}
-                >
-                  {car}
-                </div>
-              ))}
-            </div>
-            {selectedCar && <p>Bạn chọn: {selectedCar}</p>}
+        <div className="sidebar-card notice-card">
+          <p className="warning">⚠️ Bạn chưa liên kết tài khoản</p>
+          <p className="desc">
+            Hãy truy cập web quản lý trạm sạc và liên kết tài khoản bằng Email hoặc SĐT
+            để nhận các ưu đãi đặc quyền.
+          </p>
+          <a href="#">Xem hướng dẫn</a>
+          <div className="app-links">
+            <img
+              src="https://developer.android.com/images/brand/en_generic_rgb_wo_45.png"
+              alt="Google Play"
+            />
+            <img
+              src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+              alt="App Store"
+            />
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Bên phải: nội dung nâng cao */}
-      <div className="profile-content">
+      {/* Nội dung bên phải */}
+      <div className="profile-main">
         <div className="profile-card">
           <div className="profile-header">
             <h2>Thông tin cá nhân</h2>
             {mode === "view" && (
-              <div className="actions">
-                <button className="edit-btn" onClick={() => setMode("edit")}>✏️ Chỉnh sửa</button>
-                <button className="password-btn" onClick={() => setMode("password")}>🔑 Đổi mật khẩu</button>
-              </div>
+              <button
+                className="edit-btn"
+                onClick={() => setMode("edit")}
+              >
+                Chỉnh sửa thông tin
+              </button>
             )}
           </div>
 
+          {/* View info */}
           {mode === "view" && (
             <div className="profile-info">
-              <div className="info-row"><span className="label">Họ và tên:</span> <span>{user.name}</span></div>
-              <div className="info-row"><span className="label">Email:</span> <span>{user.email}</span></div>
-              <div className="info-row"><span className="label">Số điện thoại:</span> <span>{user.phone}</span></div>
-              <div className="info-row"><span className="label">Vai trò:</span> <span>{user.role}</span></div>
-              <div className="info-row"><span className="label">Loại xe:</span> <span>{user.vehicle}</span></div>
-            </div>
-          )}
+              <div className="info-row">
+                <span className="label">Họ và tên</span>
+                <span>{user.name}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Email</span>
+                <span>{user.email}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Số điện thoại</span>
+                <span>{user.phone}</span>
+              </div>
+              <div className="info-row">
+                <span className="label">Car</span>
+                <span>{user.car}</span>
+              </div>
 
-          {mode === "edit" && (
-            <div className="profile-form">
-              <h3>Chỉnh sửa thông tin</h3>
-              <input type="text" name="name" value={formData.name || ""} onChange={handleInputChange} placeholder="Họ và tên" />
-              <input type="email" name="email" value={formData.email || ""} onChange={handleInputChange} placeholder="Email" />
-              <input type="text" name="phone" value={formData.phone || ""} onChange={handleInputChange} placeholder="Số điện thoại" />
-              <div className="form-buttons">
-                <button className="save" onClick={handleSaveProfile}>💾 Lưu</button>
-                <button className="cancel" onClick={() => setMode("view")}>❌ Hủy</button>
+              <div className="info-row">
+                <span className="label">Mật khẩu</span>
+                <button
+                  className="link-btn"
+                  onClick={() => setMode("password")}
+                >
+                  Đổi mật khẩu
+                </button>
               </div>
             </div>
           )}
 
-          {mode === "password" && (
-            <div className="profile-form profile-form-password">
-              <h3>Đổi mật khẩu</h3>
-              <input type="password" placeholder="Mật khẩu cũ" value={passwordData.oldPass}
-                     onChange={(e) => setPasswordData({ ...passwordData, oldPass: e.target.value })} />
-              <input type="password" placeholder="Mật khẩu mới" value={passwordData.newPass}
-                     onChange={(e) => setPasswordData({ ...passwordData, newPass: e.target.value })} />
-              <input type="password" placeholder="Xác nhận mật khẩu mới" value={passwordData.confirmPass}
-                     onChange={(e) => setPasswordData({ ...passwordData, confirmPass: e.target.value })} />
+          {/* Edit form */}
+          {mode === "edit" && (
+            <div className="profile-form">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Họ và tên"
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Email"
+              />
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Số điện thoại"
+              />
               <div className="form-buttons">
-                <button className="save" onClick={handlePasswordChange}>🔑 Đổi mật khẩu</button>
-                <button className="cancel" onClick={() => setMode("view")}>❌ Hủy</button>
+                <button className="save" onClick={handleSaveProfile}>
+                  Lưu
+                </button>
+                <button className="cancel" onClick={() => setMode("view")}>
+                  Hủy
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Password form */}
+          {mode === "password" && (
+            <div className="profile-form">
+              <input
+                type="password"
+                placeholder="Mật khẩu cũ"
+                value={passwordData.oldPass}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, oldPass: e.target.value })
+                }
+              />
+              <input
+                type="password"
+                placeholder="Mật khẩu mới"
+                value={passwordData.newPass}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, newPass: e.target.value })
+                }
+              />
+              <input
+                type="password"
+                placeholder="Xác nhận mật khẩu mới"
+                value={passwordData.confirmPass}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    confirmPass: e.target.value,
+                  })
+                }
+              />
+              <div className="form-buttons">
+                <button className="save" onClick={handlePasswordChange}>
+                  Đổi mật khẩu
+                </button>
+                <button className="cancel" onClick={() => setMode("view")}>
+                  Hủy
+                </button>
               </div>
             </div>
           )}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Home.css";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup ,useMap} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -14,24 +14,57 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+// Component để zoom tới station khi chọn
+const FlyToStation = ({ station }) => {
+  const map = useMap();
+  if (station?.coords) {
+    map.flyTo(station.coords, 15); // CHỈNH Ở ĐÂY: bay tới vị trí station
+  }
+  return null;
+};
 
-//xin chao
 
 const Home = () => {
-    const [location, setLocation] = useState("");
-    const [stations, setStations] = useState([]);
+    
+    const [stations] = useState([
+        { id: 1, name: "Station A", address: "123 Main St, HCM", slots: 5, coords: [10.78, 106.70]},
+        { id: 2, name: "Station B", address: "456 Elm St, HCM", slots: 3 , coords: [10.775, 106.705]},
+        { id: 3, name: "Station C", address: "789 Oak St, HCM", slots: 0 , coords: [10.77, 106.695]},
+    ]);
     const [selectedStation, setSelectedStation] = useState(null);
     const [bookingTime, setBookingTime] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
 
     // Giả lập API tìm kiếm trạm sạc
-    const handleSearch = () => {
-        const mockStations = [
-            { id: 1, name: "Station A", address: "123 Main St", slots: 5 },
-            { id: 2, name: "Station B", address: "456 Elm St", slots: 3 },
-            { id: 3, name: "Station C", address: "789 Oak St", slots: 0 },
-        ];
-        setStations(mockStations);
-    };
+    // const handleSearch = (value) => {
+    //     setLocation(value);
+    //     const mockStations = [
+    //         { id: 1, name: "Station A", address: "123 Main St, HCM", slots: 5, coords: [10.78, 106.70]},
+    //         { id: 2, name: "Station B", address: "456 Elm St, HCM", slots: 3 , coords: [10.775, 106.705]},
+    //         { id: 3, name: "Station C", address: "789 Oak St, HCM", slots: 0 , coords: [10.77, 106.695]},
+    //     ];
+        
+    //     if (value) {
+    //         const filtered = mockStations.filter(
+    //             (s) =>
+    //                 s.name.toLowerCase().includes(value.toLowerCase()) ||
+    //                 s.address.toLowerCase().includes(value.toLowerCase())
+    //         );
+    //         setStations(filtered);
+    //         setSuggestions(filtered);
+    //     } else {
+    //         setStations(mockStations);
+    //         setSuggestions([]);
+    //     }
+    // };
+    // Khi chọn station
+        const handleSelectStation = (station) => {
+            setSelectedStation(station);
+            
+            setSuggestions([]);
+        };
+
+
 
     // Xử lý đặt slot sạc
     const handleBooking = () => {
@@ -136,69 +169,85 @@ const Home = () => {
                 </section>
             </section>
 
-                        {/* Search Section */}
-            <section className="section section-search" id="search">
-                <section className="home-search">
-                    <h2 className="section-title">Tìm trạm sạc gần bạn</h2>
-                    <div className="search-bar">
-                        <input
-                            type="text"
-                            placeholder="Nhập địa điểm, quận, tỉnh..."
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
-                        <button className="btn btn-primary" onClick={handleSearch}>Tìm kiếm</button>
-                    </div>
-                    <div className="station-list">
-                        {stations.map((station) => (
-                            <div
-                                key={station.id}
-                                className={`station ${station.slots > 0 ? "available" : "unavailable"}`}
-                                onClick={() => setSelectedStation(station)}
-                            >
-                                <div className="station-header">
-                                    <h3>{station.name}</h3>
-                                    <span className={`badge ${station.slots > 0 ? 'ok' : 'bad'}`}>{station.slots > 0 ? 'Còn chỗ' : 'Hết chỗ'}</span>
-                                </div>
-                                <p>{station.address}</p>
-                                <div className="station-meta">
-                                    <span>Slots: {station.slots}</span>
-                                    <button className="btn btn-ghost sm">Chi tiết</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    {/* Search Section */}
+                    <section className="section section-search" id="search">
+                    <section className="home-search">
+                        <h2 className="section-title">Tìm trạm sạc gần bạn</h2>
 
-                    {/* OpenStreetMap Integration */}
-                    <div className="map-container">
+                        {/* Nút mở popup chọn trạm */}
+                        <div className="search-bar">
+                        <button 
+                            className="btn btn-primary" 
+                            onClick={() => setSuggestions(stations)} // mở danh sách trong popup
+                        >
+                            Chọn trạm sạc
+                        </button>
+                        </div>
+
+                        {/* Popup danh sách trạm */}
+                        {suggestions.length > 0 && (
+                        <div className="popup-overlay">
+                            <div className="popup-content">
+                            <h3>Danh sách trạm</h3>
+                            <ul className="station-select-list">
+                                {suggestions.map((station) => (
+                                <li 
+                                    key={station.id} 
+                                    onClick={() => {
+                                    handleSelectStation(station);
+                                    setSuggestions([]); // đóng popup
+                                    }}
+                                >
+                                    <b>{station.name}</b> - {station.address}
+                                </li>
+                                ))}
+                            </ul>
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={() => setSuggestions([])} // đóng popup khi bấm hủy
+                            >
+                                Đóng
+                            </button>
+                            </div>
+                        </div>
+                        )}
+
+                        {/* OpenStreetMap Integration */}
+                        <div className="map-container">
                         <MapContainer 
-                            center={[21.0285, 105.8542]} // Default Hà Nội
+                            center={[10.7769, 106.7009]} // Default Hồ Chí Minh
                             zoom={13} 
                             style={{ height: "400px", width: "100%", marginTop: "20px", borderRadius: "12px" }}
                         >
                             <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
+
+                            {/* Hiển thị tất cả marker */}
                             {stations.map((station) => (
-                                <Marker 
-                                    key={station.id} 
-                                    position={[
-                                        21.0285 + (Math.random() - 0.5) * 0.05, 
-                                        105.8542 + (Math.random() - 0.5) * 0.05
-                                    ]}
-                                >
-                                    <Popup>
-                                        <b>{station.name}</b><br />
-                                        {station.address}<br />
-                                        Slots: {station.slots}
-                                    </Popup>
-                                </Marker>
+                            <Marker 
+                                key={station.id} 
+                                position={station.coords}
+                                eventHandlers={{
+                                click: () => handleSelectStation(station), // Click vào marker -> chọn
+                                }}
+                            >
+                                <Popup>
+                                <b>{station.name}</b><br />
+                                {station.address}<br />
+                                Slots: {station.slots}
+                                </Popup>
+                            </Marker>
                             ))}
+
+                            {/* Khi có station được chọn thì bay đến */}
+                            {selectedStation && <FlyToStation station={selectedStation} />}
                         </MapContainer>
-                    </div>
-                </section>
-            </section>
+                        </div>
+                    </section>
+                    </section>
+
 
 
             {/* Booking Section (conditional) */}

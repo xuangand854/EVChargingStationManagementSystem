@@ -379,3 +379,25 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
+.popup-overlay {
+    position: fixed; /* nổi lên trên tất cả */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5); /* nền mờ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* chắc chắn nổi trên tất cả */
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 20px;
+    color:black;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}

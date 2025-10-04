@@ -1,5 +1,20 @@
 import React, { useState } from "react";
 import "./Home.css";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
 //xin chao
 
 const Home = () => {
@@ -121,7 +136,7 @@ const Home = () => {
                 </section>
             </section>
 
-            {/* Search Section */}
+                        {/* Search Section */}
             <section className="section section-search" id="search">
                 <section className="home-search">
                     <h2 className="section-title">Tìm trạm sạc gần bạn</h2>
@@ -153,8 +168,38 @@ const Home = () => {
                             </div>
                         ))}
                     </div>
+
+                    {/* OpenStreetMap Integration */}
+                    <div className="map-container">
+                        <MapContainer 
+                            center={[21.0285, 105.8542]} // Default Hà Nội
+                            zoom={13} 
+                            style={{ height: "400px", width: "100%", marginTop: "20px", borderRadius: "12px" }}
+                        >
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            {stations.map((station) => (
+                                <Marker 
+                                    key={station.id} 
+                                    position={[
+                                        21.0285 + (Math.random() - 0.5) * 0.05, 
+                                        105.8542 + (Math.random() - 0.5) * 0.05
+                                    ]}
+                                >
+                                    <Popup>
+                                        <b>{station.name}</b><br />
+                                        {station.address}<br />
+                                        Slots: {station.slots}
+                                    </Popup>
+                                </Marker>
+                            ))}
+                        </MapContainer>
+                    </div>
                 </section>
             </section>
+
 
             {/* Booking Section (conditional) */}
             {selectedStation && (

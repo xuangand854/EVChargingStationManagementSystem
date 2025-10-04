@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 // import Layout from "./pages/Layout";
+
 import Layout from "./components/pages/Layout";
 import Home from "./components/pages/Home";
 import About from "./components/pages/About";
@@ -15,6 +16,8 @@ import Car from "./components/profile/Car"
 
 import Signup from "./components/pages/Signup";
 import Forgotpassword from "./components/pages/Forgotpassword";
+import OrderChargingST from "./components/ordercharging/OrderChargingST";
+
 // import NoPage from "./pages/NoPage";
 
 export default function App() {
@@ -33,6 +36,8 @@ export default function App() {
           <Route path="Logout" element={<Logout />} />
           <Route path="orders" element={<Order />} />
           <Route path="car" element={<Car />} />
+          <Route path="order-charging" element={<OrderChargingST />} />
+
 
           
 

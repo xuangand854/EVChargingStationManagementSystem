@@ -52,6 +52,12 @@ const Layout = () => {
                         </li>
                         </>
                     )}
+                    {/* OrderCharging */}
+                    <>
+                        <li>
+                            <Link to="/order-charging">Đặt Trạm Sạc</Link>
+                        </li>
+                    </>
                     {/* Admin */}
                     {role === "Admin" && (
                         <li>

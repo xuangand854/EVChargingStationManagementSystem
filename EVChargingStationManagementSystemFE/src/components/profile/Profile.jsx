@@ -29,6 +29,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        
         const authStatus = await getAuthStatus();
 
         if (authStatus.isAuthenticated && authStatus.user) {

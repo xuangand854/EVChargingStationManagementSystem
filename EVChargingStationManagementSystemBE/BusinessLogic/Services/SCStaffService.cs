@@ -13,7 +13,7 @@ namespace BusinessLogic.Services
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        // ✅ Get staff by Id
+        // Get staff by Id
         public async Task<IServiceResult> GetById(Guid id)
         {
             var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
@@ -29,7 +29,7 @@ namespace BusinessLogic.Services
             return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, dto);
         }
 
-        // ✅ Create staff profile (Admin)
+        //  Create staff profile (Admin)
         public async Task<IServiceResult> CreateStaffProfile(StaffCreateProfileDto dto, Guid accountId)
         {
             try
@@ -66,7 +66,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        // ✅ Update profile by Admin
+        //  Update profile by Admin
         public async Task<IServiceResult> UpdateProfileByAdmin(StaffUpdateAdminDto dto)
         {
             try
@@ -128,7 +128,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // ✅ Update profile by Staff (chỉ được sửa số điện thoại, địa chỉ, avatar)
+        //  Update profile by Staff (chỉ được sửa số điện thoại, địa chỉ, avatar)
         public async Task<IServiceResult> UpdateProfileByStaff(StaffUpdateDto dto)
         {
             try
@@ -185,7 +185,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // ✅ Update staff status (Admin)
+        //  Update staff status (Admin)
         public async Task<IServiceResult> UpdateStaffStatus(StaffUpdateStatusDto dto)
         {
             try
@@ -214,7 +214,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        // ✅ Delete staff (soft delete)
+        //  Delete staff (soft delete)
         public async Task<IServiceResult> Delete(Guid staffId)
         {
             try

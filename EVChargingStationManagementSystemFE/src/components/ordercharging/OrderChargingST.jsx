@@ -185,8 +185,21 @@ const OrderChargingST = () => {
               <label>Thời gian bắt đầu:</label>
               <input type="datetime-local" />
 
-              <label>Thời gian kết thúc:</label>
-              <input type="datetime-local" />
+              <label>Loại xe</label>
+              <input list="carTypes" name="carType" placeholder="Chọn loại xe..." />
+              <datalist id="carTypes">
+                <option value="Xe máy điện" />
+                <option value="Ô tô điện" />
+                <option value="Xe bus điện" />
+              </datalist>
+
+              <label>Loại sạc</label>
+              <input list="chargerTypes" name="chargerType" placeholder="Chọn loại sạc..." />
+              <datalist id="chargerTypes">
+                <option value="AC Normal" />
+                <option value="DC Fast" />
+                <option value="Super Fast" />
+              </datalist>
 
 
               <button type="submit">Xác nhận đặt</button>

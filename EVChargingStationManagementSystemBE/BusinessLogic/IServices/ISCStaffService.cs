@@ -1,6 +1,6 @@
 ﻿using BusinessLogic.Base;
+using Common.DTOs.AccountDto;
 using Common.DTOs.ProfileStaffDto;
-using Common.StaffDto;
 
 namespace BusinessLogic.IServices
 {
@@ -24,7 +24,7 @@ namespace BusinessLogic.IServices
         // Admin xóa staff (soft delete)
         Task<IServiceResult> Delete(Guid staffId);
         // Admin tạo account cho staff 
-        Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto);
+        //Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto);
 
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.StaffDto
+namespace Common.DTOs.AccountDto
 {
     public class StaffAccountCreateDto
     {

@@ -1,289 +1,205 @@
-
 import React, { useEffect, useState } from "react";
-import "./OrderChargingST.css"; 
-import { getAuthStatus } from "../../API/Auth";
+import "./OrderChargingST.css";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// 🧭 Icon marker
+const markerIcon = new L.Icon({
+  iconUrl: "/img/9138039.png", // icon trạm sạc
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+});
+
+// 📍 Component giúp map bay đến trạm được chọn
+const FlyToStation = ({ station }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (station?.latitude && station?.longitude) {
+      map.flyTo([station.latitude, station.longitude], 15, { duration: 1.5 });
+    }
+  }, [station, map]);
+  return null;
+};
 
 const OrderChargingST = () => {
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    carModel: "",
-    km: "",
-    licensePlate: "",
-    service: [],
-    province: "",
-    district: "",
-    locationType: "station",
-    date: "",
-    time: "",
-    note: "",
-  });
-  useEffect(()=>{
-    const fetchUser = async()=>{
-        try {
-            
-            const authStatus = await getAuthStatus();
-            if(authStatus.isAuthenticated && authStatus.user){
-                const userData={
-                    fullName: authStatus.user.name || "",
-                    phone: authStatus.user.phone || "",
-                    email: authStatus.user.email || "",
-                    carModel: authStatus.user.car || "",
-                };
-                setUser(userData);
-                setFormData((prev) => ({
-                    ...prev,
-                    fullName: userData.fullName,
-                    phone: userData.phone,
-                    email: userData.email,
-                    carModel: userData.carModel,
-                }));
-            }else{
-                setUser(null);
-            }
-            
-        } catch (err) {
-            console.err("lỗi khi lấy thông tin",err);
-            setUser(null);
-        }finally{
-            setLoading(false);
-        }
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [stations, setStations] = useState([]);
+
+  // 🧩 thêm state popup đặt lịch
+  const [showBookingPopup, setShowBookingPopup] = useState(false);
+
+  // TODO: Gọi API danh sách trạm sạc sau này
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const mockData = [
+          {
+            id: 1,
+            name: "Trạm sạc VinFast Quận 1",
+            address: "123 Nguyễn Huệ, Quận 1, HCM",
+            slots: 5,
+            type: "DC Fast",
+            latitude: 10.7769,
+            longitude: 106.7009,
+            image: "/img/station.png",
+          },
+          {
+            id: 2,
+            name: "Trạm sạc Landmark 81",
+            address: "720A Điện Biên Phủ, Bình Thạnh, HCM",
+            slots: 3,
+            type: "AC Normal",
+            latitude: 10.7945,
+            longitude: 106.7218,
+            image: "/img/station.png",
+          },
+          {
+            id: 3,
+            name: "Trạm sạc AEON Tân Phú",
+            address: "30 Bờ Bao Tân Thắng, Tân Phú, HCM",
+            slots: 0,
+            type: "AC Normal",
+            latitude: 10.8012,
+            longitude: 106.6265,
+            image: "/img/station.png",
+          },
+        ];
+        setStations(mockData);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách trạm:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchUser();
-  },[]);
-  
+    fetchStations();
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === "checkbox") {
-      setFormData((prev) => {
-        const newServices = checked
-          ? [...prev.service, value]
-          : prev.service.filter((s) => s !== value);
-        return { ...prev, service: newServices };
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!user) {
-      alert("Bạn phải đăng nhập để đặt lịch!");
-      return;
-    }
-    console.log("Thông tin đặt lịch:", formData);
-    alert("Đặt lịch thành công!");
-  };
-
-  if (loading) return <p>Đang tải...</p>;
-
-  if (!user) {
-    return (
-      <div className="order-wrapper">
-      <h2>Đặt lịch trạm sạc</h2>
-      <p className="must-login">⚠️ Bạn phải đăng nhập để đặt lịch.</p>
-    </div>
-    );
-  }
+  if (loading) return <p>Đang tải dữ liệu trạm sạc...</p>;
 
   return (
-    <div className="order-wrapper">
-      <h2>Đặt lịch trạm sạc</h2>
-      <form onSubmit={handleSubmit} className="order-form">
-        {/* Thông tin khách hàng */}
-        <div className="form-section">
-          <h3>1. Thông tin khách hàng</h3>
-          <label>
-            Họ tên *
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="Nhập họ tên"
-              required
-            />
-          </label>
-          <label>
-            Số điện thoại *
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="Tối thiểu 10 chữ số"
-              required
-            />
-          </label>
-          <label>
-            Email *
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Nhập email"
-              required
-            />
-          </label>
-        </div>
-
-        {/* Thông tin xe */}
-        <div className="form-section">
-          <h3>2. Thông tin xe</h3>
-          <label>
-            Mẫu xe *
-            <select
-              name="carModel"
-              value={formData.carModel}
-              onChange={handleChange}
-              required
+    <div className="order-container">
+      {/* Cột trái: Danh sách trạm */}
+      <div className="left-panel">
+        <h2>Trạng thái các trạm sạc</h2>
+        <div className="station-list">
+          {stations.map((st) => (
+            <div
+              key={st.id}
+              className={`station-item ${
+                selectedStation?.id === st.id ? "active" : ""
+              }`}
+              onClick={() => setSelectedStation(st)}
             >
-              <option value="">Lựa chọn</option>
-              <option value="VF3">VF3</option>
-              <option value="VF5">VF5</option>
-              <option value="VF7">VF7</option>
-            </select>
-          </label>
-          <label>
-            Số Km
-            <input
-              type="number"
-              name="km"
-              value={formData.km}
-              onChange={handleChange}
-              placeholder="Nhập số km"
-            />
-          </label>
-          <label>
-            Biển số xe *
-            <input
-              type="text"
-              name="licensePlate"
-              value={formData.licensePlate}
-              onChange={handleChange}
-              placeholder="Nhập biển số xe"
-              required
-            />
-          </label>
+              <h4>🏙️ {st.name}</h4>
+              <p>📍 {st.address}</p>
+              <p>🔌 {st.type}</p>
+              <p>
+                {st.slots > 0 ? (
+                  <span className="available">✅ Còn {st.slots} cổng</span>
+                ) : (
+                  <span className="unavailable">❌ Hết chỗ</span>
+                )}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Dịch vụ */}
-        <div className="form-section">
-          <h3>3. Dịch vụ</h3>
-          <label>
-            <input
-              type="checkbox"
-              value="Sạc pin nhanh"
-              checked={formData.service.includes("Sạc pin nhanh")}
-              onChange={handleChange}
-            />
-            Sạc pin nhanh
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              value="Sạc pin thường"
-              checked={formData.service.includes("Sạc pin thường")}
-              onChange={handleChange}
-            />
-            Sạc pin thường
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              value="Kiểm tra pin"
-              checked={formData.service.includes("Kiểm tra pin")}
-              onChange={handleChange}
-            />
-            Kiểm tra pin
-          </label>
-          <textarea
-            name="note"
-            value={formData.note}
-            onChange={handleChange}
-            placeholder="Ghi chú thêm"
-          ></textarea>
+        {/* Nút chức năng */}
+        <div className="action-buttons">
+          <button
+            className="btn-book"
+            onClick={() => setShowBookingPopup(true)}
+          >
+            🔋 Đặt lịch sạc
+          </button>
+          <button className="btn-admin">🛠️ Admin Panel</button>
         </div>
+      </div>
 
-        {/* Địa điểm & thời gian */}
-        <div className="form-section">
-          <h3>4. Địa điểm & Thời gian</h3>
-          <label>
-            Tỉnh/Thành phố *
-            <input
-              type="text"
-              name="province"
-              value={formData.province}
-              onChange={handleChange}
-              required
-            />
-          </label>
-          <label>
-            Quận/Huyện *
-            <input
-              type="text"
-              name="district"
-              value={formData.district}
-              onChange={handleChange}
-              required
-            />
-          </label>
+      {/* Cột phải: Bản đồ */}
+      <div className="right-panel">
+        <MapContainer
+          center={[10.7769, 106.7009]}
+          zoom={13}
+          style={{ height: "600px", width: "100%", borderRadius: "10px" }}
+        >
+          <TileLayer
+            attribution='&copy; OpenStreetMap contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-          <div className="radio-group">
-            <label>
-              <input
-                type="radio"
-                name="locationType"
-                value="station"
-                checked={formData.locationType === "station"}
-                onChange={handleChange}
-              />
-              Trạm sạc
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="locationType"
-                value="mobile"
-                checked={formData.locationType === "mobile"}
-                onChange={handleChange}
-              />
-              Dịch vụ lưu động
-            </label>
+          {/* ⚡ Popup có ảnh và thông tin */}
+          {stations.map((station) => (
+            <Marker
+              key={station.id}
+              position={[station.latitude, station.longitude]}
+              icon={markerIcon}
+              eventHandlers={{
+                click: () => setSelectedStation(station),
+              }}
+            >
+              <Popup>
+                <div className="popup-station">
+                  <img
+                    src={station.image}
+                    alt={station.name}
+                    className="popup-image"
+                  />
+                  <b>{station.name}</b>
+                  <p>📍 {station.address}</p>
+                  <p>⚡ Loại: {station.type}</p>
+                  <p>
+                    {station.slots > 0 ? (
+                      <span className="available">✅ Còn {station.slots} cổng</span>
+                    ) : (
+                      <span className="unavailable">❌ Hết chỗ</span>
+                    )}
+                  </p>
+                  <button
+                    className="btn-popup-book"
+                    onClick={() => setShowBookingPopup(true)}
+                  >
+                    🔋 Đặt lịch sạc
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+
+          {/* 👇 Khi chọn trạm thì tự động bay đến đó */}
+          {selectedStation && <FlyToStation station={selectedStation} />}
+        </MapContainer>
+      </div>
+
+      {/* Popup đặt lịch */}
+      {showBookingPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>Đặt lịch sạc</h3>
+            <form className="booking-form">
+              <label>Tên trạm:</label>
+              <input type="text" value={selectedStation?.name || ""} readOnly />
+
+              <label>Thời gian bắt đầu:</label>
+              <input type="datetime-local" />
+
+              <label>Thời gian kết thúc:</label>
+              <input type="datetime-local" />
+
+
+              <button type="submit">Xác nhận đặt</button>
+              <button
+                type="button"
+                onClick={() => setShowBookingPopup(false)}
+              >
+                Hủy
+              </button>
+            </form>
           </div>
-
-          <label>
-            Ngày *
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-          </label>
-          <label>
-            Giờ *
-            <input
-              type="time"
-              name="time"
-              value={formData.time}
-              onChange={handleChange}
-              required
-            />
-          </label>
         </div>
-
-        <button type="submit" className="submit-btn">
-          Đặt lịch
-        </button>
-      </form>
+      )}
     </div>
   );
 };

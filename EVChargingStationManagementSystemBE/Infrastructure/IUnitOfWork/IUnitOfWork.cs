@@ -7,8 +7,10 @@ namespace Infrastructure.IUnitOfWork
         Task<int> SaveChangesAsync();
         ISCStaffRepository SCStaffRepository { get; }
         IVehicleModelRepository VehicleModelRepository { get; }
-
+        
         IChargingStationRepository ChargingStationRepository { get; }
+        IEVDriverRepository EVDriverRepository { get; }
+        public IUserAccountRepository UserAccountRepository { get; }
 
     }
 }

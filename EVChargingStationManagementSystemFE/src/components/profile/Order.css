@@ -1,146 +1,112 @@
-.order-container {
-    padding: 20px;
-    font-family: "Arial", sans-serif;
-    background-color: #f5f5f5;
-    min-height: 100vh;
-  }
-  
-  .order-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .order-header h2 {
-    font-size: 24px;
-    color: #333;
-    margin: 0;
-  }
-  
-  .order-header input {
-    padding: 10px 15px;
-    border-radius: 12px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    width: 250px;
-    transition: 0.3s;
-  }
-  
-  .order-header input:focus {
-    border-color: #ff6b00;
-    box-shadow: 0 0 5px rgba(255,107,0,0.3);
-    outline: none;
-  }
-  
-  /* Empty state */
-  .order-empty {
-    text-align: center;
-    background-color: #fff;
-    padding: 50px;
-    border-radius: 15px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-  }
-  
-  .empty-message {
-    font-size: 18px;
-    color: #ff6b00;
-    font-weight: bold;
-  }
-  
-  .empty-info {
-    font-size: 14px;
-    color: #666;
-    margin: 10px 0 20px;
-  }
-  
-  /* Nút CTA */
-  .cta-button {
-    display: inline-block;
-    padding: 12px 30px;
-    background-color: #ff6b00;
-    color: #fff;
-    font-size: 16px;
-    text-decoration: none;
-    border-radius: 25px;
-    transition: background-color 0.3s, transform 0.3s;
-  }
-  
-  .cta-button:hover {
-    background-color: #e65c00;
-    transform: scale(1.1);
-  }
-  
-  /* Order list */
-  .order-list {
-    display: flex;
+/* ====== Layout tổng ====== */
+.order-history-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+.order-history-content {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* ====== Thanh tiêu đề + tìm kiếm ====== */
+.order-history-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.order-history-topbar h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.order-history-topbar input {
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  width: 220px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.order-history-topbar input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+/* ====== Danh sách đơn hàng ====== */
+.order-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-history-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-history-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.order-history-id {
+  color: #ff6b00;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* ====== Nội dung đơn hàng ====== */
+.order-history-info p {
+  margin: 5px 0;
+  color: #333;
+  font-size: 15px;
+}
+
+/* ====== Trạng thái ====== */
+.order-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: white;
+}
+
+.order-status.chờ-xử-lý {
+  background-color: #f59e0b;
+}
+
+.order-status.đang-vận-chuyển {
+  background-color: #3b82f6;
+}
+
+.order-status.hoàn-thành {
+  background-color: #16a34a;
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 600px) {
+  .order-history-topbar {
     flex-direction: column;
-    gap: 20px;
+    align-items: flex-start;
+    gap: 10px;
   }
-  
-  .order-card {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    transition: 0.3s;
+
+  .order-history-topbar input {
+    width: 100%;
   }
-  
-  .order-card:hover {
-    box-shadow: 0 8px 22px rgba(0,0,0,0.12);
-  }
-  
-  .order-id {
-    font-weight: 600;
-    font-size: 16px;
-    color: #ff6b00;
-    flex-basis: 100%;
-    margin-bottom: 10px;
-  }
-  
-  .order-info p {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .status {
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 12px;
-  }
-  
-  .status.chờ-xử-lý {
-    background-color: #ff9800;
-  }
-  
-  .status.đang-vận-chuyển {
-    background-color: #2196f3;
-  }
-  
-  .status.hoàn-thành {
-    background-color: #4caf50;
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .order-header {
-      flex-direction: column;
-      gap: 15px;
-    }
-  
-    .order-header input {
-      width: 100%;
-    }
-  
-    .order-card {
-      flex-direction: column;
-    }
-  }
-  
+}

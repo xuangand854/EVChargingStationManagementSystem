@@ -1,83 +1,253 @@
-css
-.order-wrapper {
-  max-width: 900px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 20px 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  font-family: sans-serif;
+/* ====== Layout chính ====== */
+.order-container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.must-login {
+/* ====== Cột trái: danh sách trạm ====== */
+.left-panel {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  overflow-y: auto;
+  max-height: 620px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.left-panel h2 {
   text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #c62828;
+  color: #2c3e50;
+  font-size: 22px;
+  margin-bottom: 15px;
+  font-weight: 600;
 }
 
-.order-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-}
-
-.form-section {
-  grid-column: span 1;
+.station-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #fafafa;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #eee;
-}
-.form-section h3{
-    color:black;
 }
 
-.form-section h3 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  font-weight: bold;
+/* ====== Item trạm ====== */
+.station-item {
+  background: #f4f6f8;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
-label {
-  display: flex;
-  flex-direction: column;
+.station-item:hover {
+  background: #e9f4ff;
+  border-color: #007bff;
+}
+
+.station-item.active {
+  background: #d0ebff;
+  border-color: #007bff;
+}
+
+.station-item h4 {
+  margin: 0 0 6px;
+  color: #007bff;
+  font-size: 18px;
+}
+
+.station-item p {
+  margin: 4px 0;
+  color: #555;
   font-size: 14px;
-  color: #333;
-  font-weight: 500;
 }
 
-input, select, textarea {
-  margin-top: 6px;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
+/* Trạng thái còn/hết chỗ */
+.available {
+  color: #16a34a;
+  font-weight: 600;
 }
 
-textarea {
-  min-height: 60px;
+.unavailable {
+  color: #dc2626;
+  font-weight: 600;
 }
 
-.radio-group {
+/* ====== Cột phải: bản đồ ====== */
+.right-panel {
+  flex: 2;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* ====== Các nút hành động ====== */
+.action-buttons {
   display: flex;
-  gap: 15px;
+  justify-content: space-around;
+  gap: 12px;
+  margin-top: 15px;
 }
 
-.submit-btn {
-  grid-column: span 2;
-  background: #007bff;
-  color: #fff;
+.btn-book,
+.btn-admin {
+  flex: 1;
+  padding: 10px 12px;
   border: none;
-  padding: 12px;
   border-radius: 8px;
-  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.btn-book {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-book:hover {
+  background-color: #218838;
+}
+
+.btn-admin {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-admin:hover {
+  background-color: #0069d9;
+}
+
+/* ====== Popup bản đồ (khi click marker) ====== */
+.popup-station {
+  text-align: center;
+  width: 200px;
+}
+
+.popup-image {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.btn-popup-book {
+  margin-top: 5px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.submit-btn:hover {
-  background: #0056b3;
+.btn-popup-book:hover {
+  background-color: #1e874b;
+}
+
+/* ====== Popup đặt lịch ====== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.popup-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 360px;
+  text-align: left;
+  animation: fadeIn 0.25s ease;
+}
+
+.popup-content h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-form label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.booking-form input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.booking-form button {
+  margin-top: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.booking-form button[type="submit"] {
+  background-color: #28a745;
+  color: white;
+}
+
+.booking-form button[type="submit"]:hover {
+  background-color: #1e7e34;
+}
+
+.booking-form button[type="button"] {
+  background-color: #dc3545;
+  color: white;
+}
+
+.booking-form button[type="button"]:hover {
+  background-color: #c82333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ====== Responsive ====== */
+@media (max-width: 992px) {
+  .order-container {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    max-height: unset;
+  }
+
+  .right-panel {
+    height: 400px;
+  }
 }

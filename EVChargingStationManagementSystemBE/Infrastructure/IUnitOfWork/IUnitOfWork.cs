@@ -10,6 +10,7 @@ namespace Infrastructure.IUnitOfWork
         
         IChargingStationRepository ChargingStationRepository { get; }
         IEVDriverRepository EVDriverRepository { get; }
+        public IUserAccountRepository UserAccountRepository { get; }
 
     }
 }

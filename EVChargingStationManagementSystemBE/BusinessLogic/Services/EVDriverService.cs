@@ -77,6 +77,7 @@ namespace BusinessLogic.Services
         {
             try
             {
+                // Lấy id của EVDriver ra để checck xem EVDriver có tồn tại bên trong DB ch 
                 var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
                     predicate: d => d.Id == dto.DriverId,
                     include: d => d.Include(x => x.UserAccountNavigation),
@@ -95,7 +96,7 @@ namespace BusinessLogic.Services
                     driver.UserAccountNavigation.ProfilePictureUrl = dto.ProfilePictureUrl ?? driver.UserAccountNavigation.ProfilePictureUrl;
                     driver.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
                 }
-
+                // ghi lại thời gian cậ nhật thông tin 
                 driver.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();

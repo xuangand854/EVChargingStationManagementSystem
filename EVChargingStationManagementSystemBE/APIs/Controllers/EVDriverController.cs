@@ -14,7 +14,7 @@ namespace APIs.Controllers
         private readonly IEVDriverService _evDriverService = evDriverService;
 
         // GET: api/evdriver/{driverId}
-        [HttpGet("{driverId}")]
+        [HttpGet("{driverId}")]// Sử dụng để có thể xem được thông tin của ng dùng 
         public async Task<IActionResult> GetById([FromRoute] Guid driverId)
         {
             var result = await _evDriverService.GetById(driverId);
@@ -50,7 +50,7 @@ namespace APIs.Controllers
 
         // PUT: api/evdriver/update
         [HttpPut("update")]
-        [Authorize(Roles = "EVDriver")]
+        [Authorize(Roles = "EVDriver")] // chỉ có người dùng mới đc đổi thông tin của chính bản thân mình 
         public async Task<IActionResult> UpdateProfile([FromBody] EVDriverUpdateSelfDto dto)
         {
             if (!ModelState.IsValid)

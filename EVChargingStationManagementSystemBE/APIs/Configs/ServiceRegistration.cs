@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.AuthDto;
+using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.VehicleModelDto;
@@ -12,8 +13,6 @@ namespace APIs.Configs
     {
         public static IServiceCollection ExtensionServices(this IServiceCollection services)
         {
-            // Register other services here if needed
-            // services.AddScoped<IAuthService, AuthService>();
             services.ConfigMapster();
             return services;
         }
@@ -41,6 +40,9 @@ namespace APIs.Configs
                 .IgnoreNullValues(true);
 
             TypeAdapterConfig<ChargingStationUpdateDto, ChargingStation>.NewConfig()
+                .IgnoreNullValues(true);
+
+            TypeAdapterConfig<ChargingPostUpdateDto, ChargingPost>.NewConfig()
                 .IgnoreNullValues(true);
 
             return services;

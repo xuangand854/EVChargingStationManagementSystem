@@ -7,7 +7,7 @@ namespace BusinessLogic.IServices
     public interface IChargingStationService
     {
         Task<IServiceResult> GetList();
-        Task<IServiceResult> GetById(Guid StationId);
+        Task<IServiceResult> GetById(Guid stationId);
         Task<IServiceResult> Create(ChargingStationCreateDto dto);
         Task<IServiceResult> Update(ChargingStationUpdateDto dto, Guid stationId);
         Task<IServiceResult> UpdateStatus(ChargingStationStatus status, Guid stationId);

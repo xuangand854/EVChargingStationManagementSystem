@@ -21,11 +21,13 @@ builder.Services.ExtensionServices();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISCStaffService, SCStaffService>();
 builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IChargingPostService, ChargingPostService>();
 
 
 // Cấu hình JWT Authentication

@@ -8,9 +8,8 @@ namespace Infrastructure.Models
         [Key]
         public Guid Id { get; set; }
         public int Score { get; set; } = 0;
-        public bool IsActive { get; set; } = false;
         public string Status { get; set; } = "Active";
-
+        public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
         public bool IsDeleted { get; set; } = false;
@@ -20,7 +19,7 @@ namespace Infrastructure.Models
         public UserAccount UserAccountNavigation { get; set; }
 
         [ForeignKey("Ranking")]
-        public Guid RankingId { get; set; }
+        public Guid? RankingId { get; set; }
         public Ranking RankingNavigation { get; set; }
 
         public ICollection<UserVehicle> UserVehicles { get; set; } = [];

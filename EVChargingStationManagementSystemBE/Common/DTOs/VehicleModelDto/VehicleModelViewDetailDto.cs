@@ -7,7 +7,7 @@ namespace Common.DTOs.VehicleModelDto
     {
         public Guid Id { get; set; }
         public string ModelName { get; set; } = string.Empty;
-        public string Brand { get; set; } = string.Empty;
+        //public string Brand { get; set; } = string.Empty;
         public int ModelYear { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public VehicleTypeEnum VehicleType { get; set; } = VehicleTypeEnum.Unknown;

@@ -1,40 +1,51 @@
-﻿using Common;
+﻿using BusinessLogic.Base;
+using BusinessLogic.IServices;
+using Common;
 using Common.DTOs.AuthDto;
+using Infrastructure.IUnitOfWork;
+using Infrastructure.Models;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Infrastructure.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BusinessLogic.Base;
-using BusinessLogic.IServices;
+using System.Web;
 
 namespace BusinessLogic.Services
 {
-    public class AuthService(UserManager<UserAccount> userManager, SignInManager<UserAccount> signInManager, IConfiguration configuration) : IAuthService
+    public class AuthService(UserManager<UserAccount> userManager, SignInManager<UserAccount> signInManager, IConfiguration configuration, IEmailService emailService, IUnitOfWork unitOfWork) : IAuthService
     {
         private readonly UserManager<UserAccount> _userManager = userManager;
         private readonly SignInManager<UserAccount> _signInManager = signInManager;
         private readonly IConfiguration _configuration = configuration;
+        private readonly IEmailService _emailSender = emailService;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
         public async Task<IServiceResult> RegisterAccount(RegisterAccountDto dto)
         {
-            //var user = new UserAccount
-            //{
-            //    UserName = dto.Email,
-            //    Email = dto.Email,
-            //    Name = dto.Name,
-            //    PhoneNumber = dto.Phone,
-            //    RegistrationDate = DateTime.UtcNow,
-            //    Status = "Active"
-            //};
             var user = new UserAccount();
             dto.Adapt(user);
             user.RegistrationDate = DateTime.UtcNow;
             user.Status = "Active";
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
 
             var result = await _userManager.CreateAsync(user, dto.Password);
+
+            // Sau khi tạo tài khoản thành công thì tạo profile cho EVDriver
+            if (result.Succeeded)
+            {
+                var createdUser = await _unitOfWork.UserAccountRepository.GetByIdAsync(user.Id);
+                EVDriver eVDriver = new()
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = createdUser.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.EVDriverRepository.CreateAsync(eVDriver);
+            }
 
             if (!result.Succeeded)
                 return new ServiceResult(Const.FAIL_CREATE_CODE, Const.FAIL_CREATE_MSG, result.Errors);
@@ -45,6 +56,20 @@ namespace BusinessLogic.Services
             var roleResult = await _userManager.AddToRoleAsync(user, "EVDriver");
             if (!roleResult.Succeeded)
                 return new ServiceResult(Const.FAIL_CREATE_CODE, "Failed to assign role", roleResult.Errors);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // Encode token để truyền qua querystring
+            var encodedToken = HttpUtility.UrlEncode(token);
+
+            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+
+            // Bước 4: Gửi mail cho user (bạn cần service gửi mail riêng)
+            _emailSender.Send(user.Email,
+                "Xác nhận tài khoản",
+                $"Xin chào {user.Name}, vui lòng xác nhận tài khoản bằng cách bấm vào link: <a href='{confirmationLink}'>Xác nhận Email</a>");
 
             return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Success register new account");
         }
@@ -80,7 +105,7 @@ namespace BusinessLogic.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddHours(3),
+                expires: DateTime.Now.AddDays(30),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
@@ -95,5 +120,113 @@ namespace BusinessLogic.Services
                 }
             );
         }
+
+        //public async Task<IServiceResult> ConfirmEmail(ConfirmEmailDto dto)
+        public async Task<IServiceResult> ConfirmEmail(ConfirmEmailDto dto)
+        {
+            //var user = await _userManager.FindByIdAsync(dto.UserId);
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+
+            if (user == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản");
+
+            var token = HttpUtility.UrlDecode(dto.Token);
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
+            if (result.Succeeded)
+                return new ServiceResult(Const.SUCCESS_VERIFY_OTP_CODE, "Email đã xác nhận thành công!");
+            else
+                return new ServiceResult(Const.FAIL_VERIFY_OTP_CODE, "Xác thực email thất bại.", result.Errors);
+        }
+
+        public async Task<IServiceResult> ResendConfirmEmail(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Email không tồn tại trong hệ thống");
+
+            if (await _userManager.IsEmailConfirmedAsync(user))
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Email này đã được xác nhận rồi.");
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // Encode token để tránh lỗi ký tự đặc biệt trong URL
+            var encodedToken = HttpUtility.UrlEncode(token);
+
+            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+
+            // Gửi mail xác nhận
+            _emailSender.Send(
+                user.Email,
+                "Xác nhận lại tài khoản",
+                $"Xin chào {user.Name},<br/>" +
+                $"Có vẻ như bạn chưa xác nhận tài khoản của mình.<br/>" +
+                $"Vui lòng bấm vào link sau để xác nhận email: <a href='{confirmationLink}'>Xác nhận Email</a><br/><br/>" +
+                $"Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email này."
+            );
+
+            return new ServiceResult(Const.SUCCESS_SEND_OTP_CODE, "Đã gửi lại email xác nhận thành công.");
+        }
+
+        public async Task<IServiceResult> ForgotPassword(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Email không tồn tại trong hệ thống");
+
+            // Sinh token đặt lại mật khẩu
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Mã hóa token để truyền qua URL
+            var encodedToken = HttpUtility.UrlEncode(token);
+
+            var resetLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/resetpassword?userId={user.Id}&token={encodedToken}";
+
+            // Gửi email cho người dùng
+            _emailSender.Send(
+                user.Email,
+                "Đặt lại mật khẩu",
+                $"Xin chào {user.Name},<br/>" +
+                $"Vui lòng đặt lại mật khẩu của bạn bằng cách bấm vào link sau:<br/>" +
+                $"<a href='{resetLink}'>Đặt lại mật khẩu</a><br/><br/>" +
+                $"Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email này."
+            );
+
+            return new ServiceResult(Const.SUCCESS_SEND_OTP_CODE, "Đã gửi mail đặt lại mật khẩu.");
+        }
+
+        public async Task<IServiceResult> ResetPassword(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId.ToString());
+
+            if (user == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản");
+
+            var token = HttpUtility.UrlDecode(dto.Token);
+            var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+
+            if (result.Succeeded)
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Đặt lại mật khẩu thành công");
+            else
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Đặt lại mật khẩu thất bại", result.Errors);
+        }
+
+        public async Task<IServiceResult> ChangePassword(ChangePasswordDto dto, Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm được tài khoản hợp lệ");
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description);
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Đổi mật khẩu thất bại", errors);
+            }
+
+            return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Đổi mật khẩu thành công");
+        }
+
     }
 }

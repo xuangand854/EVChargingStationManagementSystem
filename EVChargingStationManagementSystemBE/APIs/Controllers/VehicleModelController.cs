@@ -70,7 +70,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        [HttpPatch()]
+        [HttpPut()]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromBody] VehicleModelUpdateDto dto, Guid vehicleModelId)
         {

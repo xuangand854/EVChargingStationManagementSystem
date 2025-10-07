@@ -71,6 +71,7 @@ namespace BusinessLogic.Services
             {
                 var vehicleModel = dto.Adapt<VehicleModel>();
                 vehicleModel.Id = Guid.NewGuid();
+                vehicleModel.Brand = "";
                 vehicleModel.Status = "Inactive";
                 vehicleModel.CreatedBy = adminId;
 

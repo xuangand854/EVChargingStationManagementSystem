@@ -7,8 +7,8 @@ namespace Common.DTOs.VehicleModelDto
     {
         [Required, MaxLength(100)]
         public string ModelName { get; set; } = string.Empty;
-        [Required, MaxLength(100)]
-        public string Brand { get; set; } = string.Empty;
+        //[Required, MaxLength(100)]
+        //public string Brand { get; set; } = string.Empty;
         public int ModelYear { get; set; }
         [Required]
         public VehicleTypeEnum VehicleType { get; set; }

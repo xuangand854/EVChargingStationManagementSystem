@@ -25,6 +25,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISCStaffService, SCStaffService>();
 builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 // Cấu hình JWT Authentication
@@ -112,7 +113,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAllOrigins");
 
-app.MapIdentityApi<UserAccount>();
+//app.MapIdentityApi<UserAccount>();
 
 app.UseHttpsRedirection();
 

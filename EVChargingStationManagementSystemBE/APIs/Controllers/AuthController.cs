@@ -2,7 +2,6 @@
 using Common;
 using Common.DTOs.AuthDto;
 using Common.Helpler;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIs.Controllers

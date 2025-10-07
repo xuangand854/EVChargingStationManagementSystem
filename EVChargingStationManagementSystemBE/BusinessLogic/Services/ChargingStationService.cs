@@ -160,7 +160,7 @@ namespace BusinessLogic.Services
                     asNoTracking: false
                     );
                 if (chargingStation == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 
                 chargingStation.IsDeleted = true;
                 chargingStation.UpdatedAt = DateTime.UtcNow;

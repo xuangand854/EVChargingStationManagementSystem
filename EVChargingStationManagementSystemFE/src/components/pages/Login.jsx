@@ -36,6 +36,8 @@ const Login = () => {
     try {
       setSubmitting(true);
       const result = await loginApi(formValues.email, formValues.password);
+      
+      
       // loginApi đã lưu token vào localStorage và phát sự kiện auth-changed
       // Điều hướng thẳng đến trang private
       navigate("/", { replace: true });

@@ -151,6 +151,7 @@
 }
 
 /* ====== Popup đặt lịch ====== */
+/* ====== Popup đặt lịch ====== */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -162,16 +163,22 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
+  padding: 16px; /* Thêm padding tránh dính mép */
+  box-sizing: border-box;
 }
 
 .popup-content {
   background: white;
-  padding: 25px;
+  padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 360px;
+  width: 100%;
+  max-width: 400px; /* Tự co lại nếu màn nhỏ */
+  max-height: 90vh; /* Giới hạn chiều cao */
+  overflow-y: auto; /* Cho phép cuộn nếu dài */
   text-align: left;
   animation: fadeIn 0.25s ease;
+  box-sizing: border-box;
 }
 
 .popup-content h3 {
@@ -181,6 +188,7 @@
   margin-bottom: 15px;
 }
 
+/* Form bên trong */
 .booking-form {
   display: flex;
   flex-direction: column;
@@ -196,6 +204,8 @@
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .booking-form button {
@@ -206,8 +216,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
+  width: 100%;
 }
 
+/* Nút submit và cancel */
 .booking-form button[type="submit"] {
   background-color: #28a745;
   color: white;
@@ -224,30 +236,4 @@
 
 .booking-form button[type="button"]:hover {
   background-color: #c82333;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ====== Responsive ====== */
-@media (max-width: 992px) {
-  .order-container {
-    flex-direction: column;
-  }
-
-  .left-panel {
-    max-height: unset;
-  }
-
-  .right-panel {
-    height: 400px;
-  }
 }

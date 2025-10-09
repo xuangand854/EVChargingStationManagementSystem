@@ -7,7 +7,7 @@ export const getStaffInfo = async (id) => {
     try {
         const response = await api.get(`${BASE_URL}/${id}`);
         return response.data; // trả về thông tin nhân viên
-    }catch (error) {
+    } catch (error) {
         console.error('Error fetching staff info:', error);
         throw error;
     }

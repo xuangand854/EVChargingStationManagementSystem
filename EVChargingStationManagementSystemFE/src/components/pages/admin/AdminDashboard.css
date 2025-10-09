@@ -1,0 +1,351 @@
+/* AdminDashboard.css */
+.admin-dashboard {
+    padding: 1.5rem;
+    background-color: #515107;
+    min-height: 100vh;
+}
+
+.admin-dashboard .header {
+    margin-bottom: 1.5rem;
+}
+
+.admin-dashboard .header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #44b11c;
+    margin-bottom: 0.5rem;
+}
+
+.admin-dashboard .header p {
+    color: #1591ce;
+    font-size: 1rem;
+}
+
+/* Statistics Cards */
+.admin-dashboard .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.admin-dashboard .stat-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.admin-dashboard .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-dashboard .stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.admin-dashboard .stat-icon.blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.admin-dashboard .stat-icon.green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.admin-dashboard .stat-icon.purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.admin-dashboard .stat-icon.orange {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.admin-dashboard .stat-icon svg {
+    color: white;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.admin-dashboard .stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.admin-dashboard .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* Charts Section */
+.admin-dashboard .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.admin-dashboard .chart-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.admin-dashboard .chart-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+/* Charger Status */
+.admin-dashboard .charger-status {
+    text-align: center;
+}
+
+.admin-dashboard .charger-count {
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.admin-dashboard .charger-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.admin-dashboard .progress-container {
+    margin-bottom: 0.5rem;
+}
+
+.admin-dashboard .progress-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Activity Feed */
+.admin-dashboard .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-dashboard .activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.admin-dashboard .activity-item:hover {
+    transform: translateX(4px);
+}
+
+.admin-dashboard .activity-item.blue {
+    background-color: #eff6ff;
+}
+
+.admin-dashboard .activity-item.green {
+    background-color: #f0fdf4;
+}
+
+.admin-dashboard .activity-item.orange {
+    background-color: #fff7ed;
+}
+
+.admin-dashboard .activity-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-dashboard .activity-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.admin-dashboard .activity-icon.blue {
+    color: #3b82f6;
+}
+
+.admin-dashboard .activity-icon.green {
+    color: #10b981;
+}
+
+.admin-dashboard .activity-icon.orange {
+    color: #f59e0b;
+}
+
+.admin-dashboard .activity-text {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.admin-dashboard .activity-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.admin-dashboard .activity-badge.green {
+    color: #059669;
+    background-color: #dcfce7;
+}
+
+.admin-dashboard .activity-badge.orange {
+    color: #d97706;
+    background-color: #fed7aa;
+}
+
+/* Recent Orders Table */
+.admin-dashboard .orders-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.admin-dashboard .orders-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+/* Status Badges */
+.admin-dashboard .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.admin-dashboard .status-badge.completed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.admin-dashboard .status-badge.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.admin-dashboard .status-badge.cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Loading State */
+.admin-dashboard .loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16rem;
+}
+
+.admin-dashboard .loading-text {
+    font-size: 1.125rem;
+    color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .admin-dashboard .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 1rem;
+    }
+
+    .admin-dashboard .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .admin-dashboard .stat-card {
+        padding: 1rem;
+    }
+
+    .admin-dashboard .header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-dashboard .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dashboard .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.admin-dashboard .stat-card,
+.admin-dashboard .chart-card,
+.admin-dashboard .orders-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.admin-dashboard .stat-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.admin-dashboard .stat-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.admin-dashboard .stat-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.admin-dashboard .stat-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+/* Hover effects */
+.admin-dashboard .stat-card:hover .stat-icon {
+    transform: scale(1.1);
+}
+
+.admin-dashboard .activity-item:hover .activity-icon {
+    transform: scale(1.2);
+}

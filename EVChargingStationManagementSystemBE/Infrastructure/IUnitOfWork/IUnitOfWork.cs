@@ -9,7 +9,7 @@ namespace Infrastructure.IUnitOfWork
         IVehicleModelRepository VehicleModelRepository { get; }        
         IChargingStationRepository ChargingStationRepository { get; }
         IEVDriverRepository EVDriverRepository { get; }
-        public IUserAccountRepository UserAccountRepository { get; }
         IChargingPostRepository ChargingPostRepository { get; }
+        IUserAccountRepository UserAccountRepository { get; }
     }
 }

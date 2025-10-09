@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Common.DTOs.EVDriverDto
+namespace Common.DTOs.ProfileEVDriverDto
 {
     public class EVDriverCreateProfileDto
     {
         [Required(ErrorMessage = "AccountId là bắt buộc")]
         public Guid AccountId { get; set; }
 
-        [Required(ErrorMessage = "RankingId là bắt buộc")]
-        public Guid RankingId { get; set; }
+        public Guid? RankingId { get; set; }
 
-        // Danh sách xe ban đầu mà EVDriver đăng ký
         public List<Guid>? VehicleModelIds { get; set; }
 
-        // Trạng thái mặc định khi tạo profile
+        public int Score { get; set; } = 0;
+
         public string Status { get; set; } = "Active";
     }
 }

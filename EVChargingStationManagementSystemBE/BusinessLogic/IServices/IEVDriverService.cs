@@ -1,6 +1,5 @@
 ﻿using BusinessLogic.Base;
-using Common.DTOs.EVDriverDto;
-using Common.DTOs.ProfileEVDriver;
+using Common.DTOs.ProfileEVDriverDto;
 using System;
 using System.Threading.Tasks;
 
@@ -8,15 +7,21 @@ namespace BusinessLogic.IServices
 {
     public interface IEVDriverService
     {
-        //  EVDriver tạo profile cho bản thân mình khi tạo account 
-        Task<IServiceResult> CreateProfile(EVDriverCreateProfileDto dto, Guid accountId);
-        // Dùng để xem profile của chính bản thân mình 
+    
+
+        // EVDriver xem profile của chính mình
         Task<IServiceResult> GetById(Guid driverId);
-        // Dành cho EVDriver tự update thông tin của cá nhân
+
+        // EVDriver tự cập nhật thông tin cá nhân
         Task<IServiceResult> UpdateProfile(EVDriverUpdateSelfDto dto);
-        // Dành cho admin có thể thay đổi trạng thái của EVDriver 
+
+        // Admin cập nhật trạng thái EVDriver (Active / Inactive)
         Task<IServiceResult> UpdateStatus(EVDriverUpdateStatusDto dto);
-        //  Dành cho admin có thể xóa thông tin EVDriver (Soft delete) 
+
+        // Admin xóa mềm EVDriver
         Task<IServiceResult> Delete(Guid driverId);
+
+        // Admin xem danh sách tất cả EVDriver
+        Task<IServiceResult> GetAll();
     }
 }

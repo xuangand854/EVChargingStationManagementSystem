@@ -1,7 +1,7 @@
-﻿using BusinessLogic.IServices;
+﻿
+using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.EVDriverDto;
-using Common.DTOs.ProfileEVDriver;
+using Common.DTOs.ProfileEVDriverDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +9,34 @@ namespace APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EVDriverController(IEVDriverService evDriverService) : ControllerBase
+    public class EVDriverController : ControllerBase
     {
-        private readonly IEVDriverService _evDriverService = evDriverService;
+        private readonly IEVDriverService _evDriverService;
 
-        // GET: api/evdriver/{driverId}
-        [HttpGet("{driverId}")]// Sử dụng để có thể xem được thông tin của ng dùng 
+        public EVDriverController(IEVDriverService evDriverService)
+        {
+            _evDriverService = evDriverService;
+        }
+
+        //  GET: api/evdriver/all (Admin)
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _evDriverService.GetAll();
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        //  GET: api/evdriver/{driverId} (Driver hoặc Admin)
+        [HttpGet("{driverId}")]
+        [Authorize(Roles = "Admin,EVDriver")]
         public async Task<IActionResult> GetById([FromRoute] Guid driverId)
         {
             var result = await _evDriverService.GetById(driverId);
@@ -28,29 +50,10 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // POST: api/evdriver/{accountId}/profile
-        [HttpPost("{accountId}/profile")]
-        [Authorize(Roles = "EVDriver")] // EVDriver tự tạo profile
-        public async Task<IActionResult> CreateProfile([FromRoute] Guid accountId, [FromBody] EVDriverCreateProfileDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _evDriverService.CreateProfile(dto, accountId);
-
-            if (result.Status == Const.SUCCESS_CREATE_CODE && result.Data is EVDriverViewDto createdDto)
-                return CreatedAtAction(nameof(GetById), new { driverId = createdDto.Id },
-                        new { data = result.Data, message = result.Message });
-
-            if (result.Status == Const.FAIL_CREATE_CODE)
-                return Conflict(new { message = result.Message });
-
-            return StatusCode(500, new { message = result.Message });
-        }
-
-        // PUT: api/evdriver/update
+       
+        //  PUT: api/evdriver/update (Driver tự cập nhật)
         [HttpPut("update")]
-        [Authorize(Roles = "EVDriver")] // chỉ có người dùng mới đc đổi thông tin của chính bản thân mình 
+        [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> UpdateProfile([FromBody] EVDriverUpdateSelfDto dto)
         {
             if (!ModelState.IsValid)
@@ -61,18 +64,18 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
-            if (result.Status == Const.WARNING_NO_DATA_CODE)
-                return NotFound(new { message = result.Message });
-
             if (result.Status == Const.FAIL_UPDATE_CODE)
                 return Conflict(new { message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
         }
 
-        // PATCH: api/evdriver/{driverId}/status
+        //  PATCH: api/evdriver/{driverId}/status (Admin)
         [HttpPatch("{driverId}/status")]
-        [Authorize(Roles = "Admin")] // Chỉ Admin được đổi status
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus([FromRoute] Guid driverId, [FromBody] EVDriverUpdateStatusDto dto)
         {
             if (!ModelState.IsValid)
@@ -86,18 +89,18 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
-            if (result.Status == Const.WARNING_NO_DATA_CODE)
-                return NotFound(new { message = result.Message });
-
             if (result.Status == Const.FAIL_UPDATE_CODE)
                 return Conflict(new { message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
         }
 
-        // DELETE: api/evdriver/{driverId}
+        //  DELETE: api/evdriver/{driverId} (Admin)
         [HttpDelete("{driverId}")]
-        [Authorize(Roles = "Admin")] // Admin có quyền xoá EVDriver
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete([FromRoute] Guid driverId)
         {
             var result = await _evDriverService.Delete(driverId);
@@ -105,11 +108,11 @@ namespace APIs.Controllers
             if (result.Status == Const.SUCCESS_DELETE_CODE)
                 return NoContent();
 
-            if (result.Status == Const.WARNING_NO_DATA_CODE)
-                return NotFound(new { message = result.Message });
-
             if (result.Status == Const.FAIL_DELETE_CODE)
                 return Conflict(new { message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
         }

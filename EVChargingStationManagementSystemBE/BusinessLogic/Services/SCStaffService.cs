@@ -2,63 +2,43 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileStaffDto;
+using Common.DTOs.VehicleModelDto;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
-    public class SCStaffService(IUnitOfWork unitOfWork) : ISCStaffService
+    public class SCStaffService(
+        IUnitOfWork unitOfWork,
+        UserManager<UserAccount> userManager
+    ) : ISCStaffService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly UserManager<UserAccount> _userManager = userManager;
 
-        // Get staff by Id
-        public async Task<IServiceResult> GetById(Guid id)
-        {
-            var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                predicate: s => s.Id == id,
-                include: q => q.Include(x => x.UserAccountNavigation),
-                asNoTracking: true
-            );
-
-            if (staff == null)
-                return new ServiceResult(Const.FAIL_READ_CODE, "Không tìm thấy nhân viên");
-
-            var dto = staff.Adapt<StaffViewDto>();
-            return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, dto);
-        }
-
-        //  Create staff profile (Admin)
-        public async Task<IServiceResult> CreateStaffProfile(StaffCreateProfileDto dto, Guid accountId)
+        //  Lấy danh sách tất cả Staff
+        public async Task<IServiceResult> GetAll()
         {
             try
             {
-                // Check trùng profile theo accountId
-                var exist = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.AccountId == accountId,
+                var staffs = await _unitOfWork.SCStaffRepository.GetAllAsync(
+                    predicate: s => !s.IsDeleted,
+                    include: q => q.Include(x => x.UserAccountNavigation),
+                    orderBy: q => q.OrderByDescending(s => s.CreatedAt),
                     asNoTracking: true
                 );
-                if (exist != null)
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Tài khoản đã có profile");
 
-                var staff = dto.Adapt<SCStaff>();
-                staff.Id = Guid.NewGuid();
-                staff.AccountId = accountId;
-                staff.Status = dto.Status ?? "Active";
-                staff.CreatedAt = DateTime.UtcNow;
-                staff.UpdatedAt = DateTime.UtcNow;
-                staff.IsDeleted = false;
+                if (staffs == null || staffs.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào");
 
-                await _unitOfWork.SCStaffRepository.CreateAsync(staff);
-                var result = await _unitOfWork.SaveChangesAsync();
-
-                if (result > 0)
-                {
-                    var response = staff.Adapt<StaffViewDto>();
-                    return new ServiceResult(Const.SUCCESS_CREATE_CODE, Const.SUCCESS_CREATE_MSG, response);
-                }
-                return new ServiceResult(Const.FAIL_CREATE_CODE, Const.FAIL_CREATE_MSG);
+                var response = staffs.Adapt<List<StaffViewDto>>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
             catch (Exception ex)
             {
@@ -66,59 +46,101 @@ namespace BusinessLogic.Services
             }
         }
 
-        //  Update profile by Admin
+        //  Lấy chi tiết nhân viên theo Id
+        public async Task<IServiceResult> GetById(Guid id)
+        {
+            try
+            {
+                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
+                    predicate: s => s.Id == id && !s.IsDeleted,
+                    include: q => q.Include(x => x.UserAccountNavigation),
+                    asNoTracking: true
+                );
+
+                if (staff == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+
+                var response = staff.Adapt<StaffViewDto>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
+        //  Tạo tài khoản + hồ sơ nhân viên
+        public async Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto)
+        {
+            try
+            {
+                // Tạo UserAccount
+                var user = dto.Adapt<UserAccount>();
+                user.UserName = dto.Email;
+                user.RegistrationDate = DateTime.UtcNow;
+                user.Status = "Active";
+                user.CreatedAt = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                var result = await _userManager.CreateAsync(user, dto.Password);
+                if (!result.Succeeded)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể tạo tài khoản", result.Errors);
+
+                // Gán role Staff
+                var roleResult = await _userManager.AddToRoleAsync(user, "Staff");
+                if (!roleResult.Succeeded)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể gán quyền cho nhân viên", roleResult.Errors);
+
+                // Tạo hồ sơ Staff
+                var staff = dto.Adapt<SCStaff>();
+                staff.Id = Guid.NewGuid();
+                staff.AccountId = user.Id;
+                staff.Status = "Active";
+                staff.CreatedAt = DateTime.UtcNow;
+                staff.UpdatedAt = DateTime.UtcNow;
+                staff.IsDeleted = false;
+
+                await _unitOfWork.SCStaffRepository.CreateAsync(staff);
+                await _unitOfWork.SaveChangesAsync();
+                var response = staff.Adapt<StaffViewDto>();
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công",response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
+        //  Admin cập nhật hồ sơ nhân viên
         public async Task<IServiceResult> UpdateProfileByAdmin(StaffUpdateAdminDto dto)
         {
             try
             {
-                // 1. Lấy Staff theo Id + UserAccount
                 var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId,
+                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
                     include: q => q.Include(x => x.UserAccountNavigation),
-                    asNoTracking: false // bắt buộc để EF tracking
+                    asNoTracking: false
                 );
 
                 if (staff == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Không tìm thấy nhân viên trong hệ thống");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
-                // 2. Admin có quyền cập nhật toàn bộ thông tin Staff
-                staff.WorkingLocation = dto.WorkingLocation ?? staff.WorkingLocation;
-                staff.Status = dto.Status ?? staff.Status;
+                // Map vào SCStaff
+                dto.Adapt(staff);
                 staff.UpdatedAt = DateTime.UtcNow;
 
-                // 3. Cập nhật thông tin trong bảng UserAccount liên quan
+                // Map vào UserAccount
                 if (staff.UserAccountNavigation != null)
                 {
-                    staff.UserAccountNavigation.Name = dto.Name ?? staff.UserAccountNavigation.Name;
-                    staff.UserAccountNavigation.Email = dto.Email ?? staff.UserAccountNavigation.Email;
-                    staff.UserAccountNavigation.PhoneNumber = dto.PhoneNumber ?? staff.UserAccountNavigation.PhoneNumber;
-                    staff.UserAccountNavigation.Address = dto.Address ?? staff.UserAccountNavigation.Address;
-                    staff.UserAccountNavigation.ProfilePictureUrl = dto.ProfilePictureUrl ?? staff.UserAccountNavigation.ProfilePictureUrl;
+                    dto.Adapt(staff.UserAccountNavigation);
                     staff.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
                 }
 
-                // 4. Lưu thay đổi
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
 
-                // 5. Map sang ViewDto thủ công để chắc chắn đầy đủ dữ liệu
-                var response = new StaffViewDto
-                {
-                    Id = staff.Id,
-                    AccountId = staff.AccountId,
-                    WorkingLocation = staff.WorkingLocation,
-                    Status = staff.Status,
-                    CreatedAt = staff.CreatedAt,
-                    UpdatedAt = staff.UpdatedAt,
-
-                    Name = staff.UserAccountNavigation?.Name,
-                    Email = staff.UserAccountNavigation?.Email,
-                    PhoneNumber = staff.UserAccountNavigation?.PhoneNumber,
-                    Address = staff.UserAccountNavigation?.Address,
-                    ProfilePictureUrl = staff.UserAccountNavigation?.ProfilePictureUrl
-                };
-
+                var response = staff.Adapt<StaffViewDto>();
                 return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
             }
             catch (Exception ex)
@@ -127,56 +149,35 @@ namespace BusinessLogic.Services
             }
         }
 
-
-        //  Update profile by Staff (chỉ được sửa số điện thoại, địa chỉ, avatar)
+        //   Nhân viên tự cập nhật hồ sơ
         public async Task<IServiceResult> UpdateProfileByStaff(StaffUpdateDto dto)
         {
             try
             {
                 var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId,
+                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
                     include: q => q.Include(x => x.UserAccountNavigation),
                     asNoTracking: false
                 );
 
                 if (staff == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Không tìm thấy thông tin nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
-                // Cập nhật các thông tin mà Staff được phép chỉnh
+                dto.Adapt(staff);
+                staff.UpdatedAt = DateTime.UtcNow;
+
                 if (staff.UserAccountNavigation != null)
                 {
-                    staff.UserAccountNavigation.PhoneNumber = dto.PhoneNumber ?? staff.UserAccountNavigation.PhoneNumber;
-                    staff.UserAccountNavigation.Address = dto.Address ?? staff.UserAccountNavigation.Address;
-                    staff.UserAccountNavigation.ProfilePictureUrl = dto.ProfilePictureUrl ?? staff.UserAccountNavigation.ProfilePictureUrl;
+                    dto.Adapt(staff.UserAccountNavigation);
                     staff.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
                 }
 
-                staff.UpdatedAt = DateTime.UtcNow;
-
                 var result = await _unitOfWork.SaveChangesAsync();
-                if (result > 0)
-                {
-                    // Map thủ công để lấy đủ thông tin
-                    var response = new StaffViewDto
-                    {
-                        Id = staff.Id,
-                        AccountId = staff.AccountId,
-                        WorkingLocation = staff.WorkingLocation,
-                        Status = staff.Status,
-                        CreatedAt = staff.CreatedAt,
-                        UpdatedAt = staff.UpdatedAt,
+                if (result <= 0)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
 
-                        Name = staff.UserAccountNavigation?.Name,
-                        Email = staff.UserAccountNavigation?.Email,
-                        PhoneNumber = staff.UserAccountNavigation?.PhoneNumber,
-                        Address = staff.UserAccountNavigation?.Address,
-                        ProfilePictureUrl = staff.UserAccountNavigation?.ProfilePictureUrl
-                    };
-
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
-                }
-
-                return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+                var response = staff.Adapt<StaffViewDto>();
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
             }
             catch (Exception ex)
             {
@@ -184,29 +185,28 @@ namespace BusinessLogic.Services
             }
         }
 
-
-        //  Update staff status (Admin)
+        //   Cập nhật trạng thái nhân viên
         public async Task<IServiceResult> UpdateStaffStatus(StaffUpdateStatusDto dto)
         {
             try
             {
                 var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId,
+                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
                     asNoTracking: false
                 );
+
                 if (staff == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
                 staff.Status = dto.Status;
                 staff.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
-                if (result > 0)
-                {
-                    var response = staff.Adapt<StaffViewDto>();
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
-                }
-                return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+                if (result <= 0)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+
+                var response = staff.Adapt<StaffViewDto>();
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
             }
             catch (Exception ex)
             {
@@ -214,27 +214,28 @@ namespace BusinessLogic.Services
             }
         }
 
-        //  Delete staff (soft delete)
+        //   Xóa mềm nhân viên
         public async Task<IServiceResult> Delete(Guid staffId)
         {
             try
             {
                 var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == staffId,
+                    predicate: s => s.Id == staffId && !s.IsDeleted,
                     asNoTracking: false
                 );
+
                 if (staff == null)
-                    return new ServiceResult(Const.FAIL_READ_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
                 staff.IsDeleted = true;
                 staff.Status = "Inactive";
                 staff.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
-                if (result > 0)
-                    return new ServiceResult(Const.SUCCESS_DELETE_CODE, Const.SUCCESS_DELETE_MSG);
+                if (result <= 0)
+                    return new ServiceResult(Const.FAIL_DELETE_CODE, Const.FAIL_DELETE_MSG);
 
-                return new ServiceResult(Const.FAIL_DELETE_CODE, Const.FAIL_DELETE_MSG);
+                return new ServiceResult(Const.SUCCESS_DELETE_CODE, Const.SUCCESS_DELETE_MSG);
             }
             catch (Exception ex)
             {
@@ -242,5 +243,4 @@ namespace BusinessLogic.Services
             }
         }
     }
-
 }

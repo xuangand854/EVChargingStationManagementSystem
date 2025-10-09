@@ -8,15 +8,32 @@ namespace APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class StaffController(ISCStaffService staffService) : ControllerBase
+    public class StaffController(ISCStaffService service) : ControllerBase
     {
-        private readonly ISCStaffService _staffService = staffService;
+        private readonly ISCStaffService _service = service;
 
-        // ✅ GET: api/staff/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetStaff(Guid id)
+        //  [GET] api/staff
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAll()
         {
-            var result = await _staffService.GetById(id);
+            var result = await _service.GetAll();
+
+            if (result.Status == Const.FAIL_READ_CODE || result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        //  [GET] api/staff/{staffId}
+        [HttpGet("{staffId}")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> GetById(Guid staffId)
+        {
+            var result = await _service.GetById(staffId);
 
             if (result.Status == Const.FAIL_READ_CODE)
                 return NotFound(new { message = result.Message });
@@ -27,41 +44,42 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ✅ POST: api/staff/{accountId}/profile
-        [HttpPost("{accountId}/profile")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateProfile(Guid accountId, [FromBody] StaffCreateProfileDto dto)
+        //  [POST] api/staff/account
+        [HttpPost("account")]
+       [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateAccount([FromBody] StaffAccountCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _staffService.CreateStaffProfile(dto, accountId);
+            var result = await _service.CreateAccountForStaff(dto);
 
             if (result.Status == Const.FAIL_CREATE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
-            if (result.Data is not StaffViewDto staff)
-                return StatusCode(500, new { message = "Invalid staff data returned" });
+            if (result.Status == Const.SUCCESS_CREATE_CODE && result.Data is StaffViewDto viewDto)
+                return CreatedAtAction(nameof(GetById), new { staffId = viewDto.Id },
+                        new { data = result.Data, message = result.Message });
 
-            return CreatedAtAction(
-                nameof(GetStaff),
-                new { id = staff.Id },
-                new { data = staff, message = result.Message }
-            );
+            return StatusCode(500, new { message = result.Message });
         }
 
-        // ✅ PATCH: api/staff/update/admin
-        [HttpPatch("update/admin")]
+    
+        //  [PUT] api/staff/update/admin
+        [HttpPut("update/admin")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateProfileByAdmin([FromBody] StaffUpdateAdminDto dto)
+        public async Task<IActionResult> UpdateByAdmin([FromBody] StaffUpdateAdminDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _staffService.UpdateProfileByAdmin(dto);
+            var result = await _service.UpdateProfileByAdmin(dto);
 
-            if (result.Status == Const.FAIL_UPDATE_CODE || result.Status == Const.FAIL_READ_CODE)
-                return BadRequest(new { message = result.Message });
+            if (result.Status == Const.FAIL_READ_CODE)
+                return NotFound(new { message = result.Message });
+
+            if (result.Status == Const.FAIL_UPDATE_CODE)
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -69,18 +87,21 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ✅ PATCH: api/staff/update
-        [HttpPatch("update")]
+        //  [PUT] api/staff/update/self
+        [HttpPut("update/self")]
         [Authorize(Roles = "Staff")]
-        public async Task<IActionResult> UpdateProfileByStaff([FromBody] StaffUpdateDto dto)
+        public async Task<IActionResult> UpdateByStaff([FromBody] StaffUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _staffService.UpdateProfileByStaff(dto);
+            var result = await _service.UpdateProfileByStaff(dto);
 
-            if (result.Status == Const.FAIL_UPDATE_CODE || result.Status == Const.FAIL_READ_CODE)
-                return BadRequest(new { message = result.Message });
+            if (result.Status == Const.FAIL_READ_CODE)
+                return NotFound(new { message = result.Message });
+
+            if (result.Status == Const.FAIL_UPDATE_CODE)
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -88,21 +109,21 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ✅ PATCH: api/staff/{id}/status
-        [HttpPatch("{id}/status")]
+        //  [PATCH] api/staff/status
+        [HttpPatch("status")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStaffStatus(Guid id, [FromBody] StaffUpdateStatusDto dto)
+        public async Task<IActionResult> UpdateStatus([FromBody] StaffUpdateStatusDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (dto.StaffId != id)
-                return BadRequest(new { message = "StaffId in route and body do not match" });
+            var result = await _service.UpdateStaffStatus(dto);
 
-            var result = await _staffService.UpdateStaffStatus(dto);
+            if (result.Status == Const.FAIL_READ_CODE)
+                return NotFound(new { message = result.Message });
 
-            if (result.Status == Const.FAIL_UPDATE_CODE || result.Status == Const.FAIL_READ_CODE)
-                return BadRequest(new { message = result.Message });
+            if (result.Status == Const.FAIL_UPDATE_CODE)
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -110,24 +131,21 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ✅ DELETE: api/staff/{staffId}
-        [HttpDelete("{staffId}")]
+        //  [DELETE] api/staff
+        [HttpDelete]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteStaff(Guid staffId)
+        public async Task<IActionResult> Delete(Guid staffId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _staffService.Delete(staffId);
+            var result = await _service.Delete(staffId);
 
             if (result.Status == Const.FAIL_READ_CODE)
                 return NotFound(new { message = result.Message });
 
             if (result.Status == Const.FAIL_DELETE_CODE)
-                return BadRequest(new { message = result.Message });
+                return Conflict(new { message = result.Message });
 
             if (result.Status == Const.SUCCESS_DELETE_CODE)
-                return Ok(new { message = result.Message });
+                return NoContent();
 
             return StatusCode(500, new { message = result.Message });
         }

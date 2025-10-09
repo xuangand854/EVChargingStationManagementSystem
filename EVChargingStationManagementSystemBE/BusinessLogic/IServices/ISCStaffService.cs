@@ -1,30 +1,33 @@
-﻿using BusinessLogic.Base;
-using Common.DTOs.AccountDto;
+﻿
+using BusinessLogic.Base;
+
 using Common.DTOs.ProfileStaffDto;
 
 namespace BusinessLogic.IServices
 {
     public interface ISCStaffService
     {
-        // Lấy thông tin staff theo Id
+        //  Lấy thông tin Staff theo Id
         Task<IServiceResult> GetById(Guid id);
 
-        // Admin tạo profile staff mới
-        Task<IServiceResult> CreateStaffProfile(StaffCreateProfileDto dto, Guid accountId);
+        //  Admin tạo tài khoản + hồ sơ Staff mới
+        Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto);
 
-        // Admin update profile staff
+     
+
+        //  Admin cập nhật thông tin hồ sơ Staff
         Task<IServiceResult> UpdateProfileByAdmin(StaffUpdateAdminDto dto);
 
-        // Staff tự update profile của mình
+        //  Staff tự cập nhật hồ sơ của mình
         Task<IServiceResult> UpdateProfileByStaff(StaffUpdateDto dto);
 
-        // Admin thay đổi trạng thái staff
+        //  Admin thay đổi trạng thái hoạt động của Staff
         Task<IServiceResult> UpdateStaffStatus(StaffUpdateStatusDto dto);
 
-        // Admin xóa staff (soft delete)
+        //  Admin xóa Staff (xóa mềm)
         Task<IServiceResult> Delete(Guid staffId);
-        // Admin tạo account cho staff 
-        //Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto);
 
+        //  Admin lấy toàn bộ danh sách Staff chưa bị xóa
+        Task<IServiceResult> GetAll();
     }
 }

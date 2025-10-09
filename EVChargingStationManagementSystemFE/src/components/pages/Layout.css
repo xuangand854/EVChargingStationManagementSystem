@@ -4,7 +4,7 @@ body {
 }
 
 nav {
-    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    background: linear-gradient(90deg, #00C853, #AEEA00);
     /* Gradient effect */
     padding: 10px 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -31,11 +31,16 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-    color: #ffdfba;
+    color: #4581f0;
     transform: scale(1.1);
     /* Slight zoom effect on hover */
 }
 
 nav ul li a:active {
-    color: #ff7e5f;
+    color: hwb(217 37% 0%);
+}
+/* Custom scrollbar for navigation */
+nav scrollbar {
+    width: auto;
+    background-color: #1464f4 #ffffff;
 }

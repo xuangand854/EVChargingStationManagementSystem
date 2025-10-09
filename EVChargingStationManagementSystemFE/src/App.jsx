@@ -13,10 +13,19 @@ import PrivateRoute from "./components/pages/PrivateRoute";
 import Order from "./components/profile/Order"
 import Car from "./components/profile/Car"
 
-
 import Signup from "./components/pages/Signup";
 import Forgotpassword from "./components/pages/Forgotpassword";
 import OrderChargingST from "./components/ordercharging/OrderChargingST";
+
+// Admin imports
+import AdminLayout from "./components/pages/admin/AdminLayout";
+import AdminDashboard from "./components/pages/admin/AdminDashboard";
+import AdminStations from "./components/pages/admin/Stations";
+import AdminUsers from "./components/pages/admin/Users";
+import AdminVehicles from "./components/pages/admin/AdminVehicles";
+import AdminSettings from "./components/pages/admin/AdminSettings";
+import AdminPrivateRoute from "./components/pages/admin/AdminPrivateRoute";
+
 
 // import NoPage from "./pages/NoPage";
 
@@ -37,14 +46,15 @@ export default function App() {
           <Route path="orders" element={<Order />} />
           <Route path="car" element={<Car />} />
           <Route path="order-charging" element={<OrderChargingST />} />
+        </Route>
 
-
-          
-
-
-
-
-
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="stations" element={<AdminStations />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="vehicles" element={<AdminVehicles />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
     </BrowserRouter>

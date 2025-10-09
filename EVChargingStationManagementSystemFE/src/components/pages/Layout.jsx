@@ -3,6 +3,8 @@ import "./Layout.css";
 import { getAuthStatus } from "../../API/Auth";
 import { useEffect, useState } from "react";
 import ProfileMenu from "../profile/ProfileMenu";
+import AuthDebug from "../debug/AuthDebug";
+
 
 
 const Layout = () => {
@@ -24,9 +26,11 @@ const Layout = () => {
 
     const { isAuthenticated, user } = auth;
     const role = user?.role;
-    console.log("Auth status:", { isAuthenticated, user });
+    const userRole = localStorage.getItem("user_role");
+    console.log("Auth status:", { isAuthenticated, user, role, userRole });
     return (
         <>
+            {/* <AuthDebug /> */}
             <nav>
                 <ul>
                     <li>
@@ -38,38 +42,39 @@ const Layout = () => {
                     <li>
                         <Link to="/contact">Contact</Link>
                     </li>
-                    {!isAuthenticated && (
-                        <li>
-                            <Link to="/login">Login</Link>
-                        </li>
-                    )}
-
-                    {isAuthenticated && (
-                        <>
-                            <li>
-                            {/* Thay vì hiện Profile/Logout link → hiện avatar dropdown */}
-                            <ProfileMenu />
-                        </li>
-                        </>
-                    )}
                     {/* OrderCharging */}
                     <>
                         <li>
                             <Link to="/order-charging">Đặt Trạm Sạc</Link>
                         </li>
                     </>
+                    {!isAuthenticated && (
+                        <li>
+                            <Link to="/login">Login</Link>
+                        </li>
+                    )}
+
+
                     {/* Admin */}
-                    {role === "Admin" && (
+                    {userRole === "Admin" && (
                         <li>
                             <Link to="/admin">Admin Dashboard</Link>
                         </li>
                     )}
 
                     {/* Staff (và Admin nếu muốn) */}
-                    {(role === "Staff" || role === "Admin") && (
+                    {(userRole === "Staff" || userRole === "Admin") && (
                         <li>
                             <Link to="/staff">Staff Page</Link>
                         </li>
+                    )}
+                    {isAuthenticated && (
+                        <>
+                            <li>
+                                {/* Thay vì hiện Profile/Logout link → hiện avatar dropdown */}
+                                <ProfileMenu />
+                            </li>
+                        </>
                     )}
                 </ul>
             </nav>

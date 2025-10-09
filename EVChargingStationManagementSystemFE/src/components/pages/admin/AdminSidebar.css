@@ -1,0 +1,207 @@
+/* AdminSidebar.css */
+.admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8c8dc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content {
+    margin-left: 240px;
+    /* Chừa chỗ cho sidebar */
+    padding: 20px;
+}
+
+.admin-sidebar .logo-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-sidebar .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-sidebar .logo-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.admin-sidebar .logo-text h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin: 0;
+}
+
+.admin-sidebar .logo-text p {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.admin-sidebar .navigation {
+    flex: 1;
+    padding: 1rem;
+    padding-top: 1.5rem;
+}
+
+.admin-sidebar .nav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 500;
+}
+
+.admin-sidebar .nav-item:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.admin-sidebar .nav-item.active {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.admin-sidebar .nav-item .icon {
+    padding: 0.25rem;
+}
+
+.admin-sidebar .user-section {
+    padding: 1rem;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.admin-sidebar .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-sidebar .user-avatar {
+    width: 2rem;
+    height: 2rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+
+.admin-sidebar .user-details {
+    flex: 1;
+}
+
+.admin-sidebar .user-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.admin-sidebar .user-role {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.admin-sidebar .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.admin-sidebar .logout-btn:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .admin-sidebar .logo-section {
+        padding: 1rem;
+    }
+
+    .admin-sidebar .navigation {
+        padding: 0.5rem;
+    }
+
+    .admin-sidebar .nav-item {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Animation for active state */
+@keyframes slideIn {
+    from {
+        transform: translateX(-10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.admin-sidebar .nav-item.active {
+    animation: slideIn 0.3s ease;
+}
+
+/* Hover effects */
+.admin-sidebar .nav-item:not(.active):hover {
+    transform: translateX(4px);
+}
+
+/* Focus styles for accessibility */
+.admin-sidebar .nav-item:focus,
+.admin-sidebar .logout-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}

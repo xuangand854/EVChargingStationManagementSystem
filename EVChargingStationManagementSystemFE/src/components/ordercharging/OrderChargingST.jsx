@@ -7,6 +7,13 @@ import L from "leaflet";
 import { getAuthStatus } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  getChargingStation,
+  addChargingStation,
+  updateChargingStation,
+  deleteChargingStation,
+  updateChargingStationStatus,
+} from "../../API/Station";
 
 // Icon marker
 const markerIcon = new L.Icon({
@@ -15,12 +22,16 @@ const markerIcon = new L.Icon({
   iconAnchor: [20, 40],
 });
 
-// Bay đến trạm đã chọn
+// Fly to selected station
 const FlyToStation = ({ station }) => {
   const map = useMap();
   useEffect(() => {
     if (station?.latitude && station?.longitude) {
-      map.flyTo([station.latitude, station.longitude], 15, { duration: 1.5 });
+      const lat = parseFloat(station.latitude);
+      const lng = parseFloat(station.longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        map.flyTo([lat, lng], 15, { duration: 1.5 });
+      }
     }
   }, [station, map]);
   return null;
@@ -31,27 +42,30 @@ const OrderChargingST = () => {
   const [selectedStation, setSelectedStation] = useState(null);
   const [stations, setStations] = useState([]);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
-  const navigate = useNavigate();
-  
-
+  const [showAdminPopup, setShowAdminPopup] = useState(false);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
     email: "",
     carModel: "",
-    km: "",
-    licensePlate: "",
-    service: [],
-    province: "",
-    district: "",
-    locationType: "station",
-    date: "",
-    time: "",
-    note: "",
+    vehicleType: "",
     chargingPower: "",
     chargingHint: "",
   });
+
+  const [adminForm, setAdminForm] = useState({
+    id: null,
+    stationName: "",
+    location: "",
+    province: "",
+    latitude: "",
+    longitude: "",
+    operatorId: "",
+  });
+  
 
   // Kiểm tra đăng nhập
   useEffect(() => {
@@ -82,97 +96,185 @@ const OrderChargingST = () => {
     fetchUser();
   }, []);
 
-  
-  // Khi mở popup đặt trạm -> tự fill xe đã chọn
-    useEffect(() => {
-      if (showBookingPopup) {
-        const savedVehicleId = localStorage.getItem("selectedVehicleId");
-        const allVehicles = JSON.parse(localStorage.getItem("vehicleList") || "[]");
-
-        if (savedVehicleId && allVehicles.length > 0) {
-          const chosen = allVehicles.find(
-            (v) => v.id === savedVehicleId || v.id === parseInt(savedVehicleId)
-          );
-
-          if (chosen) {
-            setFormData((prev) => ({
-              ...prev,
-              carModel: chosen.modelName || chosen.modelname || "",
-              vehicleType: chosen.vehicleType === 1 ? "Xe Hơi" : "Xe Máy",
-              
-            }));
-          }
+  // Auto-fill xe khi mở popup
+  useEffect(() => {
+    if (showBookingPopup) {
+      const savedVehicleId = localStorage.getItem("selectedVehicleId");
+      const allVehicles = JSON.parse(localStorage.getItem("vehicleList") || "[]");
+      if (savedVehicleId && allVehicles.length > 0) {
+        const chosen = allVehicles.find(
+          (v) => v.id === savedVehicleId || v.id === parseInt(savedVehicleId)
+        );
+        if (chosen) {
+          setFormData((prev) => ({
+            ...prev,
+            carModel: chosen.modelName || chosen.modelname || "",
+            vehicleType: chosen.vehicleType === 1 ? "Xe Hơi" : "Xe Máy",
+          }));
         }
       }
-    }, [showBookingPopup]);
+    }
+  }, [showBookingPopup]);
 
-  //  Lấy danh sách trạm (mock)
+  // Lấy danh sách trạm từ API
+  const fetchStations = async () => {
+    try {
+      setLoading(true);
+      const res = await getChargingStation();
+      const stationsData = (res.data || [])
+        .map((st) => ({
+          ...st,
+          slots: st.slots ?? 0,
+        }))
+        .filter((st) => st.latitude && st.longitude);
+      setStations(stationsData);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách trạm:", error);
+      toast.error("❌ Lấy danh sách trạm thất bại!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStations = async () => {
-      try {
-        const mockData = [
-          {
-            id: 1,
-            name: "Trạm sạc VinFast Quận 1",
-            address: "123 Nguyễn Huệ, Quận 1, HCM",
-            slots: 5,
-            type: "DC Fast",
-            latitude: 10.7769,
-            longitude: 106.7009,
-            image: "/img/station.png",
-          },
-          {
-            id: 2,
-            name: "Trạm sạc Landmark 81",
-            address: "720A Điện Biên Phủ, Bình Thạnh, HCM",
-            slots: 3,
-            type: "AC Normal",
-            latitude: 10.7945,
-            longitude: 106.7218,
-            image: "/img/station.png",
-          },
-          {
-            id: 3,
-            name: "Trạm sạc AEON Tân Phú",
-            address: "30 Bờ Bao Tân Thắng, Tân Phú, HCM",
-            slots: 0,
-            type: "AC Normal",
-            latitude: 10.8012,
-            longitude: 106.6265,
-            image: "/img/station.png",
-          },
-        ];
-        setStations(mockData);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách trạm:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStations();
   }, []);
 
-  //  Xử lý đặt lịch
+  // Xử lý đặt lịch
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!user) {
       toast.warn("⚠️ Bạn phải đăng nhập để đặt lịch!");
       return;
     }
-
     const bookingData = {
       ...formData,
-      station: selectedStation?.name,
+      station: selectedStation?.stationName,
       date: new Date().toLocaleString(),
     };
-
     localStorage.setItem("lastBooking", JSON.stringify(bookingData));
-    toast.success("✅ Đặt lịch thành công! Đã lưu thông tin.", {
-      position: "top-right",
-      autoClose: 2500,
-      theme: "colored",
-    });
+    toast.success("✅ Đặt lịch thành công! Đã lưu thông tin.");
     setShowBookingPopup(false);
+  };
+
+  // Admin: thêm trạm
+     const handleAddStation = async (e) => {
+        e.preventDefault();
+
+        const payload = {
+          stationName: adminForm.stationName.trim(),
+          location: adminForm.location.trim(),
+          province: adminForm.province.trim(),
+          latitude: adminForm.latitude.trim(),    // gửi string
+          longitude: adminForm.longitude.trim(),  // gửi string
+          operatorId: adminForm.operatorId.trim() // gửi string UUID
+        };
+
+        console.log("=== DEBUG Payload ===");
+        console.log(payload);
+
+        // Validate cơ bản: tất cả phải có giá trị
+        if (
+          !payload.stationName ||
+          !payload.location ||
+          !payload.province ||
+          !payload.latitude ||
+          !payload.longitude ||
+          !payload.operatorId
+        ) {
+          toast.error("❌ Vui lòng điền đầy đủ thông tin hợp lệ!");
+          return;
+        }
+
+        try {
+          const res = await addChargingStation(
+            payload.stationName,
+            payload.location,
+            payload.province,
+            payload.latitude,
+            payload.longitude,
+            payload.operatorId
+          );
+          console.log("API response:", res);
+          toast.success("✅ Thêm trạm thành công!");
+          fetchStations();
+          setShowAdminPopup(false);
+          setAdminForm({
+            id: null,
+            stationName: "",
+            location: "",
+            province: "",
+            latitude: "",
+            longitude: "",
+            operatorId: "",
+          });
+        } catch (err) {
+          console.error("Add station error full:", err.response || err);
+          toast.error("❌ Thêm trạm thất bại! Kiểm tra console log.");
+        }
+      };
+
+
+
+  
+
+  // Admin: update trạm
+    const handleUpdateStation = async (e) => {
+      e.preventDefault();
+      if (!adminForm.id) {
+        toast.warn("⚠️ Không có trạm để cập nhật!");
+        return;
+      }
+
+      try {
+        const payload = {
+          stationName: adminForm.stationName || "",
+          location: adminForm.location || "",
+          province: adminForm.province || "",
+          latitude: adminForm.latitude || "",
+          longitude: adminForm.longitude || "",
+          operatorId: adminForm.operatorId || "",
+        };
+
+        // Gọi API với stationId là query param
+        await updateChargingStation(adminForm.id, payload);
+
+        toast.success("✅ Cập nhật trạm thành công!");
+        fetchStations();
+        setShowAdminPopup(false);
+      } catch (err) {
+        console.error("Update station error:", err);
+        toast.error("❌ Cập nhật trạm thất bại!");
+      }
+    };
+
+
+    const handleDeleteStation = async (stationId) => {
+      const idToDelete = stationId || adminForm.id;
+      if (!idToDelete) {
+        toast.warn("⚠️ Không có trạm để xóa!");
+        return;
+      }
+      try {
+        await deleteChargingStation(idToDelete);
+        toast.success("✅ Xóa trạm thành công!");
+        fetchStations();
+        setShowAdminPopup(false);
+      } catch (err) {
+        console.error("Delete station error:", err);
+        toast.error("❌ Xóa trạm thất bại!");
+      }
+    };
+
+  const handleUpdateStatus = async (station) => {
+    try {
+      await updateChargingStationStatus(station.id, station.slots > 0 ? 0 : 5);
+      toast.success("✅ Cập nhật trạng thái thành công!");
+      fetchStations();
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ Lỗi khi cập nhật trạng thái!");
+    }
   };
 
   if (!user)
@@ -190,51 +292,49 @@ const OrderChargingST = () => {
 
   return (
     <div className="order-container">
-      {/* Cột trái: Danh sách trạm */}
+      {/* Cột trái */}
       <div className="left-panel">
         <h2>Trạng thái các trạm sạc</h2>
         <div className="station-list">
           {stations.map((st) => (
             <div
               key={st.id}
-              className={`station-item ${
-                selectedStation?.id === st.id ? "active" : ""
-              }`}
+              className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
               onClick={() => setSelectedStation(st)}
             >
-              <h4>🏙️ {st.name}</h4>
-              <p>📍 {st.address}</p>
-              <p>🔌 {st.type}</p>
-              <p>
-                {st.slots > 0 ? (
-                  <span className="available">✅ Còn {st.slots} cổng</span>
-                ) : (
-                  <span className="unavailable">❌ Hết chỗ</span>
-                )}
-              </p>
+              <h4>🏙️ {st.stationName}</h4>
+              <p>📍 {st.location}, {st.province}</p>
+              <p>Slots: {st.slots}</p>
             </div>
           ))}
         </div>
-
-        {/* Nút chức năng */}
         <div className="action-buttons">
-          <button
-            className="btn-book"
-            onClick={() => {
-              if (!user) {
-                toast.warn("⚠️ Bạn phải đăng nhập để đặt lịch!");
-                return;
-              }
-              setShowBookingPopup(true);
-            }}
-          >
-            🔋 Đặt lịch sạc
-          </button>
-          <button className="btn-admin">🛠️ Admin Panel</button>
+          <button className="btn-book" onClick={() => setShowBookingPopup(true)}>🔋 Đặt lịch sạc</button>
+          <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>🛠️ Admin Panel</button>
         </div>
+
+        {selectedStation && (
+          <div className="station-actions">
+            <button onClick={() => {
+              setAdminForm({
+                id: selectedStation.id || null,
+                stationName: selectedStation.stationName || "",
+                location: selectedStation.location || "",
+                province: selectedStation.province || "",
+                latitude: selectedStation.latitude?.toString() || "",
+                longitude: selectedStation.longitude?.toString() || "",
+                operatorId: selectedStation.operatorId?.toString() || "",
+              });
+              setShowAdminPopup(true);
+            }}>✏️ Update trạm</button>
+            <button onClick={() => handleDeleteStation(selectedStation.id)}>🗑️ Delete trạm</button>
+
+            <button onClick={() => handleUpdateStatus(selectedStation)}>🔄 Toggle slots</button>
+          </div>
+        )}
       </div>
 
-      {/* Cột phải: Bản đồ */}
+      {/* Cột phải: bản đồ */}
       <div className="right-panel">
         <MapContainer
           center={[10.7769, 106.7009]}
@@ -245,128 +345,223 @@ const OrderChargingST = () => {
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-
-          {stations.map((station) => (
-            <Marker
-              key={station.id}
-              position={[station.latitude, station.longitude]}
-              icon={markerIcon}
-              eventHandlers={{
-                click: () => setSelectedStation(station),
-              }}
-            >
-              <Popup>
-                <div className="popup-station">
-                  <img
-                    src={station.image}
-                    alt={station.name}
-                    className="popup-image"
-                  />
-                  <b>{station.name}</b>
-                  <p>📍 {station.address}</p>
-                  <p>⚡ Loại: {station.type}</p>
-                  <p>
-                    {station.slots > 0 ? (
-                      <span className="available">✅ Còn {station.slots} cổng</span>
-                    ) : (
-                      <span className="unavailable">❌ Hết chỗ</span>
-                    )}
-                  </p>
-                  <button
-                    className="btn-popup-book"
-                    onClick={() => {
-                      if (!user) {
-                        toast.warn("⚠️ Bạn phải đăng nhập để đặt lịch!");
-                        return;
-                      }
-                      setShowBookingPopup(true);
-                    }}
-                  >
-                    🔋 Đặt lịch sạc
-                  </button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-
+          {stations.map((station) => {
+            const lat = parseFloat(station.latitude);
+            const lng = parseFloat(station.longitude);
+            if (isNaN(lat) || isNaN(lng)) return null;
+            return (
+              <Marker
+                key={station.id}
+                position={[lat, lng]}
+                icon={markerIcon}
+                eventHandlers={{ click: () => setSelectedStation(station) }}
+              >
+                <Popup>
+                  <div className="popup-station">
+                    <b>{station.stationName}</b>
+                    <p>📍 {station.location}, {station.province}</p>
+                    <p>Slots: {station.slots}</p>
+                    <button className="btn-popup-book" onClick={() => setShowBookingPopup(true)}>
+                      🔋 Đặt lịch sạc
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
           {selectedStation && <FlyToStation station={selectedStation} />}
         </MapContainer>
       </div>
 
+      
+      {/* Popup đặt lịch */}
       {/* Popup đặt lịch */}
       {showBookingPopup && (
         <div className="popup-overlay">
           <div className="popup-content">
             <h3>Đặt lịch sạc</h3>
             <form className="booking-form" onSubmit={handleSubmit}>
-              <label>Tên trạm:</label>
-              <input type="text" value={selectedStation?.name || ""} readOnly />
+              <label>
+                Họ và tên:
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Số điện thoại:
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Xe:
+                <input
+                  type="text"
+                  value={formData.carModel}
+                  onChange={(e) =>
+                    setFormData({ ...formData, carModel: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Loại xe:
+                <input
+                  type="text"
+                  value={formData.vehicleType}
+                  onChange={(e) =>
+                    setFormData({ ...formData, vehicleType: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Công suất sạc (kW):
+                <input
+                  type="number"
+                  value={formData.chargingPower}
+                  onChange={(e) =>
+                    setFormData({ ...formData, chargingPower: e.target.value })
+                  }
+                />
+              </label>
 
-              <label>Họ tên:</label>
-              <input type="text" value={formData.fullName} readOnly />
-
-              <label>Email:</label>
-              <input type="email" value={formData.email} readOnly />
-
-              <label>Loại xe</label>
-              <input
-                list="carTypes"
-                name="carModel"
-                value={formData.vehicleType}
-                readOnly
-              />
-              <datalist id="carTypes">
-                <option value="Xe máy điện" />
-                <option value="Ô tô điện" />
-                <option value="Xe bus điện" />
-              </datalist>
-
-              <label>Tên xe:</label>
-              <input type="text" value={formData.carModel} readOnly />
-
-              <label>Công suất sạc (kW):</label>
-              <input
-                type="number"
-                value={formData.chargingPower || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, chargingPower: e.target.value })
-                }
-              />
-
-              <label>Gợi ý sạc:</label>
-              <input
-                type="text"
-                value={formData.chargingHint || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, chargingHint: e.target.value })
-                }
-              />
-
-              <label>Thời gian bắt đầu:</label>
-              <input type="datetime-local" required />
-
-              <label>Loại sạc</label>
-              <input
-                list="chargerTypes"
-                name="chargerType"
-                placeholder="Chọn loại sạc..."
-              />
-              <datalist id="chargerTypes">
-                <option value="AC Normal" />
-                <option value="DC Fast" />
-                <option value="Super Fast" />
-              </datalist>
-
-              <button type="submit">Xác nhận đặt</button>
-              <button type="button" onClick={() => setShowBookingPopup(false)}>
-                Hủy
-              </button>
+              <div className="booking-buttons">
+                <button type="submit">Xác nhận đặt</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBookingPopup(false);
+                    // reset formData nếu muốn
+                  }}
+                >
+                  Hủy
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ✅ Thông báo Toast */}
+
+
+
+      
+      {/* Popup AdminPanel */}
+      {showAdminPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>{adminForm.id ? `Cập nhật / Xóa trạm: ${adminForm.stationName}` : "Thêm trạm mới"}</h3>
+            <form
+              onSubmit={adminForm.id ? handleUpdateStation : handleAddStation}
+            >
+              <label>
+                Tên trạm:
+                <input
+                  type="text"
+                  value={adminForm.stationName}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, stationName: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Địa chỉ:
+                <input
+                  type="text"
+                  value={adminForm.location}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, location: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Tỉnh/Thành phố:
+                <input
+                  type="text"
+                  value={adminForm.province}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, province: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Latitude:
+                <input
+                  type="text"
+                  value={adminForm.latitude}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, latitude: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Longitude:
+                <input
+                  type="text"
+                  value={adminForm.longitude}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, longitude: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                OperatorId:
+                <input
+                  type="text"
+                  value={adminForm.operatorId}
+                  onChange={(e) =>
+                    setAdminForm({ ...adminForm, operatorId: e.target.value })
+                  }
+                />
+              </label>
+
+              <div className="admin-buttons">
+                <button type="submit">
+                  {adminForm.id ? "Lưu cập nhật" : "Thêm trạm"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAdminPopup(false);
+                    // Reset form khi đóng popup
+                    setAdminForm({
+                      id: null,
+                      stationName: "",
+                      location: "",
+                      province: "",
+                      latitude: "",
+                      longitude: "",
+                      operatorId: "",
+                    });
+                  }}
+                >
+                  Hủy
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+
       <ToastContainer />
     </div>
   );

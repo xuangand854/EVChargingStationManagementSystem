@@ -40,7 +40,7 @@ const ProfileMenu = ({ user }) => {
           <button onClick={() => handleNavigate("/profile")}>Thông tin tài khoản</button>
           <button onClick={() => handleNavigate("/order-charging")}>Đặt chổ sạc</button>
           <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
-          <button onClick={() => handleNavigate("/charging-history")}>Lịch sử Sạc Pin</button>
+          {/* <button onClick={() => handleNavigate("/charging-history")}>Lịch sử Sạc Pin</button> */}
           <button onClick={() => handleNavigate("/car")}>Xe của tôi</button>
           <hr />
           <button

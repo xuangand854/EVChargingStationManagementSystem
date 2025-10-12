@@ -202,7 +202,7 @@ namespace BusinessLogic.Services
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var response = chargingPost.Adapt<ChargingStationViewGeneralDto>();
+                    var response = chargingPost.Adapt<ChargingPostViewListDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
                 }
                 else

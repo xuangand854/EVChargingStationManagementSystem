@@ -8,6 +8,7 @@ using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -47,7 +48,8 @@ namespace BusinessLogic.Services
             try
             {
                 var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == StationId
+                    predicate: v => !v.IsDeleted && v.Id == StationId,
+                    include: c => c.Include(cs => cs.ChargingPosts)
                     );
                 if (chargingStation == null)
                     return new ServiceResult(
@@ -57,7 +59,7 @@ namespace BusinessLogic.Services
 
                 else
                 {
-                    var response = chargingStation.Adapt<ChargingStationViewGeneralDto>();
+                    var response = chargingStation.Adapt<ChargingStationsViewDetailDto>();
                     return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
                 }
             }

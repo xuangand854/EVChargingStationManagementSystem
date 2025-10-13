@@ -1,21 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Models
 {
+    [PrimaryKey(nameof(DriverId), nameof(VehicleModelId))]
     public class UserVehicle
     {
-        [Key]
-        public Guid Id { get; set; }
-
-        [ForeignKey("EVDriver")]
         public Guid DriverId { get; set; }
-        public EVDriver EVDriverNavigation { get; set; }
-
-        [ForeignKey("VehicleModel")]
+        public EVDriver EVDriver { get; set; }
         public Guid VehicleModelId { get; set; }
-        public VehicleModel VehicleModelNavigation { get; set; }
-
+        public VehicleModel VehicleModel { get; set; }
         public ICollection<ChargingSession> ChargingSessions { get; set; } = [];
     }
 }

@@ -15,14 +15,14 @@ namespace Infrastructure.ModelsConfig
                    .HasForeignKey(cs => cs.ChargingPostId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(cs => cs.UserVehicleNavigation)
+            builder.HasOne(cs => cs.UserVehicle)
                     .WithMany(uv => uv.ChargingSessions)
-                    .HasForeignKey(cs => cs.UserVehicleId)
+                    .HasForeignKey(cs => new { cs.DriverId, cs.VehicleModelId })
                     .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(cs => cs.StartedByNavigation)
+            builder.HasOne(cs => cs.User)
                     .WithMany(ev => ev.ChargingSessions)
-                    .HasForeignKey(cs => cs.StartedBy);
+                    .HasForeignKey(cs => cs.UserId);
         }
     }
 }

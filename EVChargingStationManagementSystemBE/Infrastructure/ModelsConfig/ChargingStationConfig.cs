@@ -14,6 +14,7 @@ namespace Infrastructure.ModelsConfig
                    .WithMany(ua => ua.ChargingStations)
                    .HasForeignKey(cs => cs.OperatorId)
                    .OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(builder => builder.OperatorId).IsUnique(true);
         }
     }
 }

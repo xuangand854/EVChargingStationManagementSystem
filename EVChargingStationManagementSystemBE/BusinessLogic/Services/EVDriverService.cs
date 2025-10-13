@@ -3,13 +3,8 @@ using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileEVDriverDto;
 using Infrastructure.IUnitOfWork;
-using Infrastructure.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
@@ -30,7 +25,7 @@ namespace BusinessLogic.Services
                         .Include(d => d.UserAccountNavigation)
                         .Include(d => d.RankingNavigation)
                         .Include(d => d.UserVehicles)
-                        .ThenInclude(uv => uv.VehicleModelNavigation),
+                        .ThenInclude(uv => uv.VehicleModel),
                     orderBy: q => q.OrderByDescending(d => d.CreatedAt),
                     asNoTracking: true
                 );
@@ -58,7 +53,7 @@ namespace BusinessLogic.Services
                         .Include(d => d.UserAccountNavigation)
                         .Include(d => d.RankingNavigation)
                         .Include(d => d.UserVehicles)
-                        .ThenInclude(uv => uv.VehicleModelNavigation),
+                        .ThenInclude(uv => uv.VehicleModel),
                     asNoTracking: true
                 );
 

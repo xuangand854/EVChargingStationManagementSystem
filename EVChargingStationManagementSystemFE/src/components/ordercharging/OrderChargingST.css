@@ -6,6 +6,7 @@
   background: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
 }
 
 /* ====== Cột trái: danh sách trạm ====== */
@@ -76,12 +77,46 @@
   font-weight: 600;
 }
 
+/* ====== Nút sửa/xóa/status trên item ====== */
+.station-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.station-actions button {
+  flex: 1;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: white;
+  transition: 0.2s;
+}
+
+.station-actions button:hover {
+  opacity: 0.85;
+}
+
+.station-actions button:nth-child(1) {
+  background-color: #007bff; /* sửa */
+}
+.station-actions button:nth-child(2) {
+  background-color: #dc3545; /* xóa */
+}
+.station-actions button:nth-child(3) {
+  background-color: #ffc107; /* toggle */
+  color: #212529;
+}
+
 /* ====== Cột phải: bản đồ ====== */
 .right-panel {
   flex: 2;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  min-width: 300px;
 }
 
 /* ====== Các nút hành động ====== */
@@ -122,7 +157,7 @@
   background-color: #0069d9;
 }
 
-/* ====== Popup bản đồ (khi click marker) ====== */
+/* ====== Popup marker ====== */
 .popup-station {
   text-align: center;
   width: 200px;
@@ -150,8 +185,7 @@
   background-color: #1e874b;
 }
 
-/* ====== Popup đặt lịch ====== */
-/* ====== Popup đặt lịch ====== */
+/* ====== Popup (đặt lịch + admin) ====== */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -163,7 +197,7 @@
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  padding: 16px; /* Thêm padding tránh dính mép */
+  padding: 16px;
   box-sizing: border-box;
 }
 
@@ -173,9 +207,9 @@
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 400px; /* Tự co lại nếu màn nhỏ */
-  max-height: 90vh; /* Giới hạn chiều cao */
-  overflow-y: auto; /* Cho phép cuộn nếu dài */
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
   text-align: left;
   animation: fadeIn 0.25s ease;
   box-sizing: border-box;
@@ -188,19 +222,22 @@
   margin-bottom: 15px;
 }
 
-/* Form bên trong */
-.booking-form {
+/* Form */
+.booking-form,
+.popup-content form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.booking-form label {
+.booking-form label,
+.popup-content form label {
   font-weight: 600;
   font-size: 14px;
 }
 
-.booking-form input {
+.booking-form input,
+.popup-content form input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -208,7 +245,8 @@
   box-sizing: border-box;
 }
 
-.booking-form button {
+.booking-form button,
+.popup-content form button {
   margin-top: 5px;
   padding: 10px;
   border: none;
@@ -219,21 +257,41 @@
   width: 100%;
 }
 
-/* Nút submit và cancel */
-.booking-form button[type="submit"] {
+/* Submit / Cancel */
+.booking-form button[type="submit"],
+.popup-content form button[type="submit"] {
   background-color: #28a745;
   color: white;
 }
 
-.booking-form button[type="submit"]:hover {
+.booking-form button[type="submit"]:hover,
+.popup-content form button[type="submit"]:hover {
   background-color: #1e7e34;
 }
 
-.booking-form button[type="button"] {
+.booking-form button[type="button"],
+.popup-content form button[type="button"] {
   background-color: #dc3545;
   color: white;
 }
 
-.booking-form button[type="button"]:hover {
+.booking-form button[type="button"]:hover,
+.popup-content form button[type="button"]:hover {
   background-color: #c82333;
+}
+
+/* ====== Animation ====== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .order-container {
+    flex-direction: column;
+  }
+  .right-panel {
+    height: 400px;
+  }
 }

@@ -10,12 +10,12 @@ namespace Infrastructure.ModelsConfig
         {
             builder.ToTable("UserVehicle");
 
-            builder.HasOne(uv => uv.EVDriverNavigation)
+            builder.HasOne(uv => uv.EVDriver)
                    .WithMany(ev => ev.UserVehicles)
                    .HasForeignKey(uv => uv.DriverId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(uv => uv.VehicleModelNavigation)
+            builder.HasOne(uv => uv.VehicleModel)
                      .WithMany(vm => vm.UserVehicles)
                      .HasForeignKey(uv => uv.VehicleModelId)
                      .OnDelete(DeleteBehavior.Restrict);

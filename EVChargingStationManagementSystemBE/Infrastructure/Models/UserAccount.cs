@@ -35,7 +35,7 @@ public class UserAccount : IdentityUser<Guid>
     public ICollection<SCStaff> SCStaffs { get; set; } = [];
     public ICollection<Booking> Bookings { get; set; } = [];
     public ICollection<VehicleModel> VehicleModels { get; set; } = [];
-    public ICollection<UserVehicle> UserVehicles { get; set; } = [];
+    //public ICollection<UserVehicle> UserVehicles { get; set; } = [];
     public ICollection<ChargingStation> ChargingStations { get; set; } = [];
     public ICollection<ChargingSession> ChargingSessions { get; set; } = [];
 

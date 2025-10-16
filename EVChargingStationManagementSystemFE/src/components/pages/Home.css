@@ -36,6 +36,7 @@
 .section-hero {
     position: relative;
     overflow: hidden;
+    background: radial-gradient(120% 160% at 50% 20%, #05070d 0%, #080c16 50%, #0a0f1a 100%);
 }
 
 .home-hero {
@@ -50,7 +51,7 @@
     font-size: clamp(32px, 5vw, 64px);
     line-height: 1.1;
     margin: 0 0 16px;
-    
+
 }
 
 .brand-gradient {
@@ -161,6 +162,75 @@
 
 .home-features {
     width: min(1100px, 92vw);
+}
+
+/* About */
+.section-about {
+    background: radial-gradient(100% 140% at 50% 0%, #090e18 0%, #0a0f1a 60%, #0b1220 100%);
+}
+
+.home-about {
+    width: min(1100px, 92vw);
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 28px;
+    align-items: center;
+}
+
+.about-text p {
+    color: #cbd5e1;
+    margin: 12px 0 16px;
+}
+
+.about-highlights {
+    margin: 0;
+    padding-left: 18px;
+    color: #cbd5e1;
+}
+
+.about-visual .about-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    border-radius: 16px;
+    padding: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.about-visual .about-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(90deg, rgba(255, 126, 95, 0.4), rgba(254, 180, 123, 0.25), rgba(255, 154, 95, 0.4));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.about-stat {
+    text-align: center;
+}
+
+.about-stat .stat-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.about-stat .stat-label {
+    color: #cbd5e1;
+    font-size: 12px;
 }
 
 .section-title {
@@ -319,6 +389,71 @@
     margin-right: 10px;
 }
 
+/* Contact */
+.section-contact {
+    background: radial-gradient(120% 140% at 50% 0%, #080d17 0%, #0a0f1a 60%, #0b1220 100%);
+}
+
+.home-contact {
+    width: min(900px, 92vw);
+}
+
+.contact-form {
+    position: relative;
+    display: grid;
+    gap: 12px;
+    border-radius: 16px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.contact-form::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(90deg, rgba(255, 126, 95, 0.4), rgba(254, 180, 123, 0.25), rgba(255, 154, 95, 0.4));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.contact-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.contact-form input,
+.contact-form textarea {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e7eb;
+}
+
+.contact-form .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+@media (max-width: 1024px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-form .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Legacy selectors retained if used elsewhere */
 .home-header {
     text-align: center;
@@ -374,31 +509,93 @@
     max-width: 520px;
     max-height: 360px;
 }
+
 .map-container {
-  margin-top: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin-top: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
 .popup-overlay {
-    position: fixed; /* nổi lên trên tất cả */
+    position: fixed;
+    /* nổi lên trên tất cả */
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0,0,0,0.5); /* nền mờ */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* nền mờ */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* chắc chắn nổi trên tất cả */
+    z-index: 1000;
+    /* chắc chắn nổi trên tất cả */
 }
 
 .popup-content {
     background-color: #fff;
     padding: 20px;
-    color:black;
+    color: black;
     border-radius: 12px;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Floating social bar & action button */
+.floating-social {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1100;
+}
+
+.social-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    transition: transform .15s ease, background .15s ease;
+}
+
+.social-btn:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, rgba(255, 126, 95, 0.5), rgba(254, 180, 123, 0.3));
+}
+
+.social-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.floating-action {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    color: #0a0f1a;
+    background: #ffd3c2;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    transition: transform .15s ease, box-shadow .15s ease;
+    z-index: 1100;
+}
+
+.floating-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
 }

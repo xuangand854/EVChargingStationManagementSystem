@@ -21,7 +21,7 @@ import OrderChargingST from "./components/ordercharging/OrderChargingST";
 import AdminLayout from "./components/pages/admin/AdminLayout";
 import AdminDashboard from "./components/pages/admin/AdminDashboard";
 import AdminStations from "./components/pages/admin/Stations";
-import AdminUsers from "./components/pages/admin/Users";
+import AdminStaff from "./components/pages/admin/Staff";
 import AdminVehicles from "./components/pages/admin/AdminVehicles";
 import AdminSettings from "./components/pages/admin/AdminSettings";
 import AdminPrivateRoute from "./components/pages/admin/AdminPrivateRoute";
@@ -52,7 +52,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="stations" element={<AdminStations />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

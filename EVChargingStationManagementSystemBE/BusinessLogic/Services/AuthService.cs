@@ -37,7 +37,7 @@ namespace BusinessLogic.Services
             if (result.Succeeded)
             {
                 var createdUser = await _unitOfWork.UserAccountRepository.GetByIdAsync(user.Id);
-                EVDriver eVDriver = new()
+                EVDriverProfile eVDriver = new()
                 {
                     Id = Guid.NewGuid(),
                     AccountId = createdUser.Id,
@@ -64,7 +64,8 @@ namespace BusinessLogic.Services
             // Encode token để truyền qua querystring
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            //var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            var confirmationLink = $"{_configuration["EmailSettings:ConfirmationURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Bước 4: Gửi mail cho user (bạn cần service gửi mail riêng)
             _emailSender.Send(user.Email,
@@ -153,7 +154,8 @@ namespace BusinessLogic.Services
             // Encode token để tránh lỗi ký tự đặc biệt trong URL
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            //var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            var confirmationLink = $"{_configuration["EmailSettings:ConfirmationURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Gửi mail xác nhận
             _emailSender.Send(
@@ -180,7 +182,8 @@ namespace BusinessLogic.Services
             // Mã hóa token để truyền qua URL
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var resetLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/resetpassword?userId={user.Id}&token={encodedToken}";
+            //var resetLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/resetpassword?userId={user.Id}&token={encodedToken}";
+            var resetLink = $"{_configuration["EmailSettings:ResetPasswordURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Gửi email cho người dùng
             _emailSender.Send(

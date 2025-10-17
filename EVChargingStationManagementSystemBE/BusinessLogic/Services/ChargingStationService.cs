@@ -2,9 +2,7 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ChargingStationDto;
-using Common.DTOs.VehicleModelDto;
 using Common.Enum.ChargingStation;
-using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;

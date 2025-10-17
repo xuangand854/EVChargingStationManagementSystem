@@ -3,7 +3,7 @@
     public enum ChargingPostStatus
     {
         InActive,
-        Active,
+        Available,
         Busy,
         Maintained,
         Booked,

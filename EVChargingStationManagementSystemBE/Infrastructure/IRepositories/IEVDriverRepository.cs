@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.IRepositories
 {
-    public interface IEVDriverRepository : IGenericRepository<EVDriver>
+    public interface IEVDriverRepository : IGenericRepository<EVDriverProfile>
     {
     }
 }

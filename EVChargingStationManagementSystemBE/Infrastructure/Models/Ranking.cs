@@ -1,6 +1,5 @@
 ﻿#nullable disable
 
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Infrastructure.Models
@@ -16,6 +15,6 @@ namespace Infrastructure.Models
         public string Description { get; set; }
         public int MinPoints { get; set; }
 
-        public ICollection<EVDriver> EVDrivers { get; set; } = [];
+        public ICollection<EVDriverProfile> EVDrivers { get; set; } = [];
     }
 }

@@ -97,16 +97,22 @@ namespace BusinessLogic.Services
 
             var userRoles = await _userManager.GetRolesAsync(user);
             foreach (var role in userRoles)
-            {
                 authClaims.Add(new Claim("role", role));
-            }
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var t_e = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                    c => !c.IsDeleted && c.Name == "LOGIN_TOKEN_TIMEOUT"
+                );
+
+            double tokenTimeoutHours = 1; // Default to 1 hour if not set
+            if (t_e != null && _unitOfWork.SystemConfigurationRepository.Validate(t_e))
+                tokenTimeoutHours = (double)(t_e.MinValue ?? 1);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddDays(30),
+                expires: DateTime.Now.AddHours(tokenTimeoutHours),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );

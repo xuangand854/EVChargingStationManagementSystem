@@ -5,5 +5,6 @@ namespace Infrastructure.IRepositories
 {
     public interface ISystemConfigurationRepository : IGenericRepository<SystemConfiguration>
     {
+        bool Validate(SystemConfiguration configuration);
     }
 }

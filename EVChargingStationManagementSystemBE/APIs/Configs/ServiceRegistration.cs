@@ -1,8 +1,10 @@
 ﻿using Common.DTOs.AuthDto;
 using Common.DTOs.ChargingPostDto;
+using Common.DTOs.ChargingSessionDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ProfileEVDriverDto;
 using Common.DTOs.ProfileStaffDto;
+using Common.DTOs.SystemConfigurationDto;
 using Common.DTOs.VehicleModelDto;
 using Infrastructure.Models;
 using Mapster;
@@ -108,6 +110,11 @@ namespace APIs.Configs
                 .Map(dest => dest, src => src.UserAccountNavigation) // map các field trùng tên tự động
                 .Map(dest => dest.AccountId, src => src.AccountId)
                 .Map(dest => dest.Id, src => src.Id)
+                .IgnoreNullValues(true);
+
+            
+
+            TypeAdapterConfig<SystemConfigurationUpdateDto, SystemConfiguration>.NewConfig()
                 .IgnoreNullValues(true);
 
             return services;

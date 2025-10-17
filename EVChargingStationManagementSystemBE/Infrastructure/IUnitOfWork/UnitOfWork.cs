@@ -14,6 +14,9 @@ namespace Infrastructure.IUnitOfWork
         private IEVDriverRepository? evDriverRepository;
         private IUserAccountRepository? userAccountRepository;
         private IChargingPostRepository? chargingPostRepository;
+        private IPaymentRepository? paymentRepository;
+        private IChargingSessionRepository? chargingSessionRepository;
+        private ISystemConfigurationRepository? systemConfigurationRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -85,6 +88,27 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return chargingPostRepository ??= new ChargingPostRepository(context);
+            }
+        }
+        public IPaymentRepository PaymentRepository
+        {
+            get
+            {
+                return paymentRepository ??= new PaymentRepository(context);
+            }
+        }
+        public IChargingSessionRepository ChargingSessionRepository
+        {
+            get
+            {
+                return chargingSessionRepository ??= new ChargingSessionRepository(context);
+            }
+        }
+        public ISystemConfigurationRepository SystemConfigurationRepository
+        {
+            get
+            {
+                return systemConfigurationRepository ??= new SystemConfigurationRepository(context);
             }
         }
     }

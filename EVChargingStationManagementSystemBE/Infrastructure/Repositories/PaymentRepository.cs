@@ -5,8 +5,7 @@ using Infrastructure.Models;
 
 namespace Infrastructure.Repositories
 {
-    public class EVDriverRepository(EVCSMSContext context)
-        : GenericRepository<EVDriverProfile>(context), IEVDriverRepository
+    public class PaymentRepository(EVCSMSContext context) : GenericRepository<Payment>(context), IPaymentRepository
     {
     }
 }

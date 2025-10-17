@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Infrastructure.Models
 {
-    public class SCStaff
+    public class SCStaffProfile
     {
         [Key]
         public Guid Id { get; set; }

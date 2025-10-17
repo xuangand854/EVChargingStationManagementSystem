@@ -19,7 +19,7 @@ namespace Infrastructure.Models
 
         public string Unit { get; set; }
 
-        public bool IsActive { get; set; } = false;
+        //public bool IsActive { get; set; } = false;
 
         public DateTime EffectedDateFrom { get; set; }
 
@@ -31,17 +31,17 @@ namespace Infrastructure.Models
 
         public bool IsDeleted { get; set; }
 
-        public string TargetEntity { get; set; }
+        //public string TargetEntity { get; set; }
 
-        public string TargetField { get; set; }
+        //public string TargetField { get; set; }
 
-        public string Operator { get; set; }
+        //public string Operator { get; set; }
 
-        public string ScopeType { get; set; }
+        //public string ScopeType { get; set; }
 
-        public string Severity { get; set; }
+        //public string Severity { get; set; }
 
-        public string RuleGroup { get; set; }
+        //public string RuleGroup { get; set; }
 
         public int? VersionNo { get; set; }
 

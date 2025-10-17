@@ -92,7 +92,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể gán quyền cho nhân viên", roleResult.Errors);
 
                 // Tạo hồ sơ Staff
-                var staff = dto.Adapt<SCStaff>();
+                var staff = dto.Adapt<SCStaffProfile>();
                 staff.Id = Guid.NewGuid();
                 staff.AccountId = user.Id;
                 staff.Status = "Active";

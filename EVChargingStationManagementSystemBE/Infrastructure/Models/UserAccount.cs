@@ -31,8 +31,8 @@ public class UserAccount : IdentityUser<Guid>
 
     public bool IsDeleted { get; set; } = false;
 
-    public ICollection<EVDriver> EVDrivers { get; set; } = [];
-    public ICollection<SCStaff> SCStaffs { get; set; } = [];
+    public EVDriverProfile EVDriverProfile { get; set; }
+    public SCStaffProfile SCStaffProfile { get; set; }
     public ICollection<Booking> Bookings { get; set; } = [];
     public ICollection<VehicleModel> VehicleModels { get; set; } = [];
     //public ICollection<UserVehicle> UserVehicles { get; set; } = [];

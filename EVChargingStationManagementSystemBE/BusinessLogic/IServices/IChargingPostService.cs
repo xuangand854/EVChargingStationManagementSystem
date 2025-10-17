@@ -11,6 +11,7 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> Create(ChargingPostCreateDto dto);
         Task<IServiceResult> Update(ChargingPostUpdateDto dto, Guid stationId);
         Task<IServiceResult> UpdateStatus(ChargingPostStatus status, Guid postId);
+        Task<IServiceResult> UpdateConnectorCount(bool toggle, Guid postId);
         Task<IServiceResult> Delete(Guid postId);
     }
 }

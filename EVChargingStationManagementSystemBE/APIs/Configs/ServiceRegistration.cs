@@ -33,7 +33,7 @@ namespace APIs.Configs
                 .IgnoreNullValues(true);
 
             // Map model vào dto
-            TypeAdapterConfig<SCStaff, StaffViewDto>.NewConfig()
+            TypeAdapterConfig<SCStaffProfile, StaffViewDto>.NewConfig()
                 .Map(dest => dest.Name, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Name : null)
                 .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);
 
@@ -47,7 +47,7 @@ namespace APIs.Configs
                 .IgnoreNullValues(true);
             // EVDriver
             //  Khi EVDriver tự cập nhật profile cá nhân
-            TypeAdapterConfig<EVDriverUpdateSelfDto, EVDriver>.NewConfig()
+            TypeAdapterConfig<EVDriverUpdateSelfDto, EVDriverProfile>.NewConfig()
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
 
@@ -56,14 +56,14 @@ namespace APIs.Configs
                 .IgnoreNullValues(true);
 
             //  Khi Admin cập nhật trạng thái của EVDriver
-            TypeAdapterConfig<EVDriverUpdateStatusDto, EVDriver>.NewConfig()
+            TypeAdapterConfig<EVDriverUpdateStatusDto, EVDriverProfile>.NewConfig()
                 .Map(dest => dest.Status, src => src.Status)
                 .IgnoreNullValues(true);
 
             //  Map entity → view dto (trả về cho client)
-            TypeAdapterConfig<EVDriver, EVDriverViewDto>.NewConfig()
-                .Map(dest => dest, src => src.UserAccountNavigation) // auto-map các field giống tên: Name, Email, Phone, Address, ProfilePictureUrl
-                .Map(dest => dest.RankingName, src => src.RankingNavigation.RankName)
+            TypeAdapterConfig<EVDriverProfile, EVDriverViewDto>.NewConfig()
+                .Map(dest => dest, src => src.UserAccount) // auto-map các field giống tên: Name, Email, Phone, Address, ProfilePictureUrl
+                .Map(dest => dest.RankingName, src => src.Ranking.RankName)
                 .Map(dest => dest.VehicleModelIds,
                      src => src.UserVehicles != null
                             ? src.UserVehicles.Select(v => v.VehicleModelId).ToList()
@@ -80,13 +80,13 @@ namespace APIs.Configs
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
 
-            TypeAdapterConfig<StaffAccountCreateDto, SCStaff>.NewConfig()
+            TypeAdapterConfig<StaffAccountCreateDto, SCStaffProfile>.NewConfig()
                 .Ignore(dest => dest.Id)
                 .Ignore(dest => dest.AccountId)
                 .IgnoreNullValues(true);
 
             //  Khi Admin cập nhật profile Staff (profile + account)
-            TypeAdapterConfig<StaffUpdateAdminDto, SCStaff>.NewConfig()
+            TypeAdapterConfig<StaffUpdateAdminDto, SCStaffProfile>.NewConfig()
                 .IgnoreNullValues(true);
 
             TypeAdapterConfig<StaffUpdateAdminDto, UserAccount>.NewConfig()
@@ -99,12 +99,12 @@ namespace APIs.Configs
                 .IgnoreNullValues(true);
 
             //  Khi Admin cập nhật trạng thái Staff
-            TypeAdapterConfig<StaffUpdateStatusDto, SCStaff>.NewConfig()
+            TypeAdapterConfig<StaffUpdateStatusDto, SCStaffProfile>.NewConfig()
                 .Map(dest => dest.Status, src => src.Status)
                 .IgnoreNullValues(true);
 
             //  Map model → view dto (trả về cho client)
-            TypeAdapterConfig<SCStaff, StaffViewDto>.NewConfig()
+            TypeAdapterConfig<SCStaffProfile, StaffViewDto>.NewConfig()
                 .Map(dest => dest, src => src.UserAccountNavigation) // map các field trùng tên tự động
                 .Map(dest => dest.AccountId, src => src.AccountId)
                 .Map(dest => dest.Id, src => src.Id)

@@ -14,5 +14,6 @@ namespace Infrastructure.IUnitOfWork
         IPaymentRepository PaymentRepository { get; }
         IChargingSessionRepository ChargingSessionRepository { get; }
         ISystemConfigurationRepository SystemConfigurationRepository { get; }
+        IConnectorRepository ConnectorRepository { get; }
     }
 }

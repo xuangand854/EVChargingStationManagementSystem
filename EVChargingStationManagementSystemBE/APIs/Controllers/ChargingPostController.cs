@@ -102,23 +102,6 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        [HttpPatch("connector-toggle")]
-        public async Task<IActionResult> UpdateConnectorCount(bool toggle, Guid postId)
-        {
-            var result = await _service.UpdateConnectorCount(toggle, postId);
-
-            if (result.Status == Const.SUCCESS_UPDATE_CODE)
-                return Ok(new { data = result.Data, message = result.Message });
-
-            if (result.Status == Const.WARNING_NO_DATA_CODE)
-                return NotFound(new { message = result.Message });
-
-            if (result.Status == Const.FAIL_UPDATE_CODE)
-                return Conflict(new { message = result.Message });
-
-            return StatusCode(500, new { message = result.Message });
-        }
-
         [HttpDelete]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid postId)

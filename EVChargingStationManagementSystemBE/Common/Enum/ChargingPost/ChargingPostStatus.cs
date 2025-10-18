@@ -6,7 +6,7 @@
         Available,
         Busy,
         Maintained,
-        Booked,
+        //Booked,
         Unknown
     }
 }

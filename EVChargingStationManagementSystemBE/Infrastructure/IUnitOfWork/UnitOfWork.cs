@@ -17,6 +17,7 @@ namespace Infrastructure.IUnitOfWork
         private IPaymentRepository? paymentRepository;
         private IChargingSessionRepository? chargingSessionRepository;
         private ISystemConfigurationRepository? systemConfigurationRepository;
+        private IConnectorRepository? connectorRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -78,8 +79,6 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return userAccountRepository ??= new UserAccountRepository(context);
-
-
             }
         }
 
@@ -109,6 +108,13 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return systemConfigurationRepository ??= new SystemConfigurationRepository(context);
+            }
+        }
+        public IConnectorRepository ConnectorRepository
+        {
+            get
+            {
+                return connectorRepository ??= new ConnectorRepository(context);
             }
         }
     }

@@ -116,6 +116,9 @@ namespace APIs.Configs
             TypeAdapterConfig<SystemConfigurationUpdateDto, SystemConfiguration>.NewConfig()
                 .IgnoreNullValues(true);
 
+            TypeAdapterConfig<ConnectorUpdateDto, Connector>.NewConfig()
+                .IgnoreNullValues(true);
+
             return services;
         }
     }

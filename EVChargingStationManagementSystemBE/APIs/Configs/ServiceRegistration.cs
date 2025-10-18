@@ -1,6 +1,7 @@
 ﻿using Common.DTOs.AuthDto;
 using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingStationDto;
+using Common.DTOs.ConnectorDto;
 using Common.DTOs.ProfileEVDriverDto;
 using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.SystemConfigurationDto;

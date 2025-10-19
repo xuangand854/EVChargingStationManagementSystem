@@ -5,6 +5,7 @@ namespace Infrastructure.IUnitOfWork
     public interface IUnitOfWork : IDisposable
     {
         Task<int> SaveChangesAsync();
+        IBookingRepository  BookingRepository { get; }
         ISCStaffRepository SCStaffRepository { get; }
         IVehicleModelRepository VehicleModelRepository { get; }
         IChargingStationRepository ChargingStationRepository { get; }

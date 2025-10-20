@@ -214,35 +214,35 @@ const AdminVehicles = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{Array.isArray(vehicles) ? vehicles.length : 0}</div>
-                    <div className="text-sm text-gray-600">Tổng xe điện</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-value">{Array.isArray(vehicles) ? vehicles.length : 0}</div>
+                    <div className="stat-label">Tổng xe điện</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">
                         {Array.isArray(vehicles) ? vehicles.filter(v => v.status === "Active").length : 0}
                     </div>
-                    <div className="text-sm text-gray-600">Đang hoạt động</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="stat-label">Đang hoạt động</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">
                         {Array.isArray(vehicles) ? vehicles.filter(v => v.connectorType === "Type2").length : 0}
                     </div>
-                    <div className="text-sm text-gray-600">Type 2</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="stat-label">Type 2</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">
                         {Array.isArray(vehicles) ? vehicles.reduce((sum, v) => sum + (v.batteryCapacity || 0), 0) : 0} kWh
                     </div>
-                    <div className="text-sm text-gray-600">Tổng dung lượng</div>
-                </Card>
+                    <div className="stat-label">Tổng dung lượng</div>
+                </div>
             </div>
 
             {/* Actions */}
-            <Card className="mb-4">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div className="flex-1 max-w-md">
+            <div className="actions-card">
+                <div className="actions-container">
+                    <div className="search-container">
                         <Input
                             placeholder="Tìm kiếm theo tên xe, biển số, loại đầu sạc..."
                             prefix={<SearchOutlined />}
@@ -255,15 +255,15 @@ const AdminVehicles = () => {
                         type="primary"
                         icon={<PlusOutlined />}
                         onClick={() => setIsModalOpen(true)}
-                        className="w-full sm:w-auto"
+                        className="add-btn"
                     >
                         Thêm xe điện
                     </Button>
                 </div>
-            </Card>
+            </div>
 
             {/* Table */}
-            <Card>
+            <div className="table-card">
                 <Table
                     dataSource={filteredVehicles}
                     columns={columns}
@@ -277,7 +277,7 @@ const AdminVehicles = () => {
                             `${range[0]}-${range[1]} của ${total} xe điện`,
                     }}
                 />
-            </Card>
+            </div>
 
             {/* Modal */}
             <Modal

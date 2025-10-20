@@ -33,6 +33,8 @@ import ProfilePage from "./components/profile/ProfilePage";
 
 
 // import NoPage from "./pages/NoPage";
+// import ResetPassword from "./components/pages/ResetPassword";
+import ResetPassword from "./components/pages/ResetPassword";
 
 export default function App() {
   return (
@@ -48,7 +50,7 @@ export default function App() {
           <Route path="forgot-password" element={<Forgotpassword />} />
           {/* // */}
           {/* Profile */}
-          <Route path="profile-page" element={<ProfilePage/>} />
+          <Route path="profile-page" element={<ProfilePage />} />
           <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="Logout" element={<Logout />} />
           <Route path="orders" element={<Order />} />
@@ -59,8 +61,10 @@ export default function App() {
           <Route path="charging-post" element={<ChargingPost />} />
           {/* // */}
           {/* Pay */}
-          <Route path="Payment" element={<PaymentPage/>} />
-          <Route path="Pay" element={<Pay/>} />
+          <Route path="Payment" element={<PaymentPage />} />
+          <Route path="Pay" element={<Pay />} />
+          {/* reset password*/}
+          <Route path="reset-password" element={<ResetPassword />} />
 
           {/* // */}
         </Route>

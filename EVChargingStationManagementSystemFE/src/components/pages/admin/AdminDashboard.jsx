@@ -127,7 +127,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="admin-dashboard">
-            <div className=".header">
+            <div className="header">
                 <h1>Dashboard Quản Trị</h1>
                 <p>Tổng quan hệ thống trạm sạc xe điện</p>
             </div>
@@ -168,52 +168,53 @@ const AdminDashboard = () => {
             </div>
 
             {/* Charts and Additional Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Tình Trạng Cổng Sạc</h3>
-                    <div className="text-center">
-                        <div className="text-3xl font-bold text-gray-800 mb-2">
+            <div className="charts-grid">
+                <div className="chart-card">
+                    <h3 className="chart-title">Tình Trạng Cổng Sạc</h3>
+                    <div className="charger-status">
+                        <div className="charger-count">
                             {stats.activeChargers}/{stats.totalChargers}
                         </div>
-                        <div className="text-sm text-gray-600 mb-4">Cổng đang hoạt động</div>
+                        <div className="charger-label">Cổng đang hoạt động</div>
                         <Progress
                             percent={chargerUtilization}
-                            strokeColor="#52c41a"
+                            strokeColor="#4facfe"
                             size="large"
+                            style={{ marginBottom: '1rem' }}
                         />
-                        <div className="mt-2 text-sm text-gray-500">
+                        <div className="progress-text">
                             Tỷ lệ sử dụng: {chargerUtilization}%
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Hoạt Động Gần Đây</h3>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <Activity className="text-blue-500" size={20} />
-                                <span className="text-sm">Hệ thống hoạt động bình thường</span>
+                <div className="chart-card">
+                    <h3 className="chart-title">Hoạt Động Gần Đây</h3>
+                    <div className="activity-feed">
+                        <div className="activity-item blue">
+                            <div className="activity-content">
+                                <Activity className="activity-icon blue" size={20} />
+                                <span className="activity-text">Hệ thống hoạt động bình thường</span>
                             </div>
-                            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                            <span className="activity-badge green">
                                 Online
                             </span>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <TrendingUp className="text-green-500" size={20} />
-                                <span className="text-sm">Tăng trưởng người dùng: +12%</span>
+                        <div className="activity-item green">
+                            <div className="activity-content">
+                                <TrendingUp className="activity-icon green" size={20} />
+                                <span className="activity-text">Tăng trưởng người dùng: +12%</span>
                             </div>
-                            <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                            <span className="activity-badge green">
                                 Tháng này
                             </span>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <Clock className="text-orange-500" size={20} />
-                                <span className="text-sm">Thời gian phản hồi: 0.8s</span>
+                        <div className="activity-item orange">
+                            <div className="activity-content">
+                                <Clock className="activity-icon orange" size={20} />
+                                <span className="activity-text">Thời gian phản hồi: 0.8s</span>
                             </div>
-                            <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                            <span className="activity-badge orange">
                                 Tốt
                             </span>
                         </div>
@@ -222,14 +223,15 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Orders Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Đơn Hàng Gần Đây</h3>
+            <div className="orders-card">
+                <h3 className="orders-title">Đơn Hàng Gần Đây</h3>
                 <Table
                     dataSource={recentOrders}
                     columns={recentOrdersColumns}
                     rowKey="orderID"
                     pagination={false}
                     size="small"
+                    style={{ background: 'transparent' }}
                 />
             </div>
         </div>

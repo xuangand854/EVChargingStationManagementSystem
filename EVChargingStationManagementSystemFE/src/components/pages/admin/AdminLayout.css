@@ -1,29 +1,31 @@
 /* Admin Layout Styles */
 .admin-sidebar-fixed {
-    background: white;
-    border-right: 1px solid #e5e7eb;
-    box-shadow: 0 4px 6px -1px rgba(154, 107, 107, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .admin-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 100;
 }
 
 .admin-content {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    margin: 20px;
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-
-    /* Dịch content sang phải để chừa chỗ cho sidebar */
-    margin-left: 260px;
-    /* hoặc padding-left: 260px; tùy cách bạn muốn hiển thị */
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+    margin-left: 280px;
     transition: margin-left 0.3s ease;
+    min-height: 100vh;
+    position: relative;
 }
 
 /* Sidebar Menu Items */

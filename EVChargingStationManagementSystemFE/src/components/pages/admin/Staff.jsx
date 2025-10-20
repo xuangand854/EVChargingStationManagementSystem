@@ -173,33 +173,33 @@ const AdminStaff = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{Array.isArray(staffList) ? staffList.length : 0}</div>
-                    <div className="text-sm text-gray-600">Tổng nhân viên</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
+            <div className="stats-grid">
+                <div className="stat-card">
+                    <div className="stat-value">{Array.isArray(staffList) ? staffList.length : 0}</div>
+                    <div className="stat-label">Tổng nhân viên</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">
                         {Array.isArray(staffList) ? staffList.filter(u => u.status === "Active").length : 0}
                     </div>
-                    <div className="text-sm text-gray-600">Đang hoạt động</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-red-600">
+                    <div className="stat-label">Đang hoạt động</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">
                         {Array.isArray(staffList) ? staffList.filter(u => u.status === "Banned").length : 0}
                     </div>
-                    <div className="text-sm text-gray-600">Bị khóa</div>
-                </Card>
-                <Card className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{Array.isArray(staffList) ? staffList.filter(u => u.status === "Pending").length : 0}</div>
-                    <div className="text-sm text-gray-600">Chờ duyệt</div>
-                </Card>
+                    <div className="stat-label">Bị khóa</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{Array.isArray(staffList) ? staffList.filter(u => u.status === "Pending").length : 0}</div>
+                    <div className="stat-label">Chờ duyệt</div>
+                </div>
             </div>
 
             {/* Actions */}
-            <Card className="mb-4">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div className="flex-1 max-w-md">
+            <div className="actions-card">
+                <div className="actions-container">
+                    <div className="search-container">
                         <Input
                             placeholder="Tìm kiếm theo tên, email, số điện thoại..."
                             prefix={<SearchOutlined />}
@@ -216,15 +216,15 @@ const AdminStaff = () => {
                             form.resetFields();
                             setIsModalOpen(true);
                         }}
-                        className="w-full sm:w-auto"
+                        className="add-btn"
                     >
                         Thêm nhân viên
                     </Button>
                 </div>
-            </Card>
+            </div>
 
             {/* Table */}
-            <Card>
+            <div className="table-card">
                 <Table
                     dataSource={filteredStaff}
                     columns={columns}
@@ -238,7 +238,7 @@ const AdminStaff = () => {
                             `${range[0]}-${range[1]} của ${total} nhân viên`,
                     }}
                 />
-            </Card>
+            </div>
 
             {/* Modal */}
             <Modal

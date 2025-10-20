@@ -41,7 +41,7 @@ export const addChargingStation = async (
 export const updateChargingStation = async (id, stationData) => {
   try {
     const response = await api.put(`${BASE_URL}`, stationData, {
-      params: { stationId: id } // query param
+      params: { stationId: id } 
     });
     console.log('updateStation - response:', response.data);
     return response.data;
@@ -55,7 +55,7 @@ export const updateChargingStation = async (id, stationData) => {
 export const deleteChargingStation = async (id) => {
   try {
     const response = await api.delete(`${BASE_URL}`, {
-      params: { stationId: id } // đúng query param của BE
+      params: { stationId: id } 
     });
     console.log('deleteStation - response:', response.data);
     return response.data;

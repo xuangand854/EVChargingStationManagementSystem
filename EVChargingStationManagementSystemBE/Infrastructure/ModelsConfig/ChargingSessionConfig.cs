@@ -10,7 +10,7 @@ namespace Infrastructure.ModelsConfig
         {
             builder.ToTable("ChargingSession");
 
-            builder.HasOne(cs => cs.ChargingPostNavigation)
+            builder.HasOne(cs => cs.ChargingPost)
                    .WithMany(cp => cp.ChargingSessions)
                    .HasForeignKey(cs => cs.ChargingPostId)
                    .OnDelete(DeleteBehavior.Restrict);

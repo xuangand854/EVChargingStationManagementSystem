@@ -1,6 +1,5 @@
 ﻿using Common.Enum.ChargingPost;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Common.Enum.VehicleModel;
 using System.Text.Json.Serialization;
 
 namespace Common.DTOs.ChargingPostDto
@@ -9,7 +8,11 @@ namespace Common.DTOs.ChargingPostDto
     {
         public Guid Id { get; set; }
         public string PostName { get; set; } = string.Empty;
-        public string ChargerType { get; set; } = string.Empty;
+        public string ConnectorType { get; set; } = string.Empty;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public VehicleTypeEnum VehicleTypeSupported { get; set; } = VehicleTypeEnum.Unknown;
+        public int TotalConnectors { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChargingPostStatus Status { get; set; } = ChargingPostStatus.Unknown;

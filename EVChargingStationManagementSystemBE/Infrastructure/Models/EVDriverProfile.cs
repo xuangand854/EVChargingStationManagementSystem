@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Infrastructure.Models
 {
-    public class EVDriver
+    public class EVDriverProfile
     {
         [Key]
         public Guid Id { get; set; }
@@ -16,11 +16,11 @@ namespace Infrastructure.Models
 
         [ForeignKey("UserAccount")]
         public Guid AccountId { get; set; }
-        public UserAccount UserAccountNavigation { get; set; }
+        public UserAccount UserAccount { get; set; }
 
         [ForeignKey("Ranking")]
         public Guid? RankingId { get; set; }
-        public Ranking RankingNavigation { get; set; }
+        public Ranking Ranking { get; set; }
 
         public ICollection<UserVehicle> UserVehicles { get; set; } = [];
 

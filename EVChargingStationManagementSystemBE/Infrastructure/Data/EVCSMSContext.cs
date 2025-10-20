@@ -15,12 +15,12 @@ namespace Infrastructure.Data
         public EVCSMSContext(DbContextOptions<EVCSMSContext> options) : base(options) { }
 
         public DbSet<UserAccount> UserAccounts { get; set; }
-        public DbSet<EVDriver> EVDrivers { get; set; }
+        public DbSet<EVDriverProfile> EVDrivers { get; set; }
         public DbSet<Ranking> Rankings { get; set; }
         public DbSet<UserVehicle> UserVehicles { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<ChargingStation> ChargingStations { get; set; }
-        public DbSet<SCStaff> SCStaffs { get; set; }
+        public DbSet<SCStaffProfile> SCStaffs { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<ChargingPost> ChargingPosts { get; set; }
         public DbSet<ChargingSession> ChargingSessions { get; set; }
@@ -28,8 +28,9 @@ namespace Infrastructure.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<NotificationRecipient> NotificationRecipients { get; set; }
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
-        public DbSet<PowerOutputKW> PowerOutputsKW { get; set; }
-        public DbSet<PowerOutputKWPerPost> PowerOutputKWPerPosts { get; set; }
+        public DbSet<SystemConfiguration> Report { get; set; }
+        //public DbSet<PowerOutputKW> PowerOutputsKW { get; set; }
+        //public DbSet<PowerOutputKWPerPost> PowerOutputKWPerPosts { get; set; }
 
         public static string GetConnectionString(string connectionStringName)
         {
@@ -62,6 +63,7 @@ namespace Infrastructure.Data
             builder.ApplyConfiguration(new TransactionConfig());
             builder.ApplyConfiguration(new SCStaffConfig());
             builder.ApplyConfiguration(new EVDriverConfig());
+            builder.ApplyConfiguration(new UserAccountConfig());
 
             // Seed data
             //builder.ApplyConfiguration(new RoleSeed());
@@ -72,6 +74,7 @@ namespace Infrastructure.Data
             //builder.Entity<Ranking>().HasData(RankSeed.GetRankings());
             //builder.Entity<VehicleModel>().HasData(VehicleModelSeed.GetVehicleModels());
             builder.Entity<UserAccount>().HasData(UserAccountSeed.GetUserAccounts());
+            builder.Entity<SystemConfiguration>().HasData(SystemConfigurationSeed.GetSystemConfigurations());
             builder.Entity<IdentityUserRole<Guid>>().HasData(UserRolesSeed.GetUserRoles());
         }
     }

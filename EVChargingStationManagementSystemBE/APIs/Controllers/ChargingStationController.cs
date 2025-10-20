@@ -20,6 +20,7 @@ namespace APIs.Controllers
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
+
             if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
 

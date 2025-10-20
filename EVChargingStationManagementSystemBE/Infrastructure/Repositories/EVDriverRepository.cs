@@ -6,7 +6,7 @@ using Infrastructure.Models;
 namespace Infrastructure.Repositories
 {
     public class EVDriverRepository(EVCSMSContext context)
-        : GenericRepository<EVDriver>(context), IEVDriverRepository
+        : GenericRepository<EVDriverProfile>(context), IEVDriverRepository
     {
     }
 }

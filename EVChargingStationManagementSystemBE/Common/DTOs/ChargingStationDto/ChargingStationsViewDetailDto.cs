@@ -12,8 +12,15 @@ namespace Common.DTOs.ChargingStationDto
         public string Province { get; set; } = string.Empty;
         public string Latitude { get; set; } = string.Empty;
         public string Longitude { get; set; } = string.Empty;
-        public int TotalChargingPost { get; set; } = 0;
-        public int AvailableChargers { get; set; }
+        public int TotalBikeChargingPosts { get; set; }
+        public int AvailableBikeChargingPosts { get; set; }
+        public int TotalCarChargingPosts { get; set; }
+        public int AvailableCarChargingPosts { get; set; }
+        public int TotalBikeConnectors { get; set; }
+        public int AvailableBikeConnectors { get; set; }
+        public int TotalCarChargingConnectors { get; set; }
+        public int AvailableCarConnectors { get; set; }
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChargingStationStatus Status { get; set; } = ChargingStationStatus.Unknown;
         public Guid OperatorId { get; set; }

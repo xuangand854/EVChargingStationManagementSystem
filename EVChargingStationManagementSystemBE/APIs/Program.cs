@@ -29,6 +29,8 @@ builder.Services.AddScoped<IEVDriverService, EVDriverService>();
 builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
 builder.Services.AddScoped<IChargingPostService, ChargingPostService>();
+builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
+builder.Services.AddScoped<IConnectorService, ConnectorService>();
 
 
 // Cấu hình JWT Authentication

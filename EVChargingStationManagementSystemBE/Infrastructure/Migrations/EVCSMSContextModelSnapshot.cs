@@ -28,14 +28,29 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ActualEndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double?>("ActualEnergyKWh")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("ActualStartTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("BookedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<double?>("CurrentBattery")
+                        .HasColumnType("float");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("EstimatedEnergyKWh")
+                        .HasColumnType("float");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -49,6 +64,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("TargetBattery")
+                        .HasColumnType("float");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -68,7 +86,10 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ChargerType")
+                    b.Property<int>("AvailableConnectors")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConnectorType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -82,6 +103,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("MaxPowerKw")
+                        .HasColumnType("int");
+
                     b.Property<string>("PostName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -94,8 +118,15 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TotalConnectors")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VehicleTypeSupported")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -117,6 +148,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ChargingPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConnectorId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Cost")
@@ -169,6 +203,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ChargingPostId");
 
+                    b.HasIndex("ConnectorId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("DriverId", "VehicleModelId");
@@ -182,7 +218,16 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("AvailableChargers")
+                    b.Property<int>("AvailableBikeChargingPosts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AvailableBikeConnectors")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AvailableCarChargingPosts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AvailableCarConnectors")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -219,7 +264,16 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TotalChargingPost")
+                    b.Property<int>("TotalBikeChargingPosts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalBikeConnectors")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalCarChargingConnectors")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalCarChargingPosts")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -234,7 +288,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("ChargingStation", (string)null);
                 });
 
-            modelBuilder.Entity("Infrastructure.Models.EVDriver", b =>
+            modelBuilder.Entity("Infrastructure.Models.Connector", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChargingPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConnectorName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChargingPostId");
+
+                    b.ToTable("Connector");
+                });
+
+            modelBuilder.Entity("Infrastructure.Models.EVDriverProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -264,11 +351,12 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .IsUnique();
 
                     b.HasIndex("RankingId");
 
-                    b.ToTable("EVDriver", (string)null);
+                    b.ToTable("EVDriverProfile", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Notification", b =>
@@ -341,47 +429,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("RecipientId");
 
                     b.ToTable("NotificationRecipient", (string)null);
-                });
-
-            modelBuilder.Entity("Infrastructure.Models.PowerOutputKW", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PowerOutputsKW");
-                });
-
-            modelBuilder.Entity("Infrastructure.Models.PowerOutputKWPerPost", b =>
-                {
-                    b.Property<Guid>("ChargingPostId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PowerOutputKWId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ChargingPostId", "PowerOutputKWId");
-
-                    b.HasIndex("PowerOutputKWId");
-
-                    b.ToTable("PowerOutputKWPerPosts");
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Ranking", b =>
@@ -492,7 +539,7 @@ namespace Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Infrastructure.Models.SCStaff", b =>
+            modelBuilder.Entity("Infrastructure.Models.SCStaffProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -519,9 +566,10 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .IsUnique();
 
-                    b.ToTable("SCStaff", (string)null);
+                    b.ToTable("SCStaffProfile", (string)null);
                 });
 
             modelBuilder.Entity("Infrastructure.Models.SystemConfiguration", b =>
@@ -548,9 +596,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("EffectedDateTo")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -563,30 +608,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Operator")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RuleGroup")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ScopeType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetEntity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetField")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -610,6 +631,83 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UpdatedBy");
 
                     b.ToTable("SystemConfiguration", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Mức giá vnd trên 1 KWH điện, giá trị chỉ hiệu lực khi lưu ở trường MinValue",
+                            EffectedDateFrom = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MinValue = 5000m,
+                            Name = "PRICE_PER_kWH",
+                            Unit = "VND",
+                            UpdatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            VersionNo = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Tích điểm trên 1 KWH điện, giá trị chỉ hiệu lực khi lưu ở trường MinValue",
+                            EffectedDateFrom = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MinValue = 1m,
+                            Name = "POINT_PER_KWH",
+                            Unit = "point",
+                            UpdatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            VersionNo = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Mức thuế, giá trị chỉ hiệu lực khi lưu ở trường MinValue",
+                            EffectedDateFrom = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MinValue = 10m,
+                            Name = "VAT",
+                            Unit = "%",
+                            UpdatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            VersionNo = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Thời gian token login hiệu lực, giá trị chỉ hiệu lực khi lưu ở trường MinValue",
+                            EffectedDateFrom = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MinValue = 720m,
+                            Name = "LOGIN_TOKEN_TIMEOUT",
+                            Unit = "Hours",
+                            UpdatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            VersionNo = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "Thời gian cancel booking nếu đến trễ hơn thời gian đặt ra, giá trị chỉ hiệu lực khi lưu ở trường MinValue",
+                            EffectedDateFrom = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MinValue = 15m,
+                            Name = "BOOKING_TIME_CANCEL_TRIGGER",
+                            Unit = "Minutes",
+                            UpdatedAt = new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            VersionNo = 1
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Transaction", b =>
@@ -733,7 +831,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -770,6 +868,10 @@ namespace Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique()
+                        .HasFilter("[PhoneNumber] IS NOT NULL");
+
                     b.ToTable("AspNetUsers", (string)null);
 
                     b.HasData(
@@ -787,6 +889,7 @@ namespace Infrastructure.Migrations
                             Name = "Admin",
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
+                            PhoneNumber = "0123456789",
                             PhoneNumberConfirmed = false,
                             RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             SecurityStamp = "b0a67e8b-2351-4d2b-8ef1-1e908f5b63e1",
@@ -794,28 +897,6 @@ namespace Infrastructure.Migrations
                             TwoFactorEnabled = false,
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserName = "admin@gmail.com"
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "26aff629-ed41-424c-986c-bec9fb174ae6",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "staff@gmail.com",
-                            EmailConfirmed = true,
-                            IsDeleted = false,
-                            LockoutEnabled = true,
-                            LoginType = "System",
-                            Name = "Staff",
-                            NormalizedEmail = "STAFF@GMAIL.COM",
-                            PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
-                            PhoneNumberConfirmed = false,
-                            RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "142fa5de-d603-4453-81f9-5c9347280452",
-                            Status = "Active",
-                            TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            UserName = "staff@gmail.com"
                         });
                 });
 
@@ -1040,10 +1121,16 @@ namespace Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("BookingId");
 
-                    b.HasOne("Infrastructure.Models.ChargingPost", "ChargingPostNavigation")
+                    b.HasOne("Infrastructure.Models.ChargingPost", "ChargingPost")
                         .WithMany("ChargingSessions")
                         .HasForeignKey("ChargingPostId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Models.Connector", "Connector")
+                        .WithMany()
+                        .HasForeignKey("ConnectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Infrastructure.Models.UserAccount", "User")
@@ -1057,7 +1144,9 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Booking");
 
-                    b.Navigation("ChargingPostNavigation");
+                    b.Navigation("ChargingPost");
+
+                    b.Navigation("Connector");
 
                     b.Navigation("User");
 
@@ -1074,21 +1163,32 @@ namespace Infrastructure.Migrations
                     b.Navigation("OperatorNavigation");
                 });
 
-            modelBuilder.Entity("Infrastructure.Models.EVDriver", b =>
+            modelBuilder.Entity("Infrastructure.Models.Connector", b =>
                 {
-                    b.HasOne("Infrastructure.Models.UserAccount", "UserAccountNavigation")
-                        .WithMany("EVDrivers")
-                        .HasForeignKey("AccountId")
+                    b.HasOne("Infrastructure.Models.ChargingPost", "ChargingPost")
+                        .WithMany("Connectors")
+                        .HasForeignKey("ChargingPostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Models.Ranking", "RankingNavigation")
+                    b.Navigation("ChargingPost");
+                });
+
+            modelBuilder.Entity("Infrastructure.Models.EVDriverProfile", b =>
+                {
+                    b.HasOne("Infrastructure.Models.UserAccount", "UserAccount")
+                        .WithOne("EVDriverProfile")
+                        .HasForeignKey("Infrastructure.Models.EVDriverProfile", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastructure.Models.Ranking", "Ranking")
                         .WithMany("EVDrivers")
                         .HasForeignKey("RankingId");
 
-                    b.Navigation("RankingNavigation");
+                    b.Navigation("Ranking");
 
-                    b.Navigation("UserAccountNavigation");
+                    b.Navigation("UserAccount");
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Notification", b =>
@@ -1119,30 +1219,11 @@ namespace Infrastructure.Migrations
                     b.Navigation("Recipient");
                 });
 
-            modelBuilder.Entity("Infrastructure.Models.PowerOutputKWPerPost", b =>
-                {
-                    b.HasOne("Infrastructure.Models.ChargingPost", "ChargingPost")
-                        .WithMany("PowerOutputKWPerPosts")
-                        .HasForeignKey("ChargingPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Infrastructure.Models.PowerOutputKW", "PowerOutputKW")
-                        .WithMany("PowerOutputKWPerPosts")
-                        .HasForeignKey("PowerOutputKWId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChargingPost");
-
-                    b.Navigation("PowerOutputKW");
-                });
-
-            modelBuilder.Entity("Infrastructure.Models.SCStaff", b =>
+            modelBuilder.Entity("Infrastructure.Models.SCStaffProfile", b =>
                 {
                     b.HasOne("Infrastructure.Models.UserAccount", "UserAccountNavigation")
-                        .WithMany("SCStaffs")
-                        .HasForeignKey("AccountId")
+                        .WithOne("SCStaffProfile")
+                        .HasForeignKey("Infrastructure.Models.SCStaffProfile", "AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1192,7 +1273,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Infrastructure.Models.UserVehicle", b =>
                 {
-                    b.HasOne("Infrastructure.Models.EVDriver", "EVDriver")
+                    b.HasOne("Infrastructure.Models.EVDriverProfile", "EVDriver")
                         .WithMany("UserVehicles")
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1275,7 +1356,7 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("ChargingSessions");
 
-                    b.Navigation("PowerOutputKWPerPosts");
+                    b.Navigation("Connectors");
                 });
 
             modelBuilder.Entity("Infrastructure.Models.ChargingSession", b =>
@@ -1290,7 +1371,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("ChargingPosts");
                 });
 
-            modelBuilder.Entity("Infrastructure.Models.EVDriver", b =>
+            modelBuilder.Entity("Infrastructure.Models.EVDriverProfile", b =>
                 {
                     b.Navigation("UserVehicles");
                 });
@@ -1298,11 +1379,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Infrastructure.Models.Notification", b =>
                 {
                     b.Navigation("NotificationRecipients");
-                });
-
-            modelBuilder.Entity("Infrastructure.Models.PowerOutputKW", b =>
-                {
-                    b.Navigation("PowerOutputKWPerPosts");
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Ranking", b =>
@@ -1318,13 +1394,13 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("ChargingStations");
 
-                    b.Navigation("EVDrivers");
+                    b.Navigation("EVDriverProfile");
 
                     b.Navigation("NotificationRecipients");
 
                     b.Navigation("Notifications");
 
-                    b.Navigation("SCStaffs");
+                    b.Navigation("SCStaffProfile");
 
                     b.Navigation("SystemConfigurationsCreator");
 

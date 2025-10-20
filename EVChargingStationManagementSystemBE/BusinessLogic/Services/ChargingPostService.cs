@@ -1,13 +1,12 @@
-﻿using Azure;
-using BusinessLogic.Base;
+﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ChargingPostDto;
-using Common.DTOs.ChargingStationDto;
 using Common.Enum.ChargingPost;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -34,7 +33,31 @@ namespace BusinessLogic.Services
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
-                chargingStation.TotalChargingPost += 1;
+                if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                {
+                    chargingStation.TotalCarChargingPosts += 1;
+                    chargingStation.TotalCarChargingConnectors += chargingPost.TotalConnectors;
+                }
+                else
+                {
+                    chargingStation.TotalBikeChargingPosts += 1;
+                    chargingStation.TotalBikeConnectors += chargingPost.TotalConnectors;
+                }
+
+                // Bulk create connectors
+                for (int i = 0; i < chargingPost.TotalConnectors; i++)
+                {
+                    var connector = new Connector
+                    {
+                        Id = Guid.NewGuid(),
+                        ConnectorName = $"{chargingPost.PostName}-C{i + 1}",
+                        Status = "OutOfService",
+                        ChargingPostId = chargingPost.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.ConnectorRepository.CreateAsync(connector);
+                }
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -108,7 +131,16 @@ namespace BusinessLogic.Services
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
-                chargingStation.TotalChargingPost -= 1;
+                if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                {
+                    chargingStation.TotalCarChargingPosts -= 1;
+                    chargingStation.TotalCarChargingConnectors -= chargingPost.TotalConnectors;
+                }
+                else
+                {
+                    chargingStation.TotalBikeChargingPosts -= 1;
+                    chargingStation.TotalBikeConnectors -= chargingPost.TotalConnectors;
+                }
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -127,7 +159,10 @@ namespace BusinessLogic.Services
             try
             {
                 var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == postId
+                    predicate: v => !v.IsDeleted && v.Id == postId,
+                    include: c => c
+                        .Include(p => p.Connectors)
+                        .OrderByDescending(c => c.CreatedAt)
                     );
                 if (chargingPost == null)
                     return new ServiceResult(
@@ -137,7 +172,7 @@ namespace BusinessLogic.Services
 
                 else
                 {
-                    var response = chargingPost.Adapt<ChargingPostViewListDto>();
+                    var response = chargingPost.Adapt<ChargingPostViewDetailDto>();
                     return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
                 }
             }
@@ -185,9 +220,6 @@ namespace BusinessLogic.Services
                 if (chargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc không tồn tại");
 
-                chargingPost.Status = status.ToString();
-                chargingPost.UpdatedAt = DateTime.UtcNow;
-
                 var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
                     predicate: c => c.Id == chargingPost.StationId,
                     asNoTracking: false
@@ -195,9 +227,59 @@ namespace BusinessLogic.Services
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
-                if (chargingPost.Status.Equals("Active"))
-                    chargingStation.AvailableChargers += 1;
-                else chargingStation.AvailableChargers -= 1;
+                // Nếu chuyển từ bất kỳ trạng thái nào không phải booked
+                // sang Available thì tăng số trụ sạc khả dụng lên 1 và reset số cổng kết nối khả dụng
+                if (!chargingPost.Status.Equals("Available") && status.ToString().Equals("Available"))
+                {
+                    chargingPost.AvailableConnectors = chargingPost.TotalConnectors;
+                    if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                    {
+                        chargingStation.AvailableCarChargingPosts += 1;
+                        chargingStation.AvailableCarConnectors += chargingPost.TotalConnectors;
+                    }
+                    else
+                    {
+                        chargingStation.AvailableBikeChargingPosts += 1;
+                        chargingStation.AvailableBikeConnectors += chargingPost.TotalConnectors;
+                    }
+
+                    // Chuyển toàn bộ trạng thái các connector từ OutOfService sang Available
+                    var connectors = await _unitOfWork.ConnectorRepository.GetAllAsync(
+                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals("OutOfService")
+                        , asNoTracking: false);
+                    foreach (var connector in connectors)
+                    {
+                        connector.Status = "Available";
+                        connector.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+                else if (chargingPost.Status.Equals("Available") && !status.ToString().Equals("Available"))
+                {
+                    if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                    {
+                        chargingStation.AvailableCarChargingPosts -= 1;
+                        chargingStation.AvailableCarConnectors -= chargingPost.AvailableConnectors;
+                    }
+                    else
+                    {
+                        chargingStation.AvailableBikeChargingPosts -= 1;
+                        chargingStation.AvailableBikeConnectors -= chargingPost.AvailableConnectors;
+                    }
+
+                    // Chuyển toàn bộ trạng thái các connector từ Available sang OutOfService
+                    var connectors = await _unitOfWork.ConnectorRepository.GetAllAsync(
+                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals("Available")
+                        , asNoTracking: false);
+                    foreach (var connector in connectors)
+                    {
+                        connector.Status = "OutOfService";
+                        connector.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+                else chargingPost.AvailableConnectors = 0;
+
+                chargingPost.Status = status.ToString();
+                chargingPost.UpdatedAt = DateTime.UtcNow;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -213,5 +295,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+        
     }
 }

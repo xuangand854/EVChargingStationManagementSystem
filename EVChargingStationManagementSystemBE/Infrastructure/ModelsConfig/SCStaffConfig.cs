@@ -4,14 +4,14 @@ using Infrastructure.Models;
 
 namespace Infrastructure.ModelsConfig
 {
-    public class SCStaffConfig : IEntityTypeConfiguration<SCStaff>
+    public class SCStaffConfig : IEntityTypeConfiguration<SCStaffProfile>
     {
-        public void Configure(EntityTypeBuilder<SCStaff> builder)
+        public void Configure(EntityTypeBuilder<SCStaffProfile> builder)
         {
-            builder.ToTable("SCStaff");
+            builder.ToTable("SCStaffProfile");
             builder.HasOne(sc => sc.UserAccountNavigation)
-                   .WithMany(ua => ua.SCStaffs)
-                   .HasForeignKey(sc => sc.AccountId);
+                   .WithOne(ua => ua.SCStaffProfile)
+                   .HasForeignKey<SCStaffProfile>(sc => sc.AccountId);
         }
     }
 }

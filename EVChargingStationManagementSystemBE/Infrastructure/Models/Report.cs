@@ -22,11 +22,11 @@ namespace Infrastructure.Models
 
         [ForeignKey("UserAccount")]
         public Guid ReportedById { get; set; } // ID of the user who reported the issue
-        public UserAccount ReportedByNavigation { get; set; }
+        public UserAccount ReportedBy { get; set; }
 
         [ForeignKey("ChargingStation")]
         public Guid? StationId { get; set; } // ID of the related charging station (if applicable)
-        public ChargingStation ChargingStationNavigation { get; set; }
+        public ChargingStation ChargingStation { get; set; }
 
         [ForeignKey("ChargingPost")]
         public Guid? PostId { get; set; } // ID of the related charging post (if applicable)

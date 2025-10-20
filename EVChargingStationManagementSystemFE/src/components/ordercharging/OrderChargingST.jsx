@@ -8,14 +8,11 @@ import { getAuthStatus } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
 import ChargingPost from "../ordercharging/ChargingPost";
 import "react-toastify/dist/ReactToastify.css";
+import AdminStationPanel from "./AdminStationPannel";
 
 import { getAllChargingPost } from "../../API/ChargingPost";
 import {
   getChargingStation,
-  addChargingStation,
-  updateChargingStation,
-  deleteChargingStation,
-  updateChargingStationStatus,
   getChargingStationId,
 } from "../../API/Station";
 
@@ -64,15 +61,7 @@ const OrderChargingST = () => {
     chargingHint: "",
   });
 
-  const [adminForm, setAdminForm] = useState({
-    id: null,
-    stationName: "",
-    location: "",
-    province: "",
-    latitude: "",
-    longitude: "",
-    operatorId: "",
-  });
+ 
 
   // Kiểm tra đăng nhập
   useEffect(() => {
@@ -204,102 +193,6 @@ const OrderChargingST = () => {
     setShowBookingPopup(false);
   };
 
-  // Admin: thêm trạm
-  const handleAddStation = async (e) => {
-    e.preventDefault();
-    const payload = {
-      stationName: adminForm.stationName.trim(),
-      location: adminForm.location.trim(),
-      province: adminForm.province.trim(),
-      latitude: adminForm.latitude.trim(),
-      longitude: adminForm.longitude.trim(),
-      operatorId: adminForm.operatorId.trim(),
-    };
-    if (
-      !payload.stationName ||
-      !payload.location ||
-      !payload.province ||
-      !payload.latitude ||
-      !payload.longitude ||
-      !payload.operatorId
-    ) {
-      toast.error("❌ Vui lòng điền đầy đủ thông tin hợp lệ!");
-      return;
-    }
-    try {
-      await addChargingStation(
-        payload.stationName,
-        payload.location,
-        payload.province,
-        payload.latitude,
-        payload.longitude,
-        payload.operatorId
-      );
-      toast.success("✅ Thêm trạm thành công!");
-      fetchStations();
-      setShowAdminPopup(false);
-      setAdminForm({ id: null, stationName: "", location: "", province: "", latitude: "", longitude: "", operatorId: "" });
-    } catch (err) {
-      console.error("Add station error full:", err.response || err);
-      toast.error("❌ Thêm trạm thất bại! Kiểm tra console log.");
-    }
-  };
-
-  // Admin: update trạm
-  const handleUpdateStation = async (e) => {
-    e.preventDefault();
-    if (!adminForm.id) {
-      toast.warn("⚠️ Không có trạm để cập nhật!");
-      return;
-    }
-    try {
-      const payload = {
-        stationName: adminForm.stationName || "",
-        location: adminForm.location || "",
-        province: adminForm.province || "",
-        latitude: adminForm.latitude || "",
-        longitude: adminForm.longitude || "",
-        operatorId: adminForm.operatorId || "",
-      };
-      await updateChargingStation(adminForm.id, payload);
-      toast.success("✅ Cập nhật trạm thành công!");
-      fetchStations();
-      setShowAdminPopup(false);
-    } catch (err) {
-      console.error("Update station error:", err);
-      toast.error("❌ Cập nhật trạm thất bại!");
-    }
-  };
-
-  // Admin delete tram
-  const handleDeleteStation = async (stationId) => {
-    const idToDelete = stationId || adminForm.id;
-    if (!idToDelete) {
-      toast.warn("⚠️ Không có trạm để xóa!");
-      return;
-    }
-    try {
-      await deleteChargingStation(idToDelete);
-      toast.success("✅ Xóa trạm thành công!");
-      fetchStations();
-      setShowAdminPopup(false);
-    } catch (err) {
-      console.error("Delete station error:", err);
-      toast.error("❌ Xóa trạm thất bại!");
-    }
-  };
-
-  // Status trạm
-  const handleUpdateStatus = async (station) => {
-    try {
-      await updateChargingStationStatus(station.id, station.slots > 0 ? 0 : 5);
-      toast.success("✅ Cập nhật trạng thái thành công!");
-      fetchStations();
-    } catch (err) {
-      console.error(err);
-      toast.error("❌ Lỗi khi cập nhật trạng thái!");
-    }
-  };
 
   if (!user)
     return (
@@ -357,26 +250,24 @@ const OrderChargingST = () => {
           <button className="btn-book" onClick={() => setShowBookingPopup(true)}> Đặt lịch sạc</button>
           <button className="btn-admin" onClick={() => setShowAdminPopup(true)}> Admin Panel</button>
           <button className="btn-admin" onClick={() => setShowPostPopup(true)}> Quản lý trụ sạc </button>
+          <button
+            className="btn-admin"
+            onClick={() => {
+              if (selectedStation?.latitude && selectedStation?.longitude) {
+                window.open(
+                  `https://www.google.com/maps?q=${selectedStation.latitude},${selectedStation.longitude}`,
+                  "_blank"
+                );
+              } else {
+                toast.warn("⚠️ Vui lòng chọn trạm trước khi mở Google Map!");
+              }
+            }}
+          >
+            Google Map
+          </button>        
         </div>
 
-        {selectedStation && (
-          <div className="station-actions">
-            <button onClick={() => {
-              setAdminForm({
-                id: selectedStation.id || null,
-                stationName: selectedStation.stationName || "",
-                location: selectedStation.location || "",
-                province: selectedStation.province || "",
-                latitude: selectedStation.latitude?.toString() || "",
-                longitude: selectedStation.longitude?.toString() || "",
-                operatorId: selectedStation.operatorId?.toString() || "",
-              });
-              setShowAdminPopup(true);
-            }}>✏️ Update trạm</button>
-            <button onClick={() => handleDeleteStation(selectedStation.id)}>🗑️ Delete trạm</button>
-            <button onClick={() => handleUpdateStatus(selectedStation)}>🔄 Toggle slots</button>
-          </div>
-        )}
+        
       </div>
 
       {/* Cột phải: bản đồ */}
@@ -407,7 +298,7 @@ const OrderChargingST = () => {
                     <p>📍 {station.location}, {station.province}</p>
                     <p>Slots: {station.slots}</p>
                     <button className="btn-popup-book" onClick={() => setShowBookingPopup(true)}>
-                      🔋 Đặt lịch sạc
+                       Đặt lịch sạc
                     </button>
                   </div>
                 </Popup>
@@ -456,20 +347,12 @@ const OrderChargingST = () => {
       {/* Popup AdminPanel */}
       {showAdminPopup && (
         <div className="popup-overlay">
-          <div className="popup-content">
-            <h3>{adminForm.id ? `Cập nhật / Xóa trạm: ${adminForm.stationName}` : "Thêm trạm mới"}</h3>
-            <form onSubmit={adminForm.id ? handleUpdateStation : handleAddStation}>
-              <label>Tên trạm:<input type="text" value={adminForm.stationName} onChange={(e)=>setAdminForm({ ...adminForm, stationName: e.target.value })}/></label>
-              <label>Địa chỉ:<input type="text" value={adminForm.location} onChange={(e)=>setAdminForm({ ...adminForm, location: e.target.value })}/></label>
-              <label>Tỉnh/Thành phố:<input type="text" value={adminForm.province} onChange={(e)=>setAdminForm({ ...adminForm, province: e.target.value })}/></label>
-              <label>Latitude:<input type="text" value={adminForm.latitude} onChange={(e)=>setAdminForm({ ...adminForm, latitude: e.target.value })}/></label>
-              <label>Longitude:<input type="text" value={adminForm.longitude} onChange={(e)=>setAdminForm({ ...adminForm, longitude: e.target.value })}/></label>
-              <label>OperatorId:<input type="text" value={adminForm.operatorId} onChange={(e)=>setAdminForm({ ...adminForm, operatorId: e.target.value })}/></label>
-              <div className="admin-buttons">
-                <button type="submit">{adminForm.id ? "Lưu cập nhật" : "Thêm trạm"}</button>
-                <button type="button" onClick={()=>{setShowAdminPopup(false); setAdminForm({ id: null, stationName: "", location: "", province: "", latitude: "", longitude: "", operatorId: "" });}}>Hủy</button>
-              </div>
-            </form>
+          <div className="popup-content large-popup">
+            <AdminStationPanel
+              onClose={() => setShowAdminPopup(false)}
+              onUpdated={fetchStations}
+              onReloadAdminPannel={()=>handleSelectStation(selectedStation?.id)}
+            />
           </div>
         </div>
       )}

@@ -29,8 +29,10 @@ import AdminPrivateRoute from "./components/pages/admin/AdminPrivateRoute";
 import PaymentPage from "./components/Payment/PaymentPage";
 import Pay from "./components/Payment/Pay";
 import ProfilePage from "./components/profile/ProfilePage";
-
-
+import ReportPage from "./components/profile/ReportPage";
+import RatingPage from "./components/profile/RatingPage";
+import AdminStationPanel from "./components/ordercharging/AdminStationPannel";
+import IOTChargingSystem from "./components/IOTChargingSystem/IOTChargingSystem.jsx"
 
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
@@ -55,10 +57,16 @@ export default function App() {
           <Route path="Logout" element={<Logout />} />
           <Route path="orders" element={<Order />} />
           <Route path="car" element={<Car />} />
+          <Route path="report-page" element={<ReportPage />} />
+          <Route path="rating-page" element={<RatingPage />} />
           {/* // */}
           {/* Trạm Sạc */}
           <Route path="order-charging" element={<OrderChargingST />} />
           <Route path="charging-post" element={<ChargingPost />} />
+          <Route path="admin-pannel" element={<AdminStationPanel />} />
+          {/* // */}
+          {/* IOTChargingSystem */}
+          <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
           {/* // */}
           {/* Pay */}
           <Route path="Payment" element={<PaymentPage />} />

@@ -29,8 +29,8 @@ const ProfilePage = () => {
     { title: "Tài khoản", icon: <User size={20} />, path: "/profile" },
     { title: "Liên kết xe", icon: <Car size={20} />, path: "/car" },
     { title: "Gói dịch vụ", icon: <BarChart2 size={20} />, path: "#" },
-    { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "#" },
-    { title: "Đánh giá", icon: <Star size={20} />, path: "# " },
+    { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/report-page" },
+    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page " },
   ];
 
   return (
@@ -94,8 +94,8 @@ const ProfilePage = () => {
           <p>Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7</p>
         </div>
         <div className="support-buttons">
-          <button onClick={() => navigate("/profile")}>Gửi yêu cầu hỗ trợ</button>
-          <button onClick={() => navigate("/profile")}>Đánh giá dịch vụ</button>
+          <button onClick={() => navigate("/report-page")}>Gửi yêu cầu hỗ trợ</button>
+          <button onClick={() => navigate("#")}>Đánh giá dịch vụ</button>
         </div>
       </div>
     </div>

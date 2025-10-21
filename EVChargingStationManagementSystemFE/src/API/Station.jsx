@@ -70,10 +70,10 @@ export const deleteChargingStation = async (id) => {
 export const getChargingStationId = async (id) => {
   try {
     const response = await api.get(`${BASE_URL}/${id}`);
-    console.log('Chi tiết station:', response.data);
-    return response.data;
+    console.log("Chi tiết station:", response.data);
+    return response.data.data; //  Trả về đúng object station
   } catch (error) {
-    console.error('Error getChargingStationId:', error);
+    console.error("Error getChargingStationId:", error);
     throw error;
   }
 };

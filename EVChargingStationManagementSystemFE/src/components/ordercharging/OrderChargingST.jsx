@@ -42,6 +42,7 @@ const FlyToStation = ({ station }) => {
 
 const OrderChargingST = () => {
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");//lọc
   const [selectedStation, setSelectedStation] = useState(null);
   const [stations, setStations] = useState([]);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
@@ -60,6 +61,15 @@ const OrderChargingST = () => {
     chargingPower: "",
     chargingHint: "",
   });
+  useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (!e.target.closest(".station-item")) {
+      setSelectedStation(null); // ẩn danh sách trụ
+    }
+  };
+    document.addEventListener("mousedown", handleClickOutside, true);
+    return () => document.removeEventListener("mousedown", handleClickOutside, true);
+  }, []);
 
  
 
@@ -115,8 +125,7 @@ const OrderChargingST = () => {
   // Hàm chọn trạm và load trụ
   const handleSelectStation = async (station) => {
     try {
-      const res = await getChargingStationId(station.id);
-      const stationDetail = res.data;
+      const stationDetail = await getChargingStationId(station.id);
 
       setSelectedStation(stationDetail);
 
@@ -155,10 +164,10 @@ const OrderChargingST = () => {
       for (const st of stationsData) {
         try {
           const detailRes = await getChargingStationId(st.id);
-          postsByStation[st.id] = detailRes.data.chargingPosts || [];
+          postsByStation[st.id] = detailRes.chargingPosts || [];
         } catch (err) {
           postsByStation[st.id] = [];
-          throw err
+          throw err;
         }
       }
 
@@ -192,6 +201,14 @@ const OrderChargingST = () => {
     toast.success("✅ Đặt lịch thành công! Đã lưu thông tin.");
     setShowBookingPopup(false);
   };
+  const filteredStations = stations.filter((st) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      st.stationName.toLowerCase().includes(term) ||
+      st.location.toLowerCase().includes(term) ||
+      st.province.toLowerCase().includes(term)
+    );
+  });
 
 
   if (!user)
@@ -212,45 +229,16 @@ const OrderChargingST = () => {
       {/* Cột trái */}
       <div className="left-panel">
         <h2>Trạng thái các trạm sạc</h2>
-        <div className="station-list">
-          {stations.map((st) => (
-            <div
-              key={st.id}
-              className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
-              onClick={() => handleSelectStation(st)}
-            >
-              <h4>🏙️ {st.stationName}</h4>
-              <p>📍 {st.location}, {st.province}</p>
-
-              <div className="station-posts">
-                {stationPosts[st.id]?.length > 0 ? (
-                  stationPosts[st.id].map((post, index) => (
-                    <div key={post.id} className={`post-item status-${post.status}`}>
-                      <h5>Trụ {index + 1}</h5>
-                      <p><b>Tên trụ:</b> {post.postName}</p>
-                      <p><b>Cổng sạc:</b> {post.chargerType}</p>
-                      <p>
-                        <b>Trạng thái:</b>{" "}
-                        {post.status === "InActive" && <span className="inactive">🟥 Inactive</span>}
-                        {post.status === "Active" && <span className="active">🟩 Active</span>}
-                        {post.status === "Busy" && <span className="busy">🟨 Busy</span>}
-                        {post.status === "Maintained" && <span className="maintained">🟧 Maintained</span>}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-post">Chưa có trụ sạc</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="action-buttons">
-          <button className="btn-book" onClick={() => setShowBookingPopup(true)}> Đặt lịch sạc</button>
-          <button className="btn-admin" onClick={() => setShowAdminPopup(true)}> Admin Panel</button>
-          <button className="btn-admin" onClick={() => setShowPostPopup(true)}> Quản lý trụ sạc </button>
-          <button
+        {/* 🔍 Thanh tìm kiếm trạm */}
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="🔍 Tìm theo tên, địa chỉ hoặc tỉnh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <button
             className="btn-admin"
             onClick={() => {
               if (selectedStation?.latitude && selectedStation?.longitude) {
@@ -264,7 +252,66 @@ const OrderChargingST = () => {
             }}
           >
             Google Map
-          </button>        
+          </button>  
+          </div>
+
+        <div className="station-list">
+          {filteredStations.map((st) => (
+            <div
+              key={st.id}
+              className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
+              onClick={() => handleSelectStation(st)}
+            >
+              <h4>🏙️ {st.stationName}</h4>
+              <p>📍 {st.location}, {st.province}</p>
+
+              {/* ✅ Chỉ hiện danh sách trụ khi trạm này được chọn */}
+              {selectedStation?.id === st.id && (
+                <div className="station-posts">
+                  {stationPosts[st.id]?.length > 0 ? (
+                    stationPosts[st.id].map((post, index) => (
+                      <div key={post.id} className={`post-item status-${post.status}`}>
+                        <h5>Trụ {index + 1}</h5>
+                        <p><b>Tên trụ:</b> {post.postName}</p>
+                        <p><b>Cổng sạc:</b> {post.connectorType}</p>
+                        <p>
+                          <b>Trạng thái:</b>{" "}
+                          {post.status === "InActive" && <span className="inactive">🟥 Inactive</span>}
+                          {post.status === "Active" && <span className="active">🟩 Active</span>}
+                          {post.status === "Busy" && <span className="busy">🟨 Busy</span>}
+                          {post.status === "Maintained" && <span className="maintained">🟧 Maintained</span>}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="no-post">Chưa có trụ sạc</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+
+        <div className="action-buttons">
+          <button className="btn-book" onClick={() => setShowBookingPopup(true)}> Đặt lịch sạc</button>
+          <button className="btn-admin" onClick={() => setShowAdminPopup(true)}> Admin Panel</button>
+          <button className="btn-admin" onClick={() => setShowPostPopup(true)}> Quản lý trụ sạc </button>
+          {/* <button
+            className="btn-admin"
+            onClick={() => {
+              if (selectedStation?.latitude && selectedStation?.longitude) {
+                window.open(
+                  `https://www.google.com/maps?q=${selectedStation.latitude},${selectedStation.longitude}`,
+                  "_blank"
+                );
+              } else {
+                toast.warn("⚠️ Vui lòng chọn trạm trước khi mở Google Map!");
+              }
+            }}
+          >
+            Google Map
+          </button>         */}
         </div>
 
         
@@ -281,7 +328,7 @@ const OrderChargingST = () => {
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {stations.map((station) => {
+          {filteredStations.map((station) => {
             const lat = parseFloat(station.latitude);
             const lng = parseFloat(station.longitude);
             if (isNaN(lat) || isNaN(lng)) return null;
@@ -316,7 +363,7 @@ const OrderChargingST = () => {
             <ChargingPost
               stationId={selectedStation?.id}
               onClose={() => setShowPostPopup(false)}
-              onUpdated={() => fetchStations()}
+              onUpdated={() => handleReloadPosts(selectedStation?.id)}
               onReloadPosts={() => handleReloadPosts(selectedStation?.id)}
             />
           </div>

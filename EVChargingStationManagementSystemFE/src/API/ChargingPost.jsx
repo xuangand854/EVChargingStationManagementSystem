@@ -3,13 +3,20 @@ import api from "./axios";
 const BASE_URL = "/ChargingPost";
 
 // 🔹 Get all posts (có thể kèm stationId)
-export const getAllChargingPost = async () => {
+export const getAllChargingPost = async (stationId = null) => {
   try {
-    const response = await api.get(`${BASE_URL}`);
-    console.log('Danh sách ChargingPost:', response.data);
-    return response.data.data; // ✅ trả thẳng mảng data
+    const response = await api.get("/ChargingPost");
+    let data = response.data.data || [];
+
+    // Nếu có stationId thì lọc ngay tại FE
+    if (stationId) {
+      data = data.filter((p) => p.stationId === stationId);
+    }
+
+    console.log("Danh sách ChargingPost:", data);
+    return data;
   } catch (error) {
-    console.error('Error getChargingPost:', error);
+    console.error("Error getAllChargingPost:", error);
     throw error;
   }
 };

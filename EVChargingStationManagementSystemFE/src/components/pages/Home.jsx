@@ -8,6 +8,11 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import Orb from "../../effect/Orb";
 
+// Thêm import cho Lottie animation
+import Lottie from "lottie-react";
+import chargingAnim from "../animation/Electric vehicle charging animation.json"; // hoặc đổi tên file nếu cần
+import chargingStationAnim from "../animation/How does an electric vehicle charging station work_.json";
+
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -80,7 +85,7 @@ const Home = () => {
         <div className="fullpage-container">
             {/* Hero Section */}
             <section className="section section-hero" id="hero">
-                <Orb hue={-20} hoverIntensity={0.25} rotateOnHover={true} />
+                {/* <Orb hue={-20} hoverIntensity={0.25} rotateOnHover={true} /> */}
                 <header className="home-hero">
                     <div className="hero-content">
                         <h1>
@@ -90,46 +95,21 @@ const Home = () => {
                         <p>Tìm, đặt chỗ và sạc nhanh ở mọi nơi bạn đến.</p>
                         <div className="hero-actions">
                             <button className="btn btn-primary" onClick={() => document.querySelector('#discover')?.scrollIntoView({ behavior: 'smooth' })}>Khám phá ngay</button>
-                            <button className="btn btn-ghost" onClick={() => document.querySelector('#search')?.scrollIntoView({ behavior: 'smooth' })}>Tìm trạm sạc</button>
+                            {/* <button className="btn btn-ghost" onClick={() => document.querySelector('#search')?.scrollIntoView({ behavior: 'smooth' })}>Tìm trạm sạc</button> */}
                         </div>
                     </div>
+
+                    {/* Thay thế SVG tĩnh bằng Lottie */}
                     <div className="hero-visual" aria-hidden>
                         <div className="glow"></div>
-                        <svg className="hero-illustration" viewBox="0 0 520 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            {/* Nền mờ */}
-                            <defs>
-                                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stopColor="#ff7e5f" stopOpacity="0.7" />
-                                    <stop offset="100%" stopColor="#feb47b" stopOpacity="0.6" />
-                                </linearGradient>
-                                <linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0%" stopColor="#ffac81" />
-                                    <stop offset="100%" stopColor="#ff8a5c" />
-                                </linearGradient>
-                            </defs>
-                            <g filter="url(#f)" opacity="0.15">
-                                <ellipse cx="360" cy="240" rx="150" ry="90" fill="url(#g1)" />
-                            </g>
-                            {/* Trụ sạc */}
-                            <rect x="320" y="90" width="70" height="170" rx="10" fill="rgba(255,255,255,0.9)" stroke="#ff9a5f" strokeWidth="2" />
-                            <rect x="335" y="110" width="40" height="40" rx="6" fill="#fff1e8" stroke="#ff9a5f" />
-                            <circle cx="355" cy="130" r="8" fill="#ff9a5f" />
-                            <rect x="345" y="165" width="20" height="60" rx="4" fill="url(#g2)" />
-                            {/* Dây sạc */}
-                            <path d="M340 200 C 300 210, 280 230, 260 245" stroke="#ff9a5f" strokeWidth="4" fill="none" strokeLinecap="round" />
-                            {/* Xe điện tối giản */}
-                            <g transform="translate(170,230)">
-                                <rect x="0" y="20" width="130" height="40" rx="10" fill="#ffffff" stroke="#ff9a5f" strokeWidth="2" />
-                                <rect x="20" y="0" width="90" height="30" rx="10" fill="#fff6ef" stroke="#ff9a5f" strokeWidth="2" />
-                                <circle cx="30" cy="70" r="12" fill="#1f2937" stroke="#ff9a5f" strokeWidth="2" />
-                                <circle cx="110" cy="70" r="12" fill="#1f2937" stroke="#ff9a5f" strokeWidth="2" />
-                                <rect x="118" y="32" width="12" height="8" fill="#ff9a5f" />
-                            </g>
-                            {/* Filter nhẹ */}
-                            <filter id="f">
-                                <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
-                            </filter>
-                        </svg>
+
+                        <div className="hero-lottie" aria-hidden>
+                            <Lottie
+                                animationData={chargingStationAnim}
+                                loop={true}
+                                style={{ width: "520px", height: "360px", maxWidth: "100%" }}
+                            />
+                        </div>
                     </div>
                 </header>
 
@@ -150,22 +130,22 @@ const Home = () => {
                         <div className="feature-card">
                             <div className="icon">🔍</div>
                             <h3>Tìm trạm sạc</h3>
-                            <p>Tìm trạm sạc gần bạn theo vị trí hoặc điểm đến, cập nhật theo thời gian thực.</p>
+                            <p>Tìm trạm sạc gần bạn theo vị trí hoặc điểm đến, cập nhật theo thời gian thực với độ chính xác cao.</p>
                         </div>
                         <div className="feature-card">
                             <div className="icon">📅</div>
                             <h3>Đặt lịch trước</h3>
-                            <p>Đặt chỗ nhanh chóng để đảm bảo có trạm sạc khi bạn đến nơi.</p>
+                            <p>Đặt chỗ nhanh chóng và tiện lợi để đảm bảo có trạm sạc khi bạn đến nơi.</p>
                         </div>
                         <div className="feature-card">
                             <div className="icon">⚡</div>
                             <h3>Sạc nhanh</h3>
-                            <p>Hỗ trợ nhiều chuẩn sạc nhanh với trải nghiệm mượt mà và an toàn.</p>
+                            <p>Hỗ trợ nhiều chuẩn sạc nhanh với công nghệ tiên tiến, trải nghiệm mượt mà và an toàn.</p>
                         </div>
                         <div className="feature-card">
                             <div className="icon">📊</div>
                             <h3>Realtime</h3>
-                            <p>Trạng thái trạm sạc, công suất và chi phí hiển thị theo thời gian thực.</p>
+                            <p>Trạng thái trạm sạc, công suất và chi phí hiển thị theo thời gian thực, cập nhật liên tục.</p>
                         </div>
                     </div>
                 </section>
@@ -174,33 +154,81 @@ const Home = () => {
             {/* About Section (moved below Search) */}
             <section className="section section-about" id="about">
                 <section className="home-about">
-                    <div className="about-grid">
+                    <h2 className="section-title">Về <span className="brand-gradient">EVOne</span></h2>
+                    
+                    <div className="about-content">
                         <div className="about-text">
-                            <h2 className="section-title">Về EVOne</h2>
-                            <p>
-                                EVOne là nền tảng quản lý và kết nối trạm sạc xe điện, giúp người dùng tìm kiếm, đặt lịch
-                                và sạc nhanh một cách thuận tiện. Chúng tôi hướng tới việc phổ biến hoá xe điện bằng trải nghiệm
-                                trực quan, minh bạch và tin cậy.
+                            <p className="about-description">
+                                EVOne là nền tảng quản lý và kết nối trạm sạc xe điện hàng đầu Việt Nam, 
+                                giúp người dùng tìm kiếm, đặt lịch và sạc nhanh một cách thuận tiện và an toàn. 
+                                Chúng tôi hướng tới việc phổ biến hoá xe điện bằng trải nghiệm trực quan, minh bạch và tin cậy.
                             </p>
-                            <ul className="about-highlights">
-                                <li>Hệ thống bản đồ trực quan, realtime trạng thái trạm</li>
-                                <li>Đặt lịch trước, giảm thời gian chờ đợi</li>
-                                <li>Hỗ trợ đa chuẩn sạc và nhiều nhà cung cấp</li>
-                            </ul>
+                            
+                            <div className="about-features">
+                                <div className="about-feature-item">
+                                    <div className="feature-icon">🗺️</div>
+                                    <div className="feature-content">
+                                        <h4>Bản đồ thông minh</h4>
+                                        <p>Hệ thống bản đồ trực quan với realtime trạng thái trạm sạc</p>
+                                    </div>
+                                </div>
+                                <div className="about-feature-item">
+                                    <div className="feature-icon">📱</div>
+                                    <div className="feature-content">
+                                        <h4>Ứng dụng di động</h4>
+                                        <p>Giao diện thân thiện, dễ sử dụng trên mọi thiết bị</p>
+                                    </div>
+                                </div>
+                                <div className="about-feature-item">
+                                    <div className="feature-icon">🔌</div>
+                                    <div className="feature-content">
+                                        <h4>Đa chuẩn sạc</h4>
+                                        <p>Hỗ trợ nhiều chuẩn sạc phổ biến và nhà cung cấp uy tín</p>
+                                    </div>
+                                </div>
+                                <div className="about-feature-item">
+                                    <div className="feature-icon">💰</div>
+                                    <div className="feature-content">
+                                        <h4>Thanh toán linh hoạt</h4>
+                                        <p>Nhiều phương thức thanh toán an toàn và tiện lợi</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="about-visual" aria-hidden>
-                            <div className="about-card">
-                                <div className="about-stat">
-                                    <span className="stat-value">500+</span>
-                                    <span className="stat-label">Trạm sạc</span>
+                        
+                        <div className="about-visual">
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <div className="stat-icon">⚡</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">500+</span>
+                                        <span className="stat-label">Trạm sạc</span>
+                                        <span className="stat-desc">Trên toàn quốc</span>
+                                    </div>
                                 </div>
-                                <div className="about-stat">
-                                    <span className="stat-value">99.9%</span>
-                                    <span className="stat-label">Uptime</span>
+                                <div className="stat-card">
+                                    <div className="stat-icon">🚗</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">50K+</span>
+                                        <span className="stat-label">Người dùng</span>
+                                        <span className="stat-desc">Đã tin tưởng</span>
+                                    </div>
                                 </div>
-                                <div className="about-stat">
-                                    <span className="stat-value">24/7</span>
-                                    <span className="stat-label">Hỗ trợ</span>
+                                <div className="stat-card">
+                                    <div className="stat-icon">📊</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">99.9%</span>
+                                        <span className="stat-label">Uptime</span>
+                                        <span className="stat-desc">Độ tin cậy cao</span>
+                                    </div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-icon">🛠️</div>
+                                    <div className="stat-info">
+                                        <span className="stat-value">24/7</span>
+                                        <span className="stat-label">Hỗ trợ</span>
+                                        <span className="stat-desc">Luôn sẵn sàng</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -316,74 +344,51 @@ const Home = () => {
             {/* Contact Section */}
             <section className="section section-contact" id="contact">
                 <section className="home-contact">
-                    <h2 className="section-title">Liên hệ</h2>
-                    <div className="contact-grid">
-                        <aside className="contact-card contact-info">
-                            <h3>EVOne - EV Charging Platform</h3>
-                            <ul className="info-list">
-                                <li className="info-item">
-                                    <span className="info-label">Địa chỉ</span>
-                                    <span>123 Innovation St, Quận 1, TP. Hồ Chí Minh</span>
-                                </li>
-                                <li className="info-item">
-                                    <span className="info-label">Hotline</span>
-                                    <a href="tel:+84281234567">(+84) 28 1234 567</a>
-                                </li>
-                                <li className="info-item">
-                                    <span className="info-label">Email</span>
-                                    <a href="mailto:support@evone.vn">support@evone.vn</a>
-                                </li>
-                                <li className="info-item">
-                                    <span className="info-label">Giờ làm việc</span>
-                                    <span>Thứ 2 - Thứ 6: 08:30 - 18:00</span>
-                                </li>
-                            </ul>
-                            <div className="info-note">Hỗ trợ khẩn cấp sự cố trạm 24/7 qua Hotline.</div>
-                        </aside>
-
-                        {/* <form className="contact-card contact-form" onSubmit={(e) => { e.preventDefault(); alert('Đã gửi liên hệ!'); }}>
-                            <div className="form-row">
-                                <div className="field-group">
-                                    <label htmlFor="contactName">Họ và tên</label>
-                                    <input id="contactName" type="text" name="name" placeholder="VD: Nguyễn Văn A" required />
-                                </div>
-                                <div className="field-group">
-                                    <label htmlFor="contactEmail">Email</label>
-                                    <input id="contactEmail" type="email" name="email" placeholder="you@example.com" required />
+                    <h2 className="section-title">Liên hệ <span className="brand-gradient">EVOne</span></h2>
+                    
+                    <div className="contact-info-only">
+                        <div className="contact-intro">
+                            <h3>Kết nối với chúng tôi</h3>
+                            <p>Chúng tôi luôn sẵn sàng hỗ trợ và lắng nghe ý kiến của bạn. Hãy liên hệ với EVOne để được tư vấn và hỗ trợ tốt nhất.</p>
+                        </div>
+                        
+                        <div className="contact-methods">
+                            <div className="contact-method">
+                                <div className="method-icon">📍</div>
+                                <div className="method-info">
+                                    <h4>Địa chỉ</h4>
+                                    <p>123 Innovation Street, Quận 1, TP. Hồ Chí Minh</p>
+                                    <span className="method-note">Trụ sở chính - Tầng 15, Tòa nhà EV Tower</span>
                                 </div>
                             </div>
-
-                            <div className="form-row">
-                                <div className="field-group">
-                                    <label htmlFor="contactPhone">Số điện thoại</label>
-                                    <input id="contactPhone" type="tel" name="phone" placeholder="VD: 0901 234 567" pattern="[0-9\\s+()-]{8,}" />
-                                </div>
-                                <div className="field-group">
-                                    <label htmlFor="contactSubject">Chủ đề</label>
-                                    <select id="contactSubject" name="subject" defaultValue="general" required>
-                                        <option value="general">Tư vấn chung</option>
-                                        <option value="booking">Hỗ trợ đặt lịch</option>
-                                        <option value="station">Phản hồi trạm sạc</option>
-                                        <option value="technical">Hỗ trợ kỹ thuật</option>
-                                    </select>
+                            
+                            <div className="contact-method">
+                                <div className="method-icon">📞</div>
+                                <div className="method-info">
+                                    <h4>Hotline</h4>
+                                    <p><a href="tel:+84281234567">(+84) 28 1234 567</a></p>
+                                    <span className="method-note">Hỗ trợ 24/7 - Khẩn cấp sự cố trạm</span>
                                 </div>
                             </div>
-
-                            <div className="field-group">
-                                <label htmlFor="contactMessage">Nội dung</label>
-                                <textarea id="contactMessage" name="message" rows="5" placeholder="Mô tả chi tiết yêu cầu của bạn..." required />
+                            
+                            <div className="contact-method">
+                                <div className="method-icon">📧</div>
+                                <div className="method-info">
+                                    <h4>Email</h4>
+                                    <p><a href="mailto:support@evone.vn">support@evone.vn</a></p>
+                                    <span className="method-note">Phản hồi trong 2-4 giờ làm việc</span>
+                                </div>
                             </div>
-
-                            <label className="agree-row">
-                                <input type="checkbox" required />
-                                <span>Tôi đồng ý với điều khoản xử lý dữ liệu cá nhân</span>
-                            </label>
-
-                            <div className="form-actions">
-                                <button className="btn btn-primary" type="submit">Gửi</button>
-                                <button className="btn btn-ghost" type="reset">Xoá</button>
+                            
+                            <div className="contact-method">
+                                <div className="method-icon">🕒</div>
+                                <div className="method-info">
+                                    <h4>Giờ làm việc</h4>
+                                    <p>Thứ 2 - Thứ 6: 08:30 - 18:00</p>
+                                    <span className="method-note">Thứ 7: 08:30 - 12:00 (Hỗ trợ khẩn cấp 24/7)</span>
+                                </div>
                             </div>
-                        </form> */}
+                        </div>
                     </div>
                 </section>
             </section>

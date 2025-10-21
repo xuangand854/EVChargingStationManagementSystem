@@ -220,11 +220,11 @@ export const forgotPassword = async (email) => { // quên mật khẩu
   throw lastError;
 }
 
-export const resetPassword = async (userId, code, newPassword) => { // đặt lại mật khẩu
+export const resetPassword = async (userId, token, newPassword) => { // đặt lại mật khẩu
   try {
     const response = await api.post(
       `${BASE_URL}/reset-password`,
-      { userId, code, newPassword }
+      { userId, token, newPassword }
     );
     return response.data;
   } catch (error) {

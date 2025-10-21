@@ -1,0 +1,289 @@
+:root {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --text: #0f172a;
+    --primary: #2563eb;
+    --accent: #06b6d4;
+    --danger: #ef4444;
+    --radius: 10px;
+    --shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+}
+
+/* Container */
+.syscfg-container {
+    padding: 24px;
+    background: linear-gradient(180deg, var(--bg), #eef2ff 120%);
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Card */
+.syscfg-card {
+    width: 100%;
+    max-width: 920px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    box-sizing: border-box;
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+/* Header */
+.syscfg-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.syscfg-title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text);
+}
+
+.syscfg-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Error */
+.syscfg-error {
+    background: #fff2f2;
+    color: var(--danger);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.08);
+}
+
+/* Form */
+.syscfg-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 20px;
+}
+
+/* Single column rows (for smaller screens) */
+@media (max-width:720px) {
+    .syscfg-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.form-input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    background: #fff;
+    font-size: 14px;
+    color: var(--text);
+    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.03);
+    transition: box-shadow 0.12s, border-color 0.12s, transform 0.08s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.9);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Actions */
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary), #1e40af);
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: var(--text);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ``` // filepath: e:\FPTU\Ky5\SWP\SWP_PROJECT\EVChargingStationManagementSystem\EVChargingStationManagementSystemFE\src\components\pages\admin\SystemConfiguration.css */
+
+:root {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --text: #0f172a;
+    --primary: #2563eb;
+    --accent: #06b6d4;
+    --danger: #ef4444;
+    --radius: 10px;
+    --shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+}
+
+/* Container */
+.syscfg-container {
+    padding: 24px;
+    background: linear-gradient(180deg, var(--bg), #eef2ff 120%);
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+/* Card */
+.syscfg-card {
+    width: 100%;
+    max-width: 920px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    box-sizing: border-box;
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+/* Header */
+.syscfg-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.syscfg-title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--text);
+}
+
+.syscfg-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Error */
+.syscfg-error {
+    background: #fff2f2;
+    color: var(--danger);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.08);
+}
+
+/* Form */
+.syscfg-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 20px;
+}
+
+/* Single column rows (for smaller screens) */
+@media (max-width:720px) {
+    .syscfg-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.form-input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    background: #fff;
+    font-size: 14px;
+    color: var(--text);
+    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.03);
+    transition: box-shadow 0.12s, border-color 0.12s, transform 0.08s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.9);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Actions */
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary), #1e40af);
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: var(--text);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

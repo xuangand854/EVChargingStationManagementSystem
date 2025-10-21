@@ -33,17 +33,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     Busy: 2,
     Maintained: 3,
   };
-  useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (listRef.current && !listRef.current.contains(event.target)) {
-      setShowPostList(false);
-      setSelectedPost(null);
-    }
-  };
 
-    document.addEventListener("mousedown", handleClickOutside, true);
-    return () => document.removeEventListener("mousedown", handleClickOutside, true);
-  }, []);
 
   // 📦 Load danh sách trạm
   useEffect(() => {
@@ -76,6 +66,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     setSelectedStation(found || null);
     setSelectedPost(null);
     loadPosts(id);
+    setShowPostList(true);
   };
 
   // ✏️ Chọn trụ để sửa
@@ -161,6 +152,7 @@ const handleDelete = async (id) => {
     } catch (err) {
       console.error("❌ Lỗi đổi trạng thái:", err);
     }
+    onUpdated?.();
   };
 
   return (
@@ -185,7 +177,7 @@ const handleDelete = async (id) => {
           <label>Chọn trạm:</label>
           <select
             value={selectedStation?.id || ""}
-            onChange={(e) =>{ handleSelectStation(e.target.value);setShowPostList(true)}}
+            onChange={(e) =>{ handleSelectStation(e.target.value)}}
              // Mở danh sách trụ khi chọn trạm
           >
             <option value="">-- Chọn trạm --</option>
@@ -212,7 +204,7 @@ const handleDelete = async (id) => {
           {/* Khi có trạm */}
           {selectedStation && (
             <>
-              {/* 🧩 Danh sách trụ tổng quan */}
+              {/*  Danh sách trụ tổng quan */}
               {showPostList && (
                 <div className="post-popup-list" ref={listRef}>
                   <h4>Danh sách trụ của trạm</h4>
@@ -284,7 +276,7 @@ const handleDelete = async (id) => {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          vehicleTypeSupported: e.target.value,
+                          vehicleTypeSupported:  Number(e.target.value),
                         })
                       }
                     >
@@ -352,27 +344,20 @@ const handleDelete = async (id) => {
                 <div className="post-popup-list">
                   <h4>Trạng thái các trụ sạc</h4>
                   {posts.length === 0 && <p>Không có trụ nào.</p>}
-                  {posts.map((p) => (
+                    {posts.map((p) => (
                     <div key={p.id} className="post-popup-item">
                       <span>{p.postName}</span>
                       <select
-                        value={
-                          Object.keys(statusMap).find(
-                            (key) => statusMap[key] === p.status
-                          ) || "InActive"
-                        }
+                        value={p.status || "InActive"}  
                         onChange={(e) => handleChangeStatus(p, e.target.value)}
                       >
-                        {Object.keys(statusMap).map((key) => (
-                          <option key={key} value={key}>
-                            {key}
-                          </option>
-                        ))}
+                        <option value="InActive">Inactive</option>
+                        <option value="Active">Active</option>
+                        <option value="Busy">Busy</option>
+                        <option value="Maintained">Maintained</option>
                       </select>
                       <span className="status-label">
-                        {Object.keys(statusMap).find(
-                          (key) => statusMap[key] === p.status
-                        ) || "InActive"}
+                        {p.status || "InActive"} 
                       </span>
                     </div>
                   ))}

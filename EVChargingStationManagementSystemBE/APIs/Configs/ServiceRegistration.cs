@@ -1,4 +1,5 @@
 ﻿using Common.DTOs.AuthDto;
+using Common.DTOs.BookingDto;
 using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ConnectorDto;
@@ -112,7 +113,27 @@ namespace APIs.Configs
                 .Map(dest => dest.Id, src => src.Id)
                 .IgnoreNullValues(true);
 
-            
+
+            //  Booking Mapping
+            //create booking
+            TypeAdapterConfig<BookingCreateDto, Booking>.NewConfig()
+        .Ignore(dest => dest.Id)
+        .Ignore(dest => dest.CreatedAt)
+        .Ignore(dest => dest.UpdatedAt)
+        .Ignore(dest => dest.Status)
+        .Ignore(dest => dest.IsDeleted)
+        .Ignore(dest => dest.EndTime) // EndTime tính trong service
+        .IgnoreNullValues(true);
+
+            //View booking 
+            TypeAdapterConfig<Booking, BookingViewDto>.NewConfig()
+              .Map(dest => dest.DriverName,
+                   src => src.BookedByNavigation != null ? src.BookedByNavigation.Name : null)
+              .Map(dest => dest.StationName,
+                   src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.StationName : null)
+              .IgnoreNullValues(true);
+
+
 
             TypeAdapterConfig<SystemConfigurationUpdateDto, SystemConfiguration>.NewConfig()
                 .IgnoreNullValues(true);

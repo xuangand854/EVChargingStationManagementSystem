@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Common.DTOs.ProfileStaffDto
 {
@@ -32,8 +33,8 @@ namespace Common.DTOs.ProfileStaffDto
         public string ProfilePictureUrl { get; set; }  
 
         [MaxLength(255)]
-        public string WorkingLocation { get; set; } 
-
+        public string WorkingLocation { get; set; }
+        [JsonIgnore]
         public string? Status { get; set; } = "Active";  
     }
 }

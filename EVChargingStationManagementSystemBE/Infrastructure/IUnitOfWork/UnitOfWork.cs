@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Data;
 using Infrastructure.IRepositories;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.Infrastructure.Repositories;
 
 namespace Infrastructure.IUnitOfWork
 {
@@ -18,6 +19,7 @@ namespace Infrastructure.IUnitOfWork
         private IChargingSessionRepository? chargingSessionRepository;
         private ISystemConfigurationRepository? systemConfigurationRepository;
         private IConnectorRepository? connectorRepository;
+        private IBookingRepository? bookingRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -117,5 +119,13 @@ namespace Infrastructure.IUnitOfWork
                 return connectorRepository ??= new ConnectorRepository(context);
             }
         }
-    }
+
+        public IBookingRepository BookingRepository
+        {
+            get
+            {
+                return bookingRepository ??= new BookingRepository(context);
+            }
+        }
+        }
 }

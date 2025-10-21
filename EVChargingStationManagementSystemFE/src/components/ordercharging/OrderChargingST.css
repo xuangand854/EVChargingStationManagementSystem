@@ -401,3 +401,25 @@
   background-color: #0069d9;
   transform: translateY(-2px);
 }
+
+.search-bar {
+  margin: 10px 0 15px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  width: 95%;
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: 0.2s;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+

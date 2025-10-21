@@ -10,6 +10,12 @@ namespace Infrastructure.Models
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Status { get; set; } = "Scheduled"; // e.g., Scheduled, Completed, Cancelled
+        public double? CurrentBattery { get; set; }
+        public double? TargetBattery { get; set; }
+        public double? EstimatedEnergyKWh { get; set; } 
+        public double? ActualEnergyKWh { get; set; }   
+        public DateTime? ActualStartTime { get; set; } 
+        public DateTime? ActualEndTime { get; set; } 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;

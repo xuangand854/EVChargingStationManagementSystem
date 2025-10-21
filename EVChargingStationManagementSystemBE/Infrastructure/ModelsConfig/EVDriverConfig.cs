@@ -4,14 +4,14 @@ using Infrastructure.Models;
 
 namespace Infrastructure.ModelsConfig
 {
-    public class EVDriverConfig : IEntityTypeConfiguration<EVDriver>
+    public class EVDriverConfig : IEntityTypeConfiguration<EVDriverProfile>
     {
-        public void Configure(EntityTypeBuilder<EVDriver> builder)
+        public void Configure(EntityTypeBuilder<EVDriverProfile> builder)
         {
-            builder.ToTable("EVDriver");
-            builder.HasOne(ev => ev.UserAccountNavigation)
-                   .WithMany(ua => ua.EVDrivers)
-                   .HasForeignKey(ev => ev.AccountId);
+            builder.ToTable("EVDriverProfile");
+            builder.HasOne(ev => ev.UserAccount)
+                   .WithOne(ua => ua.EVDriverProfile)
+                   .HasForeignKey<EVDriverProfile>(ev => ev.AccountId);
         }
     }
 }

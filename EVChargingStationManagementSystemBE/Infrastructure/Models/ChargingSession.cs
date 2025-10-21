@@ -12,8 +12,8 @@ namespace Infrastructure.Models
         public DateTime? EndTime { get; set; } // Nullable for ongoing sessions
         public double EnergyDeliveredKWh { get; set; } // Total energy delivered in kWh
         [Precision(18, 2)]
-        public decimal Cost { get; set; } // Total cost of the session
-        public string Status { get; set; } = "NotStarted"; // e.g., InProgress, Completed, Cancelled
+        public decimal Cost { get; set; } = 0; // Total cost of the session
+        public string Status { get; set; } = "Charging"; // e.g., InProgress, Completed, Cancelled
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
@@ -22,9 +22,13 @@ namespace Infrastructure.Models
         public int ExpectedEnergiesKWh { get; set; } // Expected energy to be charged in kWh
         public int PowerRateKW { get; set; } // Charging power rate in kW
 
+        [ForeignKey("Connector")]
+        public Guid ConnectorId { get; set; }
+        public Connector Connector { get; set; }
+
         [ForeignKey("ChargingPost")]
         public Guid ChargingPostId { get; set; }
-        public ChargingPost ChargingPostNavigation { get; set; }
+        public ChargingPost ChargingPost { get; set; }
 
         public Guid? DriverId { get; set; }
 

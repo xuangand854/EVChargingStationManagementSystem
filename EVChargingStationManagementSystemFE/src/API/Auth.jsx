@@ -182,3 +182,53 @@ export const logout = () => {
   }
 }
 
+export const forgotPassword = async (email) => { // quên mật khẩu
+  const attempts = [
+    // Theo Swagger: POST với Email ở query string
+    { method: 'post', url: `${BASE_URL}/forgot-password`, params: { Email: email } },
+    // Ưu tiên biến thể thường gặp ở ASP.NET Core: PascalCase property
+    { method: 'post', url: `${BASE_URL}/forgot-password`, data: { Email: email } },
+    // Thử URL PascalCase
+    { method: 'post', url: `${BASE_URL}/ForgotPassword`, data: { Email: email } },
+    // Thử property camelCase
+    { method: 'post', url: `${BASE_URL}/forgot-password`, data: { email } },
+    // Thử dạng application/x-www-form-urlencoded
+    { method: 'post', url: `${BASE_URL}/forgot-password`, data: new URLSearchParams({ Email: email }), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+    // Thử multipart/form-data
+    (() => { const fd = new FormData(); fd.append('Email', email); return { method: 'post', url: `${BASE_URL}/forgot-password`, data: fd }; })(),
+  ];
+
+  let lastError;
+  for (const attempt of attempts) {
+    try {
+      const response = await api.request({
+        method: attempt.method,
+        url: attempt.url,
+        data: attempt.data,
+        params: attempt.params,
+        headers: attempt.headers,
+      });
+      return response.data;
+    } catch (error) {
+      lastError = error;
+      const status = error?.response?.status;
+      if (status && status >= 500) break; // lỗi server thì dừng thử
+      continue; // thử biến thể tiếp theo
+    }
+  }
+  console.error('Error during forgot password:', lastError);
+  throw lastError;
+}
+
+export const resetPassword = async (userId, code, newPassword) => { // đặt lại mật khẩu
+  try {
+    const response = await api.post(
+      `${BASE_URL}/reset-password`,
+      { userId, code, newPassword }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error during password reset:', error);
+    throw error;
+  }
+}

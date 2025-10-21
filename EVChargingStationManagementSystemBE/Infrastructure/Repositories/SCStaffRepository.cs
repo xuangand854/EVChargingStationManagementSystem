@@ -5,7 +5,7 @@ using Infrastructure.Models;
 
 namespace Infrastructure.Repositories
 {
-    public class SCStaffRepository(EVCSMSContext context) : GenericRepository<SCStaff>(context), ISCStaffRepository
+    public class SCStaffRepository(EVCSMSContext context) : GenericRepository<SCStaffProfile>(context), ISCStaffRepository
     {
     }
 }

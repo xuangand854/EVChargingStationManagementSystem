@@ -37,7 +37,7 @@ namespace BusinessLogic.Services
             if (result.Succeeded)
             {
                 var createdUser = await _unitOfWork.UserAccountRepository.GetByIdAsync(user.Id);
-                EVDriver eVDriver = new()
+                EVDriverProfile eVDriver = new()
                 {
                     Id = Guid.NewGuid(),
                     AccountId = createdUser.Id,
@@ -64,7 +64,8 @@ namespace BusinessLogic.Services
             // Encode token để truyền qua querystring
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            //var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            var confirmationLink = $"{_configuration["EmailSettings:ConfirmationURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Bước 4: Gửi mail cho user (bạn cần service gửi mail riêng)
             _emailSender.Send(user.Email,
@@ -96,16 +97,22 @@ namespace BusinessLogic.Services
 
             var userRoles = await _userManager.GetRolesAsync(user);
             foreach (var role in userRoles)
-            {
                 authClaims.Add(new Claim("role", role));
-            }
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var t_e = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                    c => !c.IsDeleted && c.Name == "LOGIN_TOKEN_TIMEOUT"
+                );
+
+            double tokenTimeoutHours = 1; // Default to 1 hour if not set
+            if (t_e != null && _unitOfWork.SystemConfigurationRepository.Validate(t_e))
+                tokenTimeoutHours = (double)(t_e.MinValue ?? 1);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddDays(30),
+                expires: DateTime.Now.AddHours(tokenTimeoutHours),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
@@ -153,7 +160,8 @@ namespace BusinessLogic.Services
             // Encode token để tránh lỗi ký tự đặc biệt trong URL
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            //var confirmationLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/confirmemail?userId={user.Id}&token={encodedToken}";
+            var confirmationLink = $"{_configuration["EmailSettings:ConfirmationURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Gửi mail xác nhận
             _emailSender.Send(
@@ -180,7 +188,8 @@ namespace BusinessLogic.Services
             // Mã hóa token để truyền qua URL
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var resetLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/resetpassword?userId={user.Id}&token={encodedToken}";
+            //var resetLink = $"{_configuration["Jwt:Issuer"]}/api/Auth/resetpassword?userId={user.Id}&token={encodedToken}";
+            var resetLink = $"{_configuration["EmailSettings:ResetPasswordURL"]}?userId={user.Id}&token={encodedToken}";
 
             // Gửi email cho người dùng
             _emailSender.Send(

@@ -22,8 +22,8 @@ namespace BusinessLogic.Services
                 var drivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
                     predicate: d => !d.IsDeleted,
                     include: q => q
-                        .Include(d => d.UserAccountNavigation)
-                        .Include(d => d.RankingNavigation)
+                        .Include(d => d.UserAccount)
+                        .Include(d => d.Ranking)
                         .Include(d => d.UserVehicles)
                         .ThenInclude(uv => uv.VehicleModel),
                     orderBy: q => q.OrderByDescending(d => d.CreatedAt),
@@ -50,8 +50,8 @@ namespace BusinessLogic.Services
                 var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
                     predicate: d => d.Id == driverId && !d.IsDeleted,
                     include: q => q
-                        .Include(d => d.UserAccountNavigation)
-                        .Include(d => d.RankingNavigation)
+                        .Include(d => d.UserAccount)
+                        .Include(d => d.Ranking)
                         .Include(d => d.UserVehicles)
                         .ThenInclude(uv => uv.VehicleModel),
                     asNoTracking: true
@@ -76,7 +76,7 @@ namespace BusinessLogic.Services
             {
                 var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
                     predicate: d => d.Id == dto.DriverId && !d.IsDeleted,
-                    include: q => q.Include(d => d.UserAccountNavigation),
+                    include: q => q.Include(d => d.UserAccount),
                     asNoTracking: false
                 );
 
@@ -86,10 +86,10 @@ namespace BusinessLogic.Services
                 dto.Adapt(driver);
                 driver.UpdatedAt = DateTime.UtcNow;
 
-                if (driver.UserAccountNavigation != null)
+                if (driver.UserAccount != null)
                 {
-                    dto.Adapt(driver.UserAccountNavigation);
-                    driver.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
+                    dto.Adapt(driver.UserAccount);
+                    driver.UserAccount.UpdatedAt = DateTime.UtcNow;
                 }
 
                 var result = await _unitOfWork.SaveChangesAsync();

@@ -2,7 +2,7 @@
 using Infrastructure.Models;
 namespace Infrastructure.IRepositories
 {
-    public interface ISCStaffRepository : IGenericRepository<SCStaff>
+    public interface ISCStaffRepository : IGenericRepository<SCStaffProfile>
     {
     }
 }

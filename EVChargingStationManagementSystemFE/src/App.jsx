@@ -37,6 +37,7 @@ import IOTChargingSystem from "./components/IOTChargingSystem/IOTChargingSystem.
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
 import ResetPassword from "./components/pages/ResetPassword";
+import SystemConfigEditor from "./components/pages/admin/SystemConfiguration";
 
 export default function App() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="stations" element={<AdminStations />} />
           <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />
+          <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>

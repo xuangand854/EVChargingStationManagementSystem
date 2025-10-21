@@ -62,11 +62,18 @@ const OrderChargingST = () => {
     chargingHint: "",
   });
   useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (!e.target.closest(".station-item")) {
-      setSelectedStation(null); // ẩn danh sách trụ
-    }
-  };
+    const handleClickOutside = (e) => {
+      // Nếu click không nằm trong station-item và cũng không nằm trong các popup
+      if (
+        !e.target.closest(".station-item") &&
+        !e.target.closest(".popup-content") &&
+        !e.target.closest(".leaflet-container") &&
+        !e.target.closest("button")
+      ) {
+        setSelectedStation(null);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside, true);
     return () => document.removeEventListener("mousedown", handleClickOutside, true);
   }, []);
@@ -144,7 +151,7 @@ const OrderChargingST = () => {
       const updatedPosts = await getAllChargingPost(stationId);
       setStationPosts((prev) => ({
         ...prev,
-        [stationId]: updatedPosts || [],
+        [stationId]: updatedPosts || [].sort((a, b) => a.id - b.id),
       }));
     } catch (err) {
       console.error("Lỗi reload posts:", err);
@@ -164,14 +171,16 @@ const OrderChargingST = () => {
       for (const st of stationsData) {
         try {
           const detailRes = await getChargingStationId(st.id);
-          postsByStation[st.id] = detailRes.chargingPosts || [];
+          postsByStation[st.id] = detailRes.chargingPosts || []
+          .sort((a, b) => a.id - b.id);
+          
         } catch (err) {
           postsByStation[st.id] = [];
           throw err;
         }
       }
 
-      setStations(stationsData);
+      setStations(stationsData.sort((a, b) => a.stationName.localeCompare(b.stationName)));
       setStationPosts(postsByStation);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách trạm:", error);
@@ -265,7 +274,7 @@ const OrderChargingST = () => {
               <h4>🏙️ {st.stationName}</h4>
               <p>📍 {st.location}, {st.province}</p>
 
-              {/* ✅ Chỉ hiện danh sách trụ khi trạm này được chọn */}
+              {/*  Chỉ hiện danh sách trụ khi trạm này được chọn */}
               {selectedStation?.id === st.id && (
                 <div className="station-posts">
                   {stationPosts[st.id]?.length > 0 ? (

@@ -132,7 +132,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
               <label>Tỉnh/Thành:<input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} required /></label>
               <label>Latitude:<input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} required /></label>
               <label>Longitude:<input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} required /></label>
-              <label>Operator ID:<input type="text" value={formData.operatorId} onChange={(e) => setFormData({ ...formData, operatorId: e.target.value })} required /></label>
+              <label>Operator ID:<input type="text" value={formData.operatorId} onChange={(e) => setFormData({ ...formData, operatorId: e.target.value })} /></label>
 
               <button type="submit">{editingStation ? "💾 Lưu cập nhật" : "➕ Thêm trạm"}</button>
             </form>

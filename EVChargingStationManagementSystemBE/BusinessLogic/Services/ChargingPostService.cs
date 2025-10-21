@@ -161,8 +161,8 @@ namespace BusinessLogic.Services
                 var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
                     predicate: v => !v.IsDeleted && v.Id == postId,
                     include: c => c
-                        .Include(p => p.Connectors)
-                        .OrderByDescending(c => c.CreatedAt)
+                        .Include(p => p.Connectors.Where(c => !c.IsDeleted).OrderByDescending(c => c.CreatedAt))
+                        
                     );
                 if (chargingPost == null)
                     return new ServiceResult(

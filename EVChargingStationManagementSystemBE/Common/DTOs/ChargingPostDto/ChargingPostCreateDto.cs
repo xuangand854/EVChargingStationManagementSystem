@@ -10,7 +10,7 @@ namespace Common.DTOs.ChargingPostDto
         [Required]
         public string ConnectorType { get; set; } = string.Empty;
         [Required]
-        public int MaxPowerKW { get; set; }
+        public int MaxPowerKw { get; set; }
         [Required]
         public VehicleTypeEnum VehicleTypeSupported { get; set; } = VehicleTypeEnum.Unknown;
         [Required]

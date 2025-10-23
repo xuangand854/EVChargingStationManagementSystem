@@ -64,6 +64,7 @@ namespace Infrastructure.Data
             builder.ApplyConfiguration(new SCStaffConfig());
             builder.ApplyConfiguration(new EVDriverConfig());
             builder.ApplyConfiguration(new UserAccountConfig());
+            builder.ApplyConfiguration(new PaymentConfig());
 
             // Seed data
             //builder.ApplyConfiguration(new RoleSeed());

@@ -44,6 +44,6 @@ namespace Infrastructure.Models
         public Guid? BookingId { get; set; } // Nullable if not booked
         public Booking Booking { get; set; }
 
-        public ICollection<Transaction> Transactions { get; set; } = [];
+        //public ICollection<Transaction> Transactions { get; set; } = [];
     }
 }

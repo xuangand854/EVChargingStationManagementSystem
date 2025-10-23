@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Models
 {
@@ -13,6 +8,8 @@ namespace Infrastructure.Models
     {
         [Key]
         public Guid Id { get; set; }
+        public string ReferenceCode { get; set; }
+
         [Precision(18, 2)]
         public decimal Amount { get; set; }
         public string TransactionType { get; set; } // e.g., Deposit, Withdrawal, Payment
@@ -25,18 +22,22 @@ namespace Infrastructure.Models
         public bool IsDeleted { get; set; } = false;
 
         [ForeignKey("UserAccount")]
-        public Guid PaidBy { get; set; }
+        public Guid? PaidBy { get; set; }
         [InverseProperty("TransactionsPaid")]
         public UserAccount PaidByNavigation { get; set; }
 
-        [ForeignKey("ChargingSession")]
-        public Guid? ChargingSessionId { get; set; } // Nullable if not linked to a charging session
-        public ChargingSession ChargingSessionNavigation { get; set; }
+        //[ForeignKey("ChargingSession")]
+        //public Guid? ChargingSessionId { get; set; } // Nullable if not linked to a charging session
+        //public ChargingSession ChargingSessionNavigation { get; set; }
 
         [ForeignKey("UserAccount")]
         [InverseProperty("TransactionsRecorded")]
         public Guid? RecordedBy { get; set; } // Ghi nhận từ nhân viên
         public UserAccount RecordedByNavigation { get; set; }
+
+        [ForeignKey("Payment")]
+        public Guid? PaymentId { get; set; }
+        public Payment Payment { get; set; }
 
     }
 }

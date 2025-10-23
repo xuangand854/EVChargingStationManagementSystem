@@ -29,9 +29,11 @@ builder.Services.AddScoped<IEVDriverService, EVDriverService>();
 builder.Services.AddScoped<IVehicleModelService, VehicleModelService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
 builder.Services.AddScoped<IChargingPostService, ChargingPostService>();
+builder.Services.AddScoped<IChargingSessionService, ChargingSessionService>();
 builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
 builder.Services.AddScoped<IConnectorService, ConnectorService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(options =>

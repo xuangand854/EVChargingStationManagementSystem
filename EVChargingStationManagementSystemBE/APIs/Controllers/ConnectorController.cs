@@ -2,7 +2,6 @@
 using Common;
 using Common.DTOs.ConnectorDto;
 using Common.Enum.Connector;
-using Infrastructure.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

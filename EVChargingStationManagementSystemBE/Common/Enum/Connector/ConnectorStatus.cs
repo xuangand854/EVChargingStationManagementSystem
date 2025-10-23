@@ -5,6 +5,7 @@
         OutOfService,
         Available,
         InUse,
+        Charging,
         Reserved,
         Faulted,
         Unknown

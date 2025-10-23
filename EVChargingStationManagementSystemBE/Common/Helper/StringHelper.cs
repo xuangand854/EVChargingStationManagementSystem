@@ -1,6 +1,6 @@
-﻿namespace Common.Helpler
+﻿namespace Common.Helper
 {
-    public static class StringHelpler
+    public static class StringHelper
     {
         public static bool HasValue(this string? str)
         {

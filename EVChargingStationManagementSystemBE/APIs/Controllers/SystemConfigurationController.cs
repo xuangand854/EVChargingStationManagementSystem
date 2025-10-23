@@ -1,7 +1,7 @@
 ﻿using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.SystemConfigurationDto;
-using Common.Helpler;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

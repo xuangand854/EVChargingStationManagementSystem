@@ -1,9 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Common.Helpler
+namespace Common.Helper
 {
-    public static class PaymentHelpler
+    public static class PaymentHelper
     {
         public static string CreateHmac512(string key, string data)
         {

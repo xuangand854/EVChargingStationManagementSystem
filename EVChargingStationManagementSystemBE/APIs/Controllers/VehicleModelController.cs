@@ -2,7 +2,7 @@
 using Common;
 using Common.DTOs.VehicleModelDto;
 using Common.Enum.VehicleModel;
-using Common.Helpler;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

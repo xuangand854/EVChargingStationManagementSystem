@@ -6,7 +6,7 @@ using Common.Enum.ChargingSession;
 using Common.Enum.Connector;
 using Common.Enum.Payment;
 using Common.Enum.Transaction;
-using Common.Helpler;
+using Common.Helper;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,7 @@ namespace BusinessLogic.Services
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
 
-                var txnRef = PaymentHelpler.GenerateTxnRef(sessionId);
+                var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
                 string encoded = HttpUtility.UrlEncode("GiaTienPhienSac");                
 
                 var vat = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
@@ -54,7 +54,7 @@ namespace BusinessLogic.Services
                 payment.UpdatedAt = DateTime.Now;
 
 
-                var vnpParameters = PaymentHelpler.CreateVnPayParameters(
+                var vnpParameters = PaymentHelper.CreateVnPayParameters(
                     _config["VnPay:TmnCode"],
                     (long)payment.Amount * 100,
                     txnRef,
@@ -63,7 +63,7 @@ namespace BusinessLogic.Services
                     "127.0.0.1",
                     "vn");
 
-                string url = PaymentHelpler.CreateVnPayUrl(_config["VnPay:PaymentUrl"], vnpParameters, _config["VnPay:HashSecret"]);
+                string url = PaymentHelper.CreateVnPayUrl(_config["VnPay:PaymentUrl"], vnpParameters, _config["VnPay:HashSecret"]);
 
                 await _unitOfWork.PaymentRepository.CreateAsync(payment);
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -90,7 +90,7 @@ namespace BusinessLogic.Services
                 queryParams.Remove("vnp_SecureHashType");
 
                 // Tạo hash để kiểm tra
-                string calculatedHash = PaymentHelpler.CreateHmac512(_config["VnPay:HashSecret"], PaymentHelpler.CreateDataString(queryParams));
+                string calculatedHash = PaymentHelper.CreateHmac512(_config["VnPay:HashSecret"], PaymentHelper.CreateDataString(queryParams));
 
                 if (!receivedHash.Equals(calculatedHash, StringComparison.InvariantCultureIgnoreCase))
                     return JsonResponse("97", "Invalid signature");
@@ -151,7 +151,7 @@ namespace BusinessLogic.Services
                     };
                     if (payment.PaidBy != null || payment.PaidBy != Guid.Empty)
                         transaction.PaidBy = payment.PaidBy;
-                    transaction.ReferenceCode = PaymentHelpler.GenerateReferenceCode(transaction.TransactionType);
+                    transaction.ReferenceCode = PaymentHelper.GenerateReferenceCode(transaction.TransactionType);
 
                     chargingSession.Status = ChargingSessionStatus.Paid.ToString();
                     chargingSession.UpdatedAt = DateTime.Now;
@@ -190,7 +190,7 @@ namespace BusinessLogic.Services
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
 
-                var txnRef = PaymentHelpler.GenerateTxnRef(sessionId);
+                var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
 
                 var vat = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
                     c => !c.IsDeleted && c.Name == "VAT"
@@ -284,7 +284,7 @@ namespace BusinessLogic.Services
                 };
                 if (payment.PaidBy != null || payment.PaidBy != Guid.Empty)
                     transaction.PaidBy = payment.PaidBy;
-                transaction.ReferenceCode = PaymentHelpler.GenerateReferenceCode(transaction.TransactionType);
+                transaction.ReferenceCode = PaymentHelper.GenerateReferenceCode(transaction.TransactionType);
 
                 chargingSession.Status = ChargingSessionStatus.Paid.ToString();
                 chargingSession.UpdatedAt = DateTime.Now;

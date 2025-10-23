@@ -2,6 +2,7 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ConnectorDto;
+using Common.Enum.ChargingPost;
 using Common.Enum.Connector;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
@@ -220,10 +221,27 @@ namespace BusinessLogic.Services
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
-                // True: súng được cắm vào, false: súng được rút ra
+                if (connector.Status.Equals(ConnectorStatus.Charging.ToString()))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại đang được sạc, không thể thay đổi trạng thái");
+
+                if (connector.IsLocked)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại không rút ra được, bạn phải thanh toán để mở khóa");
+
+                if (!connector.Status.Equals(ConnectorStatus.Available.ToString()) 
+                    && !connector.Status.Equals(ConnectorStatus.InUse.ToString()) 
+                    && !connector.Status.Equals(ConnectorStatus.Reserved.ToString()))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại đang được bảo trì hoặc bị hỏng hoặc không khả dụng hiện tại, vui lòng dùng cổng khác");
+
+                if (connector.Status.Equals(ConnectorStatus.InUse.ToString()) && !toggle)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được rút ra, không thể rút ra thêm nữa");
+
+                if (connector.Status.Equals(ConnectorStatus.Available.ToString()) && toggle)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được cắm vào, không thể cắm vào thêm nữa");
+
+                // True: súng được cắm vào trụ, false: súng được rút ra khỏi trụ
                 if (toggle)
                 {
-                    connector.Status = "Available";
+                    connector.Status = ConnectorStatus.Available.ToString();
                     chargingPost.AvailableConnectors += 1;
                     if (chargingPost.VehicleTypeSupported.Equals("Car"))
                         chargingStation.AvailableCarConnectors += 1;
@@ -232,23 +250,17 @@ namespace BusinessLogic.Services
                 }
                 else
                 {
-                    connector.Status = "InUse";
+                    connector.Status = ConnectorStatus.InUse.ToString();
                     chargingPost.AvailableConnectors -= 1;
                     if (chargingPost.VehicleTypeSupported.Equals("Car"))
                         chargingStation.AvailableCarConnectors -= 1;
                     else
                         chargingStation.AvailableBikeConnectors -= 1;
-                }
-
-                if (connector.Status.Equals("InUse") && !toggle)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được rút ra, không thể rút ra thêm nữa");
-
-                if (connector.Status.Equals("Available") && toggle)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được cắm vào, không thể cắm vào thêm nữa");
+                }                
 
                 if (chargingPost.AvailableConnectors == 0)
-                    chargingPost.Status = "Busy";
-                else chargingPost.Status = "Available";
+                    chargingPost.Status = ChargingPostStatus.Busy.ToString();
+                else chargingPost.Status = ChargingPostStatus.Available.ToString();
                 chargingPost.UpdatedAt = DateTime.Now;
                 connector.UpdatedAt = DateTime.Now;
 

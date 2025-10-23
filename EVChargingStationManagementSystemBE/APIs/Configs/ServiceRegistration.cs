@@ -1,6 +1,7 @@
 ﻿using Common.DTOs.AuthDto;
 using Common.DTOs.BookingDto;
 using Common.DTOs.ChargingPostDto;
+using Common.DTOs.ChargingSessionDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ConnectorDto;
 using Common.DTOs.ProfileEVDriverDto;
@@ -134,6 +135,12 @@ namespace APIs.Configs
               .IgnoreNullValues(true);
 
 
+            TypeAdapterConfig<ChargingSession, ChargingSessionViewDetailDto>.NewConfig()
+                .Map(dest => dest.TotalEnergyConsumedKWh, src => src.EnergyDeliveredKWh)
+                .IgnoreNullValues(true);
+
+            TypeAdapterConfig<ChargingSessionStopDto, ChargingSession>.NewConfig()
+                .IgnoreNullValues(true);
 
             TypeAdapterConfig<SystemConfigurationUpdateDto, SystemConfiguration>.NewConfig()
                 .IgnoreNullValues(true);

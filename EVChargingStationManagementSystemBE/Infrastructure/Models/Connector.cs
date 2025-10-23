@@ -14,6 +14,8 @@ namespace Infrastructure.Models
         //public string PlugType { get; set; } = null!;
         //public string Voltage { get; set; } = null!;
         //public string CurrentType { get; set; } = null!;
+        public bool IsPluggedIn { get; set; } = false; // true: đang gắn vào xe
+        public bool IsLocked { get; set; } = false; // true: chốt cơ đang khóa
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

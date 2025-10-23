@@ -10,9 +10,16 @@ namespace Infrastructure.Models
         public Guid Id { get; set; }
         [Precision(18, 2)]
         public decimal Amount { get; set; }
-        public string PaymentMethod { get; set; } // e.g., Credit Card, PayPal, etc.
+
+        [Precision(18, 2)]
+        public decimal TaxRate { get; set; }
+
+        [Precision(18, 2)]
+        public decimal BeforeVatAmount { get; set; }
+        public string? PaymentMethod { get; set; } // e.g., Credit Card, PayPal, etc.
         public string Status { get; set; } = "Initiated"; // initiated, success, failed, refunded…
-        public string BankCode { get; set; } // e.g., "VCB", "TCB"
+        public string? BankCode { get; set; } // e.g., "VCB", "TCB"
+        public string TxnRef { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
@@ -22,11 +29,11 @@ namespace Infrastructure.Models
         public ChargingSession ChargingSessionNavigation { get; set; }
 
         [ForeignKey("UserAccount")]
-        public Guid PaidBy { get; set; }
+        public Guid? PaidBy { get; set; }
         public UserAccount PaidByNavigation { get; set; }
 
-        [ForeignKey("Transaction")]
-        public Guid TransactionId { get; set; }
-        public Transaction TransactionNavigation { get; set; }
+        //[ForeignKey("Transaction")]
+        //public Guid TransactionId { get; set; }
+        //public Transaction TransactionNavigation { get; set; }
     }
 }

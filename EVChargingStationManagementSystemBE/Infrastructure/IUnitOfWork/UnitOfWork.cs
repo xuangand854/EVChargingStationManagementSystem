@@ -20,6 +20,7 @@ namespace Infrastructure.IUnitOfWork
         private ISystemConfigurationRepository? systemConfigurationRepository;
         private IConnectorRepository? connectorRepository;
         private IBookingRepository? bookingRepository;
+        private ITransactionRepository transactionRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -127,5 +128,13 @@ namespace Infrastructure.IUnitOfWork
                 return bookingRepository ??= new BookingRepository(context);
             }
         }
+
+        public ITransactionRepository TransactionRepository
+        {
+            get
+            {
+                return transactionRepository ??= new TransactionRepository(context);
+            }
         }
+    }
 }

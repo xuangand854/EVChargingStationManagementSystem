@@ -38,6 +38,7 @@ public class UserAccount : IdentityUser<Guid>
     //public ICollection<UserVehicle> UserVehicles { get; set; } = [];
     public ICollection<ChargingStation> ChargingStations { get; set; } = [];
     public ICollection<ChargingSession> ChargingSessions { get; set; } = [];
+    public ICollection<Payment> Payments { get; set; } = [];
 
     [InverseProperty("PaidByNavigation")]
     public ICollection<Transaction> TransactionsPaid { get; set; } = [];

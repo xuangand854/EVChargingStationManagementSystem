@@ -1,5 +1,5 @@
 import api from "./axios";
-import { getChargingPostId } from "./ChargingPost";
+
 const BASE_URL = "/Connector";
 
 export const GetConnector = async () => {

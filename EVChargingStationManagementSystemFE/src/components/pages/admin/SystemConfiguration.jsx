@@ -118,7 +118,7 @@ export default function SystemConfigEditor() {
                             {/* Right: editable fields + save */}
                             <div>
                                 <div style={{ display: "grid", gap: 8 }}>
-                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>minValue</label>
+                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>Giá trị</label>
                                     <input
                                         className="form-input"
                                         type="number"
@@ -126,13 +126,13 @@ export default function SystemConfigEditor() {
                                         onChange={(e) => handleChange(it.id, "minValue", e.target.value)}
                                     />
 
-                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>maxValue</label>
+                                    {/* <label style={{ fontSize: 13, color: "var(--muted)" }}>maxValue</label>
                                     <input
                                         className="form-input"
                                         type="number"
                                         value={it.maxValue ?? ""}
                                         onChange={(e) => handleChange(it.id, "maxValue", e.target.value)}
-                                    />
+                                    /> */}
 
                                     <label style={{ fontSize: 13, color: "var(--muted)" }}>effectedDateFrom</label>
                                     <input

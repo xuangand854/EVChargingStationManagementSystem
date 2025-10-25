@@ -91,3 +91,18 @@ export const VehicleStatus = async (vehicleModelId) => {
         throw error;
     }
 }
+
+export const UpdateVehicleModelStatus = async (vehicleModelId, status) => {
+    try {
+        const response = await api.patch(`${BASE_URL}/status`, null, {
+            params: {
+                vehicleModelId: vehicleModelId,
+                status: status
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Lỗi khi cập nhật trạng thái vehicleModel ${vehicleModelId}:`, error);
+        throw error;
+    }
+}

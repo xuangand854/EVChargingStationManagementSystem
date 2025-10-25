@@ -26,10 +26,10 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
 
   const filteredStations = term
     ? stations.filter((st) =>
-        normalize(st.stationName).includes(normalize(term)) ||
-        normalize(st.location).includes(normalize(term)) ||
-        normalize(st.province).includes(normalize(term))
-      )
+      normalize(st.stationName).includes(normalize(term)) ||
+      normalize(st.location).includes(normalize(term)) ||
+      normalize(st.province).includes(normalize(term))
+    )
     : stations; // show all if empty
 
   const handleSelect = (st) => {
@@ -132,7 +132,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
 
         <div className="popup-buttons">
           <button className="add-btn" onClick={handleAddBooking}>
-             Xác nhận
+            Xác nhận
           </button>
           <button className="cancel-btn" onClick={onClose}>
             Hủy

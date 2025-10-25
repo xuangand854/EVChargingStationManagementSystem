@@ -7,7 +7,8 @@ import {
     DeleteVehicleModel,
     PostVehicleModel,
     UpdateVehicleModel,
-    VehicleStatus
+    VehicleStatus,
+    UpdateVehicleModelStatus
 } from "../../../API/VehicleModel";
 import "./AdminVehicles.css";
 
@@ -18,24 +19,43 @@ const AdminVehicles = () => {
     const [editingModel, setEditingModel] = useState(null);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [deletingId, setDeletingId] = useState(null);
+    const [updatingStatusId, setUpdatingStatusId] = useState(null);
     const [form] = Form.useForm();
 
     const fetchModels = async () => {
         setLoading(true);
         try {
             const res = await GetVehicleModel();
+            console.log("Vehicle models response:", res);
+            
             const data = Array.isArray(res) ? res : (res?.data ?? res?.data?.data ?? []);
-            // Lấy thêm status của từng xe
+            console.log("Processed data:", data);
+            
+            // Kiểm tra xem data có chứa status không, nếu không thì lấy từ API riêng
             const modelsWithStatus = await Promise.all(
                 data.map(async (m) => {
                     try {
+                        // Nếu đã có status trong data thì dùng luôn
+                        if (m.status !== undefined && m.status !== null) {
+                            return { ...m, status: m.status };
+                        }
+                        
+                        // Nếu chưa có status thì gọi API để lấy
                         const statusRes = await VehicleStatus(m.vehicleModelId ?? m.id);
-                        return { ...m, status: statusRes?.status ?? 2 }; // mặc định Inactive
-                    } catch {
-                        return { ...m, status: 2 };
+                        console.log(`Status for ${m.vehicleModelId ?? m.id}:`, statusRes);
+                        return { 
+                            ...m, 
+                            status: statusRes?.status ?? statusRes?.data?.status ?? 2 // mặc định Inactive
+                        };
+                    } catch (statusError) {
+                        console.warn(`Could not fetch status for ${m.vehicleModelId ?? m.id}:`, statusError);
+                        return { ...m, status: 2 }; // mặc định Inactive
                     }
                 })
             );
+            
+            console.log("Models with status:", modelsWithStatus);
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
         } catch (error) {
@@ -80,7 +100,7 @@ const AdminVehicles = () => {
                 const vehicleTypeValue = values.vehicleType === "Car" ? 1 : values.vehicleType === "Bike" ? 0 : Number(values.vehicleType);
                 
                 // Chuyển đổi status từ string sang number
-                const statusValue = values.status === "Active" ? 1 : values.status === "Inactive" ? 2 : values.status === "Discontinued" ? 3 : Number(values.status);
+                const statusValue = values.status === "Active" ? 1 : values.status === "Discontinued" ? 2 : values.status === "Unknown" ? 3 : Number(values.status);
 
                 await UpdateVehicleModel(id, {
                     modelName: values.modelName,
@@ -95,7 +115,7 @@ const AdminVehicles = () => {
             } else {
                 // Chuyển đổi vehicleType cho tạo mới
                 const vehicleTypeValue = values.vehicleType === "Car" ? 1 : values.vehicleType === "Bike" ? 0 : Number(values.vehicleType);
-                const statusValue = values.status === "Active" ? 1 : values.status === "Inactive" ? 2 : values.status === "Discontinued" ? 3 : 2;
+                const statusValue = values.status === "Active" ? 1 : values.status === "Discontinued" ? 2 : values.status === "Unknown" ? 3 : 2;
 
                 await PostVehicleModel(
                     values.modelName,
@@ -120,48 +140,152 @@ const AdminVehicles = () => {
     };
 
     const handleDelete = async (id) => {
+        setDeletingId(id);
         try {
-            // Gọi API để lấy thông tin xe trước khi xóa
-            const vehicle = await GetVehicleModelById(id);
-
-            if (!vehicle) {
-                message.error("Không tìm thấy xe để xóa!");
-                return;
-            }
-
-            await DeleteVehicleModel(id);
+            console.log(`Attempting to delete vehicle with ID: ${id}`);
+            const response = await DeleteVehicleModel(id);
+            console.log("Delete response:", response);
+            
+            // Kiểm tra response để xác nhận xóa thành công
+            // API trả về 200 OK khi xóa thành công
             message.success("Xóa mẫu xe thành công!");
             fetchModels();
         } catch (error) {
             console.error("Lỗi khi xóa mẫu xe:", error);
-            message.error("Có lỗi xảy ra khi xóa mẫu xe!");
+            console.error("Error details:", {
+                message: error.message,
+                status: error.response?.status,
+                data: error.response?.data
+            });
+            
+            // Xử lý các loại lỗi khác nhau
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
+                
+                switch (status) {
+                    case 404:
+                        message.error("Không tìm thấy mẫu xe để xóa!");
+                        break;
+                    case 400:
+                        message.error("Dữ liệu không hợp lệ!");
+                        break;
+                    case 500:
+                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        break;
+                    default:
+                        message.error(`Lỗi ${status}: ${errorMessage}`);
+                }
+            } else if (error.request) {
+                message.error("Không thể kết nối đến máy chủ!");
+            } else {
+                message.error("Có lỗi xảy ra khi xóa mẫu xe!");
+            }
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleUpdateStatus = async (id, newStatus) => {
+        setUpdatingStatusId(id);
+        try {
+            const response = await UpdateVehicleModelStatus(id, newStatus);
+            console.log("Update status response:", response);
+            
+            message.success("Cập nhật trạng thái thành công!");
+            fetchModels();
+        } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái:", error);
+            
+            // Xử lý các loại lỗi khác nhau
+            if (error.response) {
+                const status = error.response.status;
+                const errorMessage = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
+                
+                switch (status) {
+                    case 404:
+                        message.error("Không tìm thấy mẫu xe để cập nhật!");
+                        break;
+                    case 400:
+                        message.error("Dữ liệu không hợp lệ!");
+                        break;
+                    case 500:
+                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        break;
+                    default:
+                        message.error(`Lỗi ${status}: ${errorMessage}`);
+                }
+            } else if (error.request) {
+                message.error("Không thể kết nối đến máy chủ!");
+            } else {
+                message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
+            }
+        } finally {
+            setUpdatingStatusId(null);
         }
     };
 
     const getStatusLabel = (status) => {
-        // Xử lý cả string và number
-        if (typeof status === 'string') {
-            return status;
+        // Xử lý null/undefined
+        if (status === null || status === undefined) {
+            return "Unknown";
         }
-        switch (Number(status)) {
+        
+        // Xử lý string
+        if (typeof status === 'string') {
+            const lowerStatus = status.toLowerCase();
+            switch (lowerStatus) {
+                case "active":
+                case "1":
+                    return "Active";
+                case "discontinued":
+                case "2":
+                    return "discontinued";
+                case "unknown":
+                case "3":
+                    return "unknown";
+                default:
+                    return status; // Trả về nguyên gốc nếu không match
+            }
+        }
+        
+        // Xử lý number
+        const numStatus = Number(status);
+        switch (numStatus) {
             case 1: return "Active";
-            case 2: return "Inactive";
-            case 3: return "Discontinued";
-            default: return "Unknown";
+            case 2: return "Discontinued";
+            case 3: return "Unknown";
+            default: return `Status ${numStatus}`;
         }
     };
 
     const getStatusColor = (status) => {
-        // Xử lý cả string và number
+        // Xử lý null/undefined
+        if (status === null || status === undefined) {
+            return "geekblue";
+        }
+        
+        // Xử lý string
         if (typeof status === 'string') {
-            switch (status) {
-                case "Active": return "green";
-                case "Inactive": return "volcano";
-                case "Discontinued": return "gray";
-                default: return "geekblue";
+            const lowerStatus = status.toLowerCase();
+            switch (lowerStatus) {
+                case "active":
+                case "1":
+                    return "green";
+                case "inactive":
+                case "2":
+                    return "volcano";
+                case "discontinued":
+                case "3":
+                    return "gray";
+                default:
+                    return "geekblue";
             }
         }
-        switch (Number(status)) {
+        
+        // Xử lý number
+        const numStatus = Number(status);
+        switch (numStatus) {
             case 1: return "green";
             case 2: return "volcano";
             case 3: return "gray";
@@ -199,7 +323,31 @@ const AdminVehicles = () => {
             title: "Tình trạng",
             dataIndex: "status",
             key: "status",
-            render: (status) => <Tag color={getStatusColor(status)}>{getStatusLabel(status)}</Tag>
+            render: (status, record) => {
+                const id = record.vehicleModelId ?? record.id;
+                const isUpdating = updatingStatusId === id;
+                
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Tag color={getStatusColor(status)} style={{ margin: 0 }}>
+                            {getStatusLabel(status)}
+                        </Tag>
+                        <Select
+                            value={status}
+                            onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
+                            loading={isUpdating}
+                            disabled={isUpdating}
+                            style={{ minWidth: 100 }}
+                            size="small"
+                            placeholder="Thay đổi"
+                        >
+                            <Select.Option value={1}>Active</Select.Option>
+                            <Select.Option value={2}>Discontinued</Select.Option>
+                            <Select.Option value={3}>Unknown</Select.Option>
+                        </Select>
+                    </div>
+                );
+            }
         },
         {
             title: "Hình ảnh",
@@ -253,10 +401,17 @@ const AdminVehicles = () => {
                                 danger
                                 size="small"
                                 icon={<DeleteOutlined />}
+                                loading={deletingId === id}
+                                disabled={deletingId === id}
                                 onClick={() => {
-                                    if (window.confirm("Bạn có chắc chắn muốn xóa mẫu xe này?")) {
-                                        handleDelete(id);
-                                    }
+                                    Modal.confirm({
+                                        title: 'Xác nhận xóa mẫu xe',
+                                        content: `Bạn có chắc chắn muốn xóa mẫu xe "${record.modelName}"? Hành động này không thể hoàn tác.`,
+                                        okText: 'Xóa',
+                                        okType: 'danger',
+                                        cancelText: 'Hủy',
+                                        onOk: () => handleDelete(id),
+                                    });
                                 }}
                             />
                         </Tooltip>
@@ -345,8 +500,8 @@ const AdminVehicles = () => {
                     <Form.Item name="status" label="Tình trạng xe" rules={[{ required: true }]}>
                         <Select>
                             <Select.Option value="Active">Active</Select.Option>
-                            <Select.Option value="Inactive">Inactive</Select.Option>
                             <Select.Option value="Discontinued">Discontinued</Select.Option>
+                            <Select.Option value="Unknown">Unknown</Select.Option>
                         </Select>
                     </Form.Item>
 

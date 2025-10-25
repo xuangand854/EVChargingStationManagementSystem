@@ -25,7 +25,7 @@ namespace APIs.Controllers
             var result = await _service.CreatePaymentURL(sessionId);
 
             if (result.Status == Const.SUCCESS_CREATE_CODE)
-                return Ok(new { data = result.Data , message = result.Message });
+                return Ok(new { data = result.Data, message = result.Message });
 
             //if (result.Status == Const.SUCCESS_CREATE_CODE && result.Data is string url)
             //    return Redirect(url);

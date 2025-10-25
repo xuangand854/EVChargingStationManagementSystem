@@ -6,15 +6,12 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { getAuthStatus } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
-import ChargingPost from "../ordercharging/ChargingPost";
 import "react-toastify/dist/ReactToastify.css";
 import AdminStationPanel from "./AdminStationPannel";
-
+import ChargingPost from "../ordercharging/ChargingPost"; 
+import BookingPopup from "../ordercharging/Booking"; 
 import { getAllChargingPost } from "../../API/ChargingPost";
-import {
-  getChargingStation,
-  getChargingStationId,
-} from "../../API/Station";
+import { getChargingStation, getChargingStationId } from "../../API/Station";
 
 // MAP
 
@@ -42,7 +39,7 @@ const FlyToStation = ({ station }) => {
 
 const OrderChargingST = () => {
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");//lọc
+  const [searchTerm, setSearchTerm] = useState(""); //lọc
   const [selectedStation, setSelectedStation] = useState(null);
   const [stations, setStations] = useState([]);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
@@ -52,15 +49,9 @@ const OrderChargingST = () => {
   const [stationPosts, setStationPosts] = useState({});
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    carModel: "",
-    vehicleType: "",
-    chargingPower: "",
-    chargingHint: "",
-  });
+  // Note: Bỏ auto-fill, chỉ giữ formData trống khi cần
+
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       // Nếu click không nằm trong station-item và cũng không nằm trong các popup
@@ -78,9 +69,7 @@ const OrderChargingST = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside, true);
   }, []);
 
- 
-
-  // Kiểm tra đăng nhập
+  // Kiểm tra đăng nhập (chỉ lưu user, không auto-fill formData)
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -93,13 +82,6 @@ const OrderChargingST = () => {
             carModel: authStatus.user.car || "",
           };
           setUser(userData);
-          setFormData((prev) => ({
-            ...prev,
-            fullName: userData.fullName,
-            phone: userData.phone,
-            email: userData.email,
-            carModel: userData.carModel,
-          }));
         } else setUser(null);
       } catch (err) {
         console.error("Lỗi khi lấy thông tin user:", err);
@@ -109,33 +91,11 @@ const OrderChargingST = () => {
     fetchUser();
   }, []);
 
-  // Auto-fill xe khi mở popup
-  useEffect(() => {
-    if (showBookingPopup) {
-      const savedVehicleId = localStorage.getItem("selectedVehicleId");
-      const allVehicles = JSON.parse(localStorage.getItem("vehicleList") || "[]");
-      if (savedVehicleId && allVehicles.length > 0) {
-        const chosen = allVehicles.find(
-          (v) => v.id === savedVehicleId || v.id === parseInt(savedVehicleId)
-        );
-        if (chosen) {
-          setFormData((prev) => ({
-            ...prev,
-            carModel: chosen.modelName || chosen.modelname || "",
-            vehicleType: chosen.vehicleType === 1 ? "Xe Hơi" : "Xe Máy",
-          }));
-        }
-      }
-    }
-  }, [showBookingPopup]);
-
   // Hàm chọn trạm và load trụ
   const handleSelectStation = async (station) => {
     try {
       const stationDetail = await getChargingStationId(station.id);
-
       setSelectedStation(stationDetail);
-
       setStationPosts((prev) => ({
         ...prev,
         [station.id]: stationDetail.chargingPosts || [],
@@ -172,11 +132,10 @@ const OrderChargingST = () => {
         try {
           const detailRes = await getChargingStationId(st.id);
           postsByStation[st.id] = detailRes.chargingPosts || []
-          .sort((a, b) => a.id - b.id);
-          
+            .sort((a, b) => a.id - b.id);
         } catch (err) {
           postsByStation[st.id] = [];
-          throw err;
+          throw err
         }
       }
 
@@ -194,22 +153,6 @@ const OrderChargingST = () => {
     fetchStations();
   }, []);
 
-  // Xử lý đặt lịch
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!user) {
-      toast.warn("⚠️ Bạn phải đăng nhập để đặt lịch!");
-      return;
-    }
-    const bookingData = {
-      ...formData,
-      station: selectedStation?.stationName,
-      date: new Date().toLocaleString(),
-    };
-    localStorage.setItem("lastBooking", JSON.stringify(bookingData));
-    toast.success("✅ Đặt lịch thành công! Đã lưu thông tin.");
-    setShowBookingPopup(false);
-  };
   const filteredStations = stations.filter((st) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -218,7 +161,6 @@ const OrderChargingST = () => {
       st.province.toLowerCase().includes(term)
     );
   });
-
 
   if (!user)
     return (
@@ -239,15 +181,15 @@ const OrderChargingST = () => {
       <div className="left-panel">
         <h2>Trạng thái các trạm sạc</h2>
         {/* 🔍 Thanh tìm kiếm trạm */}
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="🔍 Tìm theo tên, địa chỉ hoặc tỉnh..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            <button
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="🔍 Tìm theo tên, địa chỉ hoặc tỉnh..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <button
             className="btn-admin"
             onClick={() => {
               if (selectedStation?.latitude && selectedStation?.longitude) {
@@ -261,8 +203,8 @@ const OrderChargingST = () => {
             }}
           >
             Google Map
-          </button>  
-          </div>
+          </button>
+        </div>
 
         <div className="station-list">
           {filteredStations.map((st) => (
@@ -283,10 +225,12 @@ const OrderChargingST = () => {
                         <h5>Trụ {index + 1}</h5>
                         <p><b>Tên trụ:</b> {post.postName}</p>
                         <p><b>Cổng sạc:</b> {post.connectorType}</p>
+                        <p><b>Loại xe hổ trợ</b> {post.vehicleTypeSupported}</p>
+                        <p><b>Số Cổng Sạc</b> {post.totalConnectors}</p>
                         <p>
                           <b>Trạng thái:</b>{" "}
                           {post.status === "InActive" && <span className="inactive">🟥 Inactive</span>}
-                          {post.status === "Active" && <span className="active">🟩 Active</span>}
+                          {post.status === "Available" && <span className="active">🟩 Active</span>}
                           {post.status === "Busy" && <span className="busy">🟨 Busy</span>}
                           {post.status === "Maintained" && <span className="maintained">🟧 Maintained</span>}
                         </p>
@@ -301,29 +245,11 @@ const OrderChargingST = () => {
           ))}
         </div>
 
-
         <div className="action-buttons">
           <button className="btn-book" onClick={() => setShowBookingPopup(true)}> Đặt lịch sạc</button>
           <button className="btn-admin" onClick={() => setShowAdminPopup(true)}> Admin Panel</button>
           <button className="btn-admin" onClick={() => setShowPostPopup(true)}> Quản lý trụ sạc </button>
-          {/* <button
-            className="btn-admin"
-            onClick={() => {
-              if (selectedStation?.latitude && selectedStation?.longitude) {
-                window.open(
-                  `https://www.google.com/maps?q=${selectedStation.latitude},${selectedStation.longitude}`,
-                  "_blank"
-                );
-              } else {
-                toast.warn("⚠️ Vui lòng chọn trạm trước khi mở Google Map!");
-              }
-            }}
-          >
-            Google Map
-          </button>         */}
         </div>
-
-        
       </div>
 
       {/* Cột phải: bản đồ */}
@@ -331,7 +257,7 @@ const OrderChargingST = () => {
         <MapContainer
           center={[10.7769, 106.7009]}
           zoom={13}
-          style={{ height: "600px", width: "100%", borderRadius: "10px" }}
+          style={{ height: "100%", width: "100%", borderRadius: "10px" }}
         >
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
@@ -348,13 +274,44 @@ const OrderChargingST = () => {
                 icon={markerIcon}
                 eventHandlers={{ click: () => handleSelectStation(station) }}
               >
-                <Popup>
+                <Popup closeButton={true} closeOnClick={false} className="leaflet-popup-station">
                   <div className="popup-station">
-                    <b>{station.stationName}</b>
-                    <p>📍 {station.location}, {station.province}</p>
-                    <p>Slots: {station.slots}</p>
+                    {/* Ảnh trạm */}
+                    <img
+                      src={station.imageUrl || "/img/default-station.jpg"}
+                      alt={station.stationName}
+                      className="popup-image"
+                    />
+
+                    {/* Thông tin trạm */}
+                    <div className="station-info">
+                      <h3>{station.stationName}</h3>
+                      <p className="station-address">{station.location}, {station.province}</p>
+                      <p>Slots: {station.slots}</p>
+                    </div>
+
+                    {/* Danh sách trụ sạc */}
+                    <div className="charging-posts">
+                      {stationPosts[station.id]?.length > 0 ? (
+                        stationPosts[station.id].map((post, index) => (
+                          <div key={post.id} className={`charging-post-card status-${post.status}`}>
+                            <div className="post-header">
+                              <span className="post-name">Trụ {index + 1}: {post.postName}</span>
+                              <span className="post-type">{post.connectorType} | {post.vehicleTypeSupported}</span>
+                            </div>
+                            <div className="post-status">
+                              <span className={post.status.toLowerCase()}>{post.status}</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p>Chưa có trụ sạc</p>
+                      )}
+                    </div>
+
+                    {/* Nút đặt lịch */}
                     <button className="btn-popup-book" onClick={() => setShowBookingPopup(true)}>
-                       Đặt lịch sạc
+                      Đặt lịch sạc
                     </button>
                   </div>
                 </Popup>
@@ -379,25 +336,14 @@ const OrderChargingST = () => {
         </div>
       )}
 
-      {/* Popup đặt lịch */}
+      {/* BookingPopup mới */}
       {showBookingPopup && (
-        <div className="popup-overlay">
-          <div className="popup-content">
-            <h3>Đặt lịch sạc</h3>
-            <form className="booking-form" onSubmit={handleSubmit}>
-              <label>Họ và tên:<input type="text" value={formData.fullName} onChange={(e)=>setFormData({ ...formData, fullName: e.target.value })}/></label>
-              <label>Số điện thoại:<input type="text" value={formData.phone} onChange={(e)=>setFormData({ ...formData, phone: e.target.value })}/></label>
-              <label>Email:<input type="email" value={formData.email} onChange={(e)=>setFormData({ ...formData, email: e.target.value })}/></label>
-              <label>Xe:<input type="text" value={formData.carModel} onChange={(e)=>setFormData({ ...formData, carModel: e.target.value })}/></label>
-              <label>Loại xe:<input type="text" value={formData.vehicleType} onChange={(e)=>setFormData({ ...formData, vehicleType: e.target.value })}/></label>
-              <label>Công suất sạc (kW):<input type="number" value={formData.chargingPower} onChange={(e)=>setFormData({ ...formData, chargingPower: e.target.value })}/></label>
-              <div className="booking-buttons">
-                <button type="submit">Xác nhận đặt</button>
-                <button type="button" onClick={()=>setShowBookingPopup(false)}>Hủy</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <BookingPopup
+          stations={stations}
+          stationId={selectedStation?.id}
+          onClose={() => setShowBookingPopup(false)}
+          onAdded={fetchStations} // reload danh sách booking/trạm sau khi thêm
+        />
       )}
 
       {/* Popup AdminPanel */}
@@ -407,7 +353,7 @@ const OrderChargingST = () => {
             <AdminStationPanel
               onClose={() => setShowAdminPopup(false)}
               onUpdated={fetchStations}
-              onReloadAdminPannel={()=>handleSelectStation(selectedStation?.id)}
+              onReloadAdminPannel={() => handleSelectStation(selectedStation?.id)}
             />
           </div>
         </div>

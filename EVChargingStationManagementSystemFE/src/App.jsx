@@ -33,6 +33,7 @@ import ReportPage from "./components/profile/ReportPage";
 import RatingPage from "./components/profile/RatingPage";
 import AdminStationPanel from "./components/ordercharging/AdminStationPannel";
 import IOTChargingSystem from "./components/IOTChargingSystem/IOTChargingSystem.jsx"
+import Booking from "./components/ordercharging/Booking.jsx";
 
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="order-charging" element={<OrderChargingST />} />
           <Route path="charging-post" element={<ChargingPost />} />
           <Route path="admin-pannel" element={<AdminStationPanel />} />
+          <Route path="" element={<Booking/>} />
           {/* // */}
           {/* IOTChargingSystem */}
           <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />

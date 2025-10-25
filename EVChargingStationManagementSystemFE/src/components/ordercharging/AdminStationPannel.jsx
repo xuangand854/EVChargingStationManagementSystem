@@ -21,7 +21,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     province: "",
     latitude: "",
     longitude: "",
-    operatorId: "",
+    // operatorId: "",
   });
 
   const loadStations = async () => {
@@ -61,7 +61,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
         province: "",
         latitude: "",
         longitude: "",
-        operatorId: "",
+        // operatorId: "",
       });
       loadStations();
       onUpdated?.();
@@ -94,7 +94,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
       province: st.province,
       latitude: st.latitude,
       longitude: st.longitude,
-      operatorId: st.operatorId,
+      // operatorId: st.operatorId,
     });
     setSelectedAction("update");
   };
@@ -132,9 +132,9 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
               <label>Tỉnh/Thành:<input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} required /></label>
               <label>Latitude:<input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} required /></label>
               <label>Longitude:<input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} required /></label>
-              <label>Operator ID:<input type="text" value={formData.operatorId} onChange={(e) => setFormData({ ...formData, operatorId: e.target.value })} /></label>
+              {/* <label>Operator ID:<input type="text" value={formData.operatorId} onChange={(e) => setFormData({ ...formData, operatorId: e.target.value })} /></label> */}
 
-              <button type="submit">{editingStation ? "💾 Lưu cập nhật" : "➕ Thêm trạm"}</button>
+              <button type="submit">{editingStation ? "Lưu cập nhật" : "Thêm trạm"}</button>
             </form>
           )}
 
@@ -144,7 +144,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
               {stations.map((st) => (
                 <div key={st.id} className="post-popup-item">
                   <span>{st.stationName} ({st.location})</span>
-                  <button onClick={() => handleEditClick(st)}>✏️ Sửa</button>
+                  <button onClick={() => handleEditClick(st)}> Sửa</button>
                 </div>
               ))}
             </div>

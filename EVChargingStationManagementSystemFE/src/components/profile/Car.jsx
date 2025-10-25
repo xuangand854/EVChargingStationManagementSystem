@@ -16,7 +16,7 @@
     });
 
     const [newVehicle, setNewVehicle] = useState({
-      modelname: "",
+      modelName: "",
       modelYear: "",
       vehicleType: "",
       batteryCapacityKWh: 0,
@@ -50,7 +50,7 @@
     const handleChange = (e) => {
       const id = e.target.value;
       setSelectedVehicle(id);
-      const selected = vehicles.find((v) => v.id === parseInt(id));
+      const selected = vehicles.find((v) => v.id === (id));
       if (selected)
         setVehicleEdit({
           id: selected.id,
@@ -64,7 +64,7 @@
       e.preventDefault();
       try {
         await addVehicalModel(
-          newVehicle.modelname,
+          newVehicle.modelName,
           newVehicle.modelYear,
           newVehicle.vehicleType,
           newVehicle.batteryCapacityKWh,
@@ -74,7 +74,7 @@
         await fetchVehicles();
         setShowPopup(false);
         setNewVehicle({
-          modelname: "",
+          modelName: "",
           modelYear: "",
           vehicleType: "",
           batteryCapacityKWh: 0,
@@ -159,7 +159,7 @@
           {currentVehicle && (
               <img
                 src={currentVehicle.imageUrl }
-                alt={currentVehicle.modelName || currentVehicle.modelname || "Xe điện"}
+                alt={currentVehicle.modelName || currentVehicle.modelName || "Xe điện"}
                 style={{ width: "200px", height: "auto" }}
                 
               />
@@ -170,7 +170,7 @@
             <select id="vehicle-select" value={selectedVehicle || ""} onChange={handleChange}>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.modelName || v.modelname || v.name}
+                  {v.modelName || v.modelName || v.name}
                 </option>
               ))}
             </select>
@@ -182,7 +182,7 @@
                 const chosen = vehicles.find((v) => v.id === selectedVehicle);
                 if (chosen) {
                   localStorage.setItem("selectedVehicleId", chosen.id);
-                  toast.success(`Đã lưu lựa chọn: ${chosen.modelName || chosen.modelname}`, {
+                  toast.success(`Đã lưu lựa chọn: ${chosen.modelName || chosen.modelName}`, {
                     position: "top-right",
                     autoClose: 2000,
                     theme: "colored",
@@ -255,8 +255,8 @@
                   <label>Tên xe:</label>
                   <input
                     type="text"
-                    value={newVehicle.modelname}
-                    onChange={(e) => setNewVehicle({ ...newVehicle, modelname: e.target.value })}
+                    value={newVehicle.modelName}
+                    onChange={(e) => setNewVehicle({ ...newVehicle, modelName: e.target.value })}
                     required
                   />
                 </div>
@@ -318,14 +318,13 @@
                   <label>Loại xe:</label>
                   <select
                     value={newVehicle.vehicleType}
-                    onChange={(e) =>
-                      setNewVehicle({ ...newVehicle, vehicleType: parseInt(e.target.value) })
-                    }
+                    onChange={(e) => setNewVehicle({ ...newVehicle, vehicleType: Number(e.target.value) })}
                     required
                   >
                     <option value="">Chọn loại xe</option>
+                    <option value={0}>Xe Máy</option>
                     <option value={1}>Xe Hơi</option>
-                    <option value={2}>Xe Máy</option>
+                    <option value={2}>Không xác định</option>
                   </select>
                 </div>
 

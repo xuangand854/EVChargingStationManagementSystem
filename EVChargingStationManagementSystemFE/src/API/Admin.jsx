@@ -19,34 +19,32 @@ export const getVehicleModels = async() => {
   }
 };
 
- export const addVehicalModel = async (
-    modelname,
+export const addVehicalModel = async (
+    modelName,
     modelYear,
-    vehicleType,
+    vehicleType, // ở đây phải là số: 0, 1, 2
     batteryCapacityKWh,
     recommendedChargingPowerKW,
     imageUrl
- ) =>{
-    try{
-        const response = await api.post(`${BASE_URL}`,{
-            modelname,
-            modelYear,
-            vehicleType,
-            batteryCapacityKWh,
-            recommendedChargingPowerKW,
-            imageUrl,
+) => {
+    try {
+        const response = await api.post(`${BASE_URL}`, {
+            modelName,  
+            modelYear: Number(modelYear),
+            vehicleType: Number(vehicleType), // bắt buộc số
+            batteryCapacityKWh: Number(batteryCapacityKWh),
+            recommendedChargingPowerKW: Number(recommendedChargingPowerKW),
+            imageUrl
         });
-    
-    //debug
-    console.log('thêm VehicalModel - Response:',response);
-    console.log('Responese data:',response.data);
 
-    return response.data;    
- }catch(error){
-    console.error('lỗi khi thêm VehicleModel:',error);
-    throw error;
- }
+        console.log('Thêm VehicleModel - Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi thêm VehicleModel:', error.response?.data || error);
+        throw error;
+    }
 };
+
 
 
 //updateVehicle 

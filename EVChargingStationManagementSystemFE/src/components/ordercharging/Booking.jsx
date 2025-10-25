@@ -129,22 +129,6 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
             setBookingData({ ...bookingData, startTime: e.target.value })
           }
         />
-        <input
-          type="number"
-          placeholder="Current Battery (%)"
-          value={bookingData.currentBattery}
-          onChange={(e) =>
-            setBookingData({ ...bookingData, currentBattery: e.target.value })
-          }
-        />
-        <input
-          type="number"
-          placeholder="Target Battery (%)"
-          value={bookingData.targetBattery}
-          onChange={(e) =>
-            setBookingData({ ...bookingData, targetBattery: e.target.value })
-          }
-        />
 
         <div className="popup-buttons">
           <button className="add-btn" onClick={handleAddBooking}>

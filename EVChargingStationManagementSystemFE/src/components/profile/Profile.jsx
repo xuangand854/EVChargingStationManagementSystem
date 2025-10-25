@@ -11,6 +11,8 @@ const defaultAvatars = {
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Chỉ EVDriver hoặc staff mới được xem thông tin tài khoản
+  
   const [mode, setMode] = useState("view"); // view | edit | password
   const [formData, setFormData] = useState({
     name: "",
@@ -29,24 +31,16 @@ const Profile = () => {
   useEffect(() => {
     const fetchDriver = async () => {
       try {
-        // Lấy driverId từ localStorage 
-        const driverId = localStorage.getItem("driverId");
-        if (!driverId) {
-          console.error("Không tìm thấy driverId trong localStorage");
-          setLoading(false);
-          return;
-        }
-
-        // Gọi API lấy thông tin tài xế
-        const res = await getEVDriverProfile(driverId);
-        const driver = res?.data?.data || res?.data; // tránh phòng backend trả khác cấu trúc
+        // BE sẽ tự nhận token trong header (axios interceptor hoặc cookie)
+        const res = await getEVDriverProfile();
+        const driver = res?.data?.data || res?.data;
 
         if (driver) {
           const userData = {
             name: driver.name || "Chưa cập nhật",
             email: driver.email || "Chưa cập nhật",
             phone: driver.phoneNumber || "Chưa cập nhật",
-            role: "customer",
+            role: driver.role || "customer",
             avatar: driver.profilePictureUrl || "",
             car:
               driver.vehicleModelIds && driver.vehicleModelIds.length > 0
@@ -83,17 +77,15 @@ const Profile = () => {
         return;
       }
 
-      // Gọi API cập nhật thông tin
       const updated = await updateEVDriver(
         user.driverId,
         formData.name,
         formData.phone,
         formData.address || "",
         formData.avatar || "",
-        [] // danh sách xe tạm để rỗng
+        []
       );
 
-      // Cập nhật lại UI
       setUser({
         ...formData,
         car:
@@ -122,6 +114,41 @@ const Profile = () => {
 
   if (loading) return <p className="loading">Đang tải...</p>;
   if (!user) return <p>Không tìm thấy thông tin tài xế</p>;
+
+  // Nếu là admin: chỉ hiển thị nút chuyển sang Admin Dashboard
+  if (user.role === "admin") {
+    return (
+      <div className="profile-wrapper">
+        <div className="profile-sidebar">
+          <div className="sidebar-card user-card">
+            <img
+              src={user.avatar || defaultAvatars[user.role]}
+              alt="avatar"
+              className="avatar"
+            />
+            <p className="welcome">Xin chào,</p>
+            <h3>{user.name}</h3>
+          </div>
+        </div>
+
+        <div className="profile-main">
+          <div className="profile-card">
+            <h2>Chế độ quản trị</h2>
+            <p>Bạn đang đăng nhập bằng quyền Admin.</p>
+            <button
+              className="switch-admin-btn"
+              onClick={() => (window.location.href = "/admin")}
+            >
+              Chuyển sang trang Admin
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Chỉ EVDriver hoặc staff mới được xem thông tin tài khoản
+
 
   return (
     <div className="profile-wrapper">

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Common.Helpler
+namespace Common.Helper
 {
     public static class ClaimsHelper
     {

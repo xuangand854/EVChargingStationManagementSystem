@@ -3,7 +3,7 @@ import "./Layout.css";
 import { getAuthStatus } from "../../API/Auth";
 import { useEffect, useState } from "react";
 import ProfileMenu from "../profile/ProfileMenu";
-import AuthDebug from "../debug/AuthDebug";
+// import AuthDebug from "../debug/AuthDebug";
 
 
 

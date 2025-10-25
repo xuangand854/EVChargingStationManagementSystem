@@ -146,3 +146,6 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+    }
+}
+        

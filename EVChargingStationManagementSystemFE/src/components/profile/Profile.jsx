@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
-import { getEVDriverId, updateEVDriver } from "../../API/EVDriver";
-import { jwtDecode } from "jwt-decode";
+import { updateEVDriver, getEVDriverProfile } from "../../API/EVDriver";
 
 const defaultAvatars = {
   customer: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
@@ -30,25 +29,17 @@ const Profile = () => {
   useEffect(() => {
     const fetchDriver = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("Không tìm thấy token!");
-          setLoading(false);
-          return;
-        }
-
-        // Giải mã token để lấy accountId
-        const decoded = jwtDecode(token);
-        const accountId = decoded?.userId;
-        if (!accountId) {
-          console.error("Không tìm thấy accountId trong token!");
+        // Lấy driverId từ localStorage 
+        const driverId = localStorage.getItem("driverId");
+        if (!driverId) {
+          console.error("Không tìm thấy driverId trong localStorage");
           setLoading(false);
           return;
         }
 
         // Gọi API lấy thông tin tài xế
-        const res = await getEVDriverId(accountId);
-        const driver = res?.data?.data;
+        const res = await getEVDriverProfile(driverId);
+        const driver = res?.data?.data || res?.data; // tránh phòng backend trả khác cấu trúc
 
         if (driver) {
           const userData = {
@@ -213,7 +204,6 @@ const Profile = () => {
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleInputChange}
                 readOnly
               />
               <h3>Số điện thoại</h3>

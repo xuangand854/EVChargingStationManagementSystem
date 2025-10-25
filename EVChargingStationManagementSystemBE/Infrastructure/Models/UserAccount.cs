@@ -52,4 +52,6 @@ public class UserAccount : IdentityUser<Guid>
 
     [InverseProperty("SystemConfigurationUpdatedByNavigation")]
     public ICollection<SystemConfiguration> SystemConfigurationsUpdater { get; set; } = [];
+
+    public ICollection<Feedback> Feedbacks { get; set; } = [];
 }

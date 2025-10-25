@@ -117,26 +117,27 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
-
         [HttpGet("profile")]
-        [Authorize(Roles = "EVDriver")]
-        public async Task<IActionResult> GetProfile()
+        [Authorize(Roles = "Admin,EVDriver")]
+        public async Task<IActionResult> GetProfile([FromQuery] Guid? driverId = null)
         {
-            //  1. Lấy ID user từ token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("id")?.Value
-                              ?? User.FindFirst("sub")?.Value;
+            Guid finalDriverId;
 
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized(new { message = "Không tìm thấy ID người dùng trong token." });
+            // Nếu là Admin và có driverId trong query => xem profile người khác
+            if (User.IsInRole("Admin") && driverId.HasValue)
+            {
+                finalDriverId = driverId.Value;
+            }
+            else
+            {
+                // Nếu là EVDriver => lấy ID từ token
+                var driverIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(driverIdClaim) || !Guid.TryParse(driverIdClaim, out finalDriverId))
+                    return Unauthorized(new { message = "Không tìm thấy hoặc ID không hợp lệ trong token." });
+            }
 
-            if (!Guid.TryParse(userIdClaim, out var currentUserId))
-                return BadRequest(new { message = "ID người dùng trong token không hợp lệ." });
+            var result = await _evDriverService.GetById(finalDriverId);
 
-            //  2. Gọi service
-            var result = await _evDriverService.GetMyProfile(currentUserId);
-
-            //  3. Xử lý kết quả trả về
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
 
@@ -145,5 +146,3 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
-    }
-    }

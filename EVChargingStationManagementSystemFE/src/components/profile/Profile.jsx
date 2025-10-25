@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
-import { getAuthStatus } from "../../API/Auth";
+import { getEVDriverId, updateEVDriver } from "../../API/EVDriver";
+import { jwtDecode } from "jwt-decode";
 
 const defaultAvatars = {
   customer: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
@@ -18,7 +19,7 @@ const Profile = () => {
     phone: "",
     role: "customer",
     avatar: "",
-    car: "",   
+    car: "",
   });
   const [passwordData, setPasswordData] = useState({
     oldPass: "",
@@ -27,39 +28,56 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchDriver = async () => {
       try {
-        
-        const authStatus = await getAuthStatus();
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("Không tìm thấy token!");
+          setLoading(false);
+          return;
+        }
 
-        if (authStatus.isAuthenticated && authStatus.user) {
-          const roleRaw = Array.isArray(authStatus.user.role)
-            ? authStatus.user.role[0]
-            : authStatus.user.role;
-          const role = roleRaw ? roleRaw.toLowerCase() : "customer";
+        // Giải mã token để lấy accountId
+        const decoded = jwtDecode(token);
+        const accountId = decoded?.userId;
+        if (!accountId) {
+          console.error("Không tìm thấy accountId trong token!");
+          setLoading(false);
+          return;
+        }
 
+        // Gọi API lấy thông tin tài xế
+        const res = await getEVDriverId(accountId);
+        const driver = res?.data?.data;
+
+        if (driver) {
           const userData = {
-            name: authStatus.user.name || "Chưa cập nhật",
-            email: authStatus.user.email || "Chưa cập nhật",
-            phone: authStatus.user.phone || "Chưa cập nhật",
-            role,
-            avatar: authStatus.user.avatar || "",
-            car: authStatus.user.car || "Chưa có xe", 
+            name: driver.name || "Chưa cập nhật",
+            email: driver.email || "Chưa cập nhật",
+            phone: driver.phoneNumber || "Chưa cập nhật",
+            role: "customer",
+            avatar: driver.profilePictureUrl || "",
+            car:
+              driver.vehicleModelIds && driver.vehicleModelIds.length > 0
+                ? driver.vehicleModelIds.join(", ")
+                : "Chưa có xe",
+            driverId: driver.id,
           };
           setUser(userData);
           setFormData(userData);
         } else {
+          console.warn("Không có dữ liệu tài xế trả về!");
           setUser(null);
         }
       } catch (err) {
-        console.error("Lỗi khi load user profile:", err);
+        console.error("Lỗi khi load EVDriver:", err);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    fetchDriver();
   }, []);
 
   const handleInputChange = (e) => {
@@ -67,9 +85,38 @@ const Profile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveProfile = () => {
-    setUser(formData);
-    setMode("view");
+  const handleSaveProfile = async () => {
+    try {
+      if (!user?.driverId) {
+        alert("Không tìm thấy mã tài xế để cập nhật!");
+        return;
+      }
+
+      // Gọi API cập nhật thông tin
+      const updated = await updateEVDriver(
+        user.driverId,
+        formData.name,
+        formData.phone,
+        formData.address || "",
+        formData.avatar || "",
+        [] // danh sách xe tạm để rỗng
+      );
+
+      // Cập nhật lại UI
+      setUser({
+        ...formData,
+        car:
+          updated?.vehicleModelIds && updated.vehicleModelIds.length > 0
+            ? updated.vehicleModelIds.join(", ")
+            : "Chưa có xe",
+      });
+
+      alert("Cập nhật thông tin thành công!");
+      setMode("view");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật:", error);
+      alert("Cập nhật thất bại, vui lòng thử lại!");
+    }
   };
 
   const handlePasswordChange = () => {
@@ -77,17 +124,17 @@ const Profile = () => {
       alert("Mật khẩu mới và xác nhận không khớp!");
       return;
     }
-    alert("Đổi mật khẩu thành công!");
+    alert("Đổi mật khẩu thành công! (Giả lập)");
     setPasswordData({ oldPass: "", newPass: "", confirmPass: "" });
     setMode("view");
   };
 
   if (loading) return <p className="loading">Đang tải...</p>;
-  if (!user) return <p>Bạn chưa đăng nhập</p>;
+  if (!user) return <p>Không tìm thấy thông tin tài xế</p>;
 
   return (
     <div className="profile-wrapper">
-      {/* Sidebar bên trái */}
+      {/* Sidebar */}
       <div className="profile-sidebar">
         <div className="sidebar-card user-card">
           <img
@@ -100,41 +147,27 @@ const Profile = () => {
         </div>
 
         <div className="sidebar-card notice-card">
-          <p className="warning">⚠️ Bạn chưa liên kết tài khoản</p>
+          <p className="warning">⚡ Thông tin tài xế</p>
           <p className="desc">
-            Hãy truy cập web quản lý trạm sạc và liên kết tài khoản bằng Email hoặc SĐT
-            để nhận các ưu đãi đặc quyền.
+            Thông tin được đồng bộ từ hệ thống EVDriver. Bạn có thể chỉnh sửa và
+            lưu lại tại đây.
           </p>
-          <a href="#">Xem hướng dẫn</a>
-          <div className="app-links">
-            <img
-              src="https://developer.android.com/images/brand/en_generic_rgb_wo_45.png"
-              alt="Google Play"
-            />
-            <img
-              src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-              alt="App Store"
-            />
-          </div>
         </div>
       </div>
 
-      {/* Nội dung bên phải */}
+      {/* Main content */}
       <div className="profile-main">
         <div className="profile-card">
           <div className="profile-header">
             <h2>Thông tin cá nhân</h2>
             {mode === "view" && (
-              <button
-                className="edit-btn"
-                onClick={() => setMode("edit")}
-              >
+              <button className="edit-btn" onClick={() => setMode("edit")}>
                 Chỉnh sửa thông tin
               </button>
             )}
           </div>
 
-          {/* View info */}
+          {/* View mode */}
           {mode === "view" && (
             <div className="profile-info">
               <div className="info-row">
@@ -150,10 +183,9 @@ const Profile = () => {
                 <span>{user.phone}</span>
               </div>
               <div className="info-row">
-                <span className="label">Car</span>
+                <span className="label">Xe</span>
                 <span>{user.car}</span>
               </div>
-
               <div className="info-row">
                 <span className="label">Mật khẩu</span>
                 <button
@@ -166,29 +198,30 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Edit form */}
+          {/* Edit mode */}
           {mode === "edit" && (
             <div className="profile-form">
+              <h3>Tên</h3>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="Họ và tên"
               />
+              <h3>Email</h3>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Email"
+                readOnly
               />
+              <h3>Số điện thoại</h3>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="Số điện thoại"
               />
               <div className="form-buttons">
                 <button className="save" onClick={handleSaveProfile}>
@@ -201,7 +234,7 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Password form */}
+          {/* Password mode */}
           {mode === "password" && (
             <div className="profile-form">
               <input

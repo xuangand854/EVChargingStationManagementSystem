@@ -6,6 +6,7 @@ namespace Infrastructure.IUnitOfWork
     {
         Task<int> SaveChangesAsync();
         IBookingRepository  BookingRepository { get; }
+        IReportRepository ReportRepository { get; }
         ISCStaffRepository SCStaffRepository { get; }
         IVehicleModelRepository VehicleModelRepository { get; }
         IChargingStationRepository ChargingStationRepository { get; }

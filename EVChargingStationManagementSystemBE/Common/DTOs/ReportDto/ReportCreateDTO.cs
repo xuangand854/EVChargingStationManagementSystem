@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Common.DTOs
+namespace Common.DTOs.ReportDto
 {
     public class ReportCreateDTO
     {
@@ -9,17 +9,17 @@ namespace Common.DTOs
         public string Title { get; set; }
 
         [Required]
-        public string ReportType { get; set; } // Bug, Maintenance, etc.
+        public string ReportType { get; set; } // e.g., Bug, Feature Request, Maintenance, Other
 
         [Required]
-        public string Severity { get; set; } // Low, Medium, High, Critical
+        public string Severity { get; set; } // e.g., Low, Medium, High, Critical
 
-        public string Description { get; set; }
+        public string? Description { get; set; } //  nên cho nullable để tránh lỗi khi không nhập
 
         [Required]
-        public Guid ReportedById { get; set; }
+        public Guid ReportedById { get; set; } // ID người báo cáo
 
-        public Guid? StationId { get; set; }
-        public Guid? PostId { get; set; }
+        public Guid? StationId { get; set; } // Liên kết với trạm sạc
+        public Guid? PostId { get; set; } // Liên kết với cột sạc
     }
 }

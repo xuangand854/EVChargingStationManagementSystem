@@ -11,7 +11,7 @@ namespace Infrastructure.IUnitOfWork
 
         private ISCStaffRepository? sCStaffRepository;
         private IVehicleModelRepository? vehicleModelRepository;
-        private IChargingStationRepository? chargingStationRepository;
+        private IChargingStationRepository? chargingStationRepository; 
         private IEVDriverRepository? evDriverRepository;
         private IUserAccountRepository? userAccountRepository;
         private IChargingPostRepository? chargingPostRepository;
@@ -20,6 +20,7 @@ namespace Infrastructure.IUnitOfWork
         private ISystemConfigurationRepository? systemConfigurationRepository;
         private IConnectorRepository? connectorRepository;
         private IBookingRepository? bookingRepository;
+        private IReportRepository? reportRepository;
         private ITransactionRepository transactionRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
@@ -126,6 +127,13 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return bookingRepository ??= new BookingRepository(context);
+            }
+        }
+        public IReportRepository ReportRepository
+        {
+            get
+            {
+                return reportRepository ??= new ReportRepository(context);
             }
         }
 

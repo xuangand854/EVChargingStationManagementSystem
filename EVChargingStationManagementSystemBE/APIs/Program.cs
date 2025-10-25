@@ -18,7 +18,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<EVCSMSContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.ExtensionServices();
-
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IEmailService, EmailService>();

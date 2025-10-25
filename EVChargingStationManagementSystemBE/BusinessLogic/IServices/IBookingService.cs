@@ -23,7 +23,7 @@ namespace BusinessLogic.IServices
 
         //  Hoàn tất sạc (Complete)
         // Cập nhật ActualEndTime, Status = Completed, tính toán năng lượng
-        Task<IServiceResult> CompleteBooking(Guid bookingId, double? batteryCapacity = null);
+        Task<IServiceResult> CompleteBooking(Guid bookingId);
 
         //  Người dùng tự hủy booking trước giờ sạc
         Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId);

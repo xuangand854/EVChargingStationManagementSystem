@@ -4,6 +4,7 @@ using Common;
 using Common.DTOs.ProfileEVDriverDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace APIs.Controllers
 {
@@ -50,7 +51,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-       
+
         //  PUT: api/evdriver/update (Driver tự cập nhật)
         [HttpPut("update")]
         [Authorize(Roles = "EVDriver")]
@@ -116,5 +117,33 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+
+        [HttpGet("profile")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> GetProfile()
+        {
+            //  1. Lấy ID user từ token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? User.FindFirst("id")?.Value
+                              ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { message = "Không tìm thấy ID người dùng trong token." });
+
+            if (!Guid.TryParse(userIdClaim, out var currentUserId))
+                return BadRequest(new { message = "ID người dùng trong token không hợp lệ." });
+
+            //  2. Gọi service
+            var result = await _evDriverService.GetMyProfile(currentUserId);
+
+            //  3. Xử lý kết quả trả về
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
     }
-}
+    }

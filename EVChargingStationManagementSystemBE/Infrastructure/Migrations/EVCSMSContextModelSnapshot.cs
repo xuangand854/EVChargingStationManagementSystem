@@ -78,6 +78,20 @@ namespace Infrastructure.Migrations
                     b.HasIndex("StationId");
 
                     b.ToTable("Booking", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            BookedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            EndTime = new DateTime(2025, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            StartTime = new DateTime(2025, 10, 26, 9, 0, 0, 0, DateTimeKind.Unspecified),
+                            StationId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Status = "Scheduled",
+                            UpdatedAt = new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.ChargingPost", b =>
@@ -286,6 +300,52 @@ namespace Infrastructure.Migrations
                         .HasFilter("[OperatorId] IS NOT NULL");
 
                     b.ToTable("ChargingStation", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            AvailableBikeChargingPosts = 5,
+                            AvailableBikeConnectors = 10,
+                            AvailableCarChargingPosts = 3,
+                            AvailableCarConnectors = 6,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Latitude = "21.0285N",
+                            Location = "Hanoi",
+                            Longitude = "105.8542E",
+                            OperatorId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Province = "Hanoi",
+                            StationName = "VinFast Station Hanoi",
+                            Status = "Active",
+                            TotalBikeChargingPosts = 5,
+                            TotalBikeConnectors = 10,
+                            TotalCarChargingConnectors = 6,
+                            TotalCarChargingPosts = 3,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            AvailableBikeChargingPosts = 4,
+                            AvailableBikeConnectors = 8,
+                            AvailableCarChargingPosts = 2,
+                            AvailableCarConnectors = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Latitude = "10.7769N",
+                            Location = "Ho Chi Minh City",
+                            Longitude = "106.7009E",
+                            OperatorId = new Guid("77777777-7777-7777-7777-777777777777"),
+                            Province = "HCM",
+                            StationName = "VinFast Station HCM",
+                            Status = "Active",
+                            TotalBikeChargingPosts = 4,
+                            TotalBikeConnectors = 8,
+                            TotalCarChargingConnectors = 4,
+                            TotalCarChargingPosts = 2,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Connector", b =>
@@ -363,6 +423,18 @@ namespace Infrastructure.Migrations
                     b.HasIndex("RankingId");
 
                     b.ToTable("EVDriverProfile", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            AccountId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Score = 100,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Feedback", b =>
@@ -551,6 +623,16 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Rankings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Description = "string",
+                            DiscountPercentage = 1,
+                            MinPoints = 1,
+                            RankName = "Gold"
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.Report", b =>
@@ -729,6 +811,18 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("SCStaffProfile", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            AccountId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            WorkingLocation = "Hanoi Station"
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.SystemConfiguration", b =>
@@ -1042,24 +1136,136 @@ namespace Infrastructure.Migrations
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             AccessFailedCount = 0,
+                            Address = "Headquarters, Hanoi",
                             ConcurrencyStamp = "457f1c5c-f68e-4364-912e-f0e443f8243d",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
+                            Gender = "Male",
                             IsDeleted = false,
-                            LockoutEnabled = true,
+                            LockoutEnabled = false,
                             LoginType = "System",
-                            Name = "Admin",
+                            Name = "System Admin",
                             NormalizedEmail = "ADMIN@GMAIL.COM",
+                            NormalizedUserName = "ADMIN@GMAIL.COM",
                             PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
                             PhoneNumber = "0123456789",
                             PhoneNumberConfirmed = false,
+                            ProfilePictureUrl = "",
                             RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "b0a67e8b-2351-4d2b-8ef1-1e908f5b63e1",
+                            SecurityStamp = "9fd925f3-34b4-46ce-971e-e3bcf4884150",
                             Status = "Active",
                             TwoFactorEnabled = false,
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             UserName = "admin@gmail.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            AccessFailedCount = 0,
+                            Address = "Hanoi Station",
+                            ConcurrencyStamp = "c7e31c5c-f68e-4364-912e-f0e443f8243d",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "operator@gmail.com",
+                            EmailConfirmed = true,
+                            Gender = "Male",
+                            IsDeleted = false,
+                            LockoutEnabled = false,
+                            LoginType = "System",
+                            Name = "Station Operator",
+                            NormalizedEmail = "OPERATOR@GMAIL.COM",
+                            NormalizedUserName = "OPERATOR@GMAIL.COM",
+                            PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
+                            PhoneNumber = "0999999999",
+                            PhoneNumberConfirmed = false,
+                            ProfilePictureUrl = "",
+                            RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SecurityStamp = "b9a67e8b-2351-4d2b-8ef1-1e908f5b63e1",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserName = "operator@gmail.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            AccessFailedCount = 0,
+                            Address = "HCM Station",
+                            ConcurrencyStamp = "a3f4c5b6-d7e8-4a9b-9123-f45678a9b012",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "staff@gmail.com",
+                            EmailConfirmed = true,
+                            Gender = "Female",
+                            IsDeleted = false,
+                            LockoutEnabled = false,
+                            LoginType = "System",
+                            Name = "Station Staff",
+                            NormalizedEmail = "STAFF@GMAIL.COM",
+                            NormalizedUserName = "STAFF@GMAIL.COM",
+                            PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
+                            PhoneNumber = "0123456788",
+                            PhoneNumberConfirmed = false,
+                            ProfilePictureUrl = "",
+                            RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SecurityStamp = "d5e67c7a-32d1-4c9b-b61f-6e701c4b2f72",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserName = "staff@gmail.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            AccessFailedCount = 0,
+                            Address = "Da Nang Station",
+                            ConcurrencyStamp = "f1e2d3c4-b5a6-7890-cdef-0987654321ab",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "operator2@gmail.com",
+                            EmailConfirmed = true,
+                            Gender = "Male",
+                            IsDeleted = false,
+                            LockoutEnabled = false,
+                            LoginType = "System",
+                            Name = "Station Operator 2",
+                            NormalizedEmail = "OPERATOR2@GMAIL.COM",
+                            NormalizedUserName = "OPERATOR2@GMAIL.COM",
+                            PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
+                            PhoneNumber = "0888888888",
+                            PhoneNumberConfirmed = false,
+                            ProfilePictureUrl = "",
+                            RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SecurityStamp = "a1b2c3d4-e5f6-7890-abcd-1234567890ef",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserName = "operator2@gmail.com"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            AccessFailedCount = 0,
+                            Address = "Ho Chi Minh City",
+                            ConcurrencyStamp = "b4a5c6d7-e8f9-4012-9abc-de34f56a789b",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "evdriver@gmail.com",
+                            EmailConfirmed = true,
+                            Gender = "Male",
+                            IsDeleted = false,
+                            LockoutEnabled = false,
+                            LoginType = "System",
+                            Name = "EV Driver",
+                            NormalizedEmail = "EVDRIVER@GMAIL.COM",
+                            NormalizedUserName = "EVDRIVER@GMAIL.COM",
+                            PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
+                            PhoneNumber = "0987654321",
+                            PhoneNumberConfirmed = false,
+                            ProfilePictureUrl = "",
+                            RegistrationDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SecurityStamp = "ef12cd34-5678-49ab-9012-34ef56ab78cd",
+                            Status = "Active",
+                            TwoFactorEnabled = false,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UserName = "evdriver@gmail.com"
                         });
                 });
 
@@ -1076,6 +1282,13 @@ namespace Infrastructure.Migrations
                     b.HasIndex("VehicleModelId");
 
                     b.ToTable("UserVehicle", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            DriverId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            VehicleModelId = new Guid("11111111-1111-1111-1111-111111111111")
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.VehicleModel", b =>
@@ -1131,6 +1344,24 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("VehicleModel", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            BatteryCapacityKWh = 75,
+                            Brand = "VinFast",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = new Guid("11111111-1111-1111-1111-111111111111"),
+                            ImageUrl = "string",
+                            IsDeleted = false,
+                            ModelName = "VF8",
+                            ModelYear = 2025,
+                            RecommendedChargingPowerKW = 11,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            VehicleType = "Car"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1224,8 +1455,8 @@ namespace Infrastructure.Migrations
                         },
                         new
                         {
-                            UserId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            RoleId = new Guid("22222222-2222-2222-2222-222222222222")
+                            UserId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            RoleId = new Guid("33333333-3333-3333-3333-333333333333")
                         });
                 });
 

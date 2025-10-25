@@ -1,39 +1,23 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
 
 namespace Infrastructure.Data.Seed
 {
     public static class UserRolesSeed
     {
-        //public void Configure(EntityTypeBuilder<IdentityUserRole<Guid>> builder)
-        //{
-        //    builder.HasData(
-        //        new IdentityUserRole<Guid>
-        //        {
-        //            UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-        //            RoleId = Guid.Parse("11111111-1111-1111-1111-111111111111")
-        //        },
-        //        new IdentityUserRole<Guid>
-        //        {
-        //            UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-        //            RoleId = Guid.Parse("22222222-2222-2222-2222-222222222222")
-        //        }
-        //    );
-        //}
-
-        public static List<IdentityUserRole<Guid>> GetUserRoles()
+        public static List<IdentityUserRole<Guid>> GetUserRoles() => new List<IdentityUserRole<Guid>>
         {
-            return [
-                new IdentityUserRole<Guid>
-                {
-                    UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                    RoleId = Guid.Parse("11111111-1111-1111-1111-111111111111")
-                },
-                new IdentityUserRole<Guid>
-                {
-                    UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                    RoleId = Guid.Parse("22222222-2222-2222-2222-222222222222")
-                }
-                ];
-        }
+            new IdentityUserRole<Guid>
+            {
+                UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                RoleId = Guid.Parse("11111111-1111-1111-1111-111111111111")
+            },
+            new IdentityUserRole<Guid>
+            {
+                UserId = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                RoleId = Guid.Parse("33333333-3333-3333-3333-333333333333")
+            }
+        };
     }
 }

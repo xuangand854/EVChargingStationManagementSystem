@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Infrastructure.Data
 {
@@ -68,16 +69,18 @@ namespace Infrastructure.Data
             builder.ApplyConfiguration(new PaymentConfig());
 
             // Seed data
-            //builder.ApplyConfiguration(new RoleSeed());
-            //builder.ApplyConfiguration(new UserAccountSeed());
-            //builder.ApplyConfiguration(new UserRolesSeed());
-
-            builder.Entity<Role>().HasData(RoleSeed.GetRoles());
-            //builder.Entity<Ranking>().HasData(RankSeed.GetRankings());
-            //builder.Entity<VehicleModel>().HasData(VehicleModelSeed.GetVehicleModels());
+            builder.Entity<Role>().HasData(RoleSeed.GetRoles().ToArray());
             builder.Entity<UserAccount>().HasData(UserAccountSeed.GetUserAccounts());
-            builder.Entity<SystemConfiguration>().HasData(SystemConfigurationSeed.GetSystemConfigurations());
             builder.Entity<IdentityUserRole<Guid>>().HasData(UserRolesSeed.GetUserRoles());
+            builder.Entity<SCStaffProfile>().HasData(SCStaffSeed.GetSCStaffs());
+            builder.Entity<VehicleModel>().HasData(VehicleModelSeed.GetVehicleModels());
+            builder.Entity<EVDriverProfile>().HasData(EVDriverSeed.GetEVDrivers());
+            builder.Entity<Ranking>().HasData(RankSeed.GetRankings());
+            builder.Entity<SystemConfiguration>().HasData(SystemConfigurationSeed.GetSystemConfigurations());
+            builder.Entity<Booking>().HasData(BookingSeed.GetBookings());
+            builder.Entity<UserVehicle>().HasData(UserVehicleSeed.GetUserVehicles());
+            builder.Entity<ChargingStation>().HasData(ChargingStationSeed.GetChargingStations());
         }
     }
-}
+        }
+    

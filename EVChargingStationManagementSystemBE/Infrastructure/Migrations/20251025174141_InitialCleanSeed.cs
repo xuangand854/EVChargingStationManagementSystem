@@ -1,7 +1,5 @@
-﻿using Infrastructure.Data;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
 
 #nullable disable
 
@@ -10,10 +8,7 @@ using System;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    /// 
-    //[DbContext(typeof(EVCSMSContext))]
-    //[Migration("20250929080729_InitialCreate")]
-    public partial class InitialCreate : Migration
+    public partial class InitialCleanSeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -62,7 +57,7 @@ namespace Infrastructure.Migrations
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -72,22 +67,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PowerOutputsKW",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Value = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PowerOutputsKW", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -221,13 +200,19 @@ namespace Infrastructure.Migrations
                     Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Latitude = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Longitude = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TotalChargingPost = table.Column<int>(type: "int", nullable: false),
-                    AvailableChargers = table.Column<int>(type: "int", nullable: false),
+                    TotalBikeChargingPosts = table.Column<int>(type: "int", nullable: false),
+                    AvailableBikeChargingPosts = table.Column<int>(type: "int", nullable: false),
+                    TotalBikeConnectors = table.Column<int>(type: "int", nullable: false),
+                    AvailableBikeConnectors = table.Column<int>(type: "int", nullable: false),
+                    TotalCarChargingPosts = table.Column<int>(type: "int", nullable: false),
+                    AvailableCarChargingPosts = table.Column<int>(type: "int", nullable: false),
+                    TotalCarChargingConnectors = table.Column<int>(type: "int", nullable: false),
+                    AvailableCarConnectors = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    OperatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    OperatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -238,6 +223,29 @@ namespace Infrastructure.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Feedbacks",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Subject = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    stars = table.Column<double>(type: "float", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsResolved = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Feedbacks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Feedbacks_AspNetUsers_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -264,7 +272,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SCStaff",
+                name: "SCStaffProfile",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -277,9 +285,9 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SCStaff", x => x.Id);
+                    table.PrimaryKey("PK_SCStaffProfile", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SCStaff_AspNetUsers_AccountId",
+                        name: "FK_SCStaffProfile_AspNetUsers_AccountId",
                         column: x => x.AccountId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -297,18 +305,11 @@ namespace Infrastructure.Migrations
                     MinValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     MaxValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     EffectedDateFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EffectedDateTo = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    TargetEntity = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TargetField = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Operator = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ScopeType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Severity = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RuleGroup = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     VersionNo = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UpdatedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
@@ -360,33 +361,32 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EVDriver",
+                name: "EVDriverProfile",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RankingId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    RankingId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EVDriver", x => x.Id);
+                    table.PrimaryKey("PK_EVDriverProfile", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EVDriver_AspNetUsers_AccountId",
+                        name: "FK_EVDriverProfile_AspNetUsers_AccountId",
                         column: x => x.AccountId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EVDriver_Rankings_RankingId",
+                        name: "FK_EVDriverProfile_Rankings_RankingId",
                         column: x => x.RankingId,
                         principalTable: "Rankings",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -397,6 +397,12 @@ namespace Infrastructure.Migrations
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CurrentBattery = table.Column<double>(type: "float", nullable: true),
+                    TargetBattery = table.Column<double>(type: "float", nullable: true),
+                    EstimatedEnergyKWh = table.Column<double>(type: "float", nullable: true),
+                    ActualEnergyKWh = table.Column<double>(type: "float", nullable: true),
+                    ActualStartTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ActualEndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
@@ -426,7 +432,11 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PostName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ChargerType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConnectorType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VehicleTypeSupported = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MaxPowerKw = table.Column<int>(type: "int", nullable: false),
+                    TotalConnectors = table.Column<int>(type: "int", nullable: false),
+                    AvailableConnectors = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -476,25 +486,18 @@ namespace Infrastructure.Migrations
                 name: "UserVehicle",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DriverId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VehicleModelId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    VehicleModelId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserVehicle", x => x.Id);
+                    table.PrimaryKey("PK_UserVehicle", x => new { x.DriverId, x.VehicleModelId });
                     table.ForeignKey(
-                        name: "FK_UserVehicle_AspNetUsers_UserAccountId",
-                        column: x => x.UserAccountId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_UserVehicle_EVDriver_DriverId",
+                        name: "FK_UserVehicle_EVDriverProfile_DriverId",
                         column: x => x.DriverId,
-                        principalTable: "EVDriver",
+                        principalTable: "EVDriverProfile",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserVehicle_VehicleModel_VehicleModelId",
                         column: x => x.VehicleModelId,
@@ -504,27 +507,69 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PowerOutputKWPerPosts",
+                name: "Connector",
                 columns: table => new
                 {
-                    ChargingPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PowerOutputKWId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ConnectorName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsPluggedIn = table.Column<bool>(type: "bit", nullable: false),
+                    IsLocked = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    ChargingPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PowerOutputKWPerPosts", x => new { x.ChargingPostId, x.PowerOutputKWId });
+                    table.PrimaryKey("PK_Connector", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PowerOutputKWPerPosts_ChargingPost_ChargingPostId",
+                        name: "FK_Connector_ChargingPost_ChargingPostId",
                         column: x => x.ChargingPostId,
                         principalTable: "ChargingPost",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reports",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ReportType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Severity = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResolvedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    ReportedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ChargingPostNavigationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reports", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PowerOutputKWPerPosts_PowerOutputsKW_PowerOutputKWId",
-                        column: x => x.PowerOutputKWId,
-                        principalTable: "PowerOutputsKW",
+                        name: "FK_Reports_AspNetUsers_ReportedById",
+                        column: x => x.ReportedById,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reports_ChargingPost_ChargingPostNavigationId",
+                        column: x => x.ChargingPostNavigationId,
+                        principalTable: "ChargingPost",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reports_ChargingStation_StationId",
+                        column: x => x.StationId,
+                        principalTable: "ChargingStation",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -532,7 +577,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EnergyDeliveredKWh = table.Column<double>(type: "float", nullable: false),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
@@ -540,20 +585,25 @@ namespace Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    BatteryCapacityKWh = table.Column<int>(type: "int", nullable: false),
+                    InitialBatteryLevelPercent = table.Column<int>(type: "int", nullable: false),
+                    ExpectedEnergiesKWh = table.Column<int>(type: "int", nullable: false),
+                    PowerRateKW = table.Column<int>(type: "int", nullable: false),
+                    ConnectorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ChargingPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserVehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    StartedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DriverId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    VehicleModelId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     BookingId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChargingSession", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ChargingSession_AspNetUsers_StartedBy",
-                        column: x => x.StartedBy,
+                        name: "FK_ChargingSession_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ChargingSession_Booking_BookingId",
                         column: x => x.BookingId,
@@ -566,11 +616,51 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_ChargingSession_UserVehicle_UserVehicleId",
-                        column: x => x.UserVehicleId,
-                        principalTable: "UserVehicle",
+                        name: "FK_ChargingSession_Connector_ConnectorId",
+                        column: x => x.ConnectorId,
+                        principalTable: "Connector",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChargingSession_UserVehicle_DriverId_VehicleModelId",
+                        columns: x => new { x.DriverId, x.VehicleModelId },
+                        principalTable: "UserVehicle",
+                        principalColumns: new[] { "DriverId", "VehicleModelId" },
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payment",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TaxRate = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    BeforeVatAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BankCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TxnRef = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    ChargingSessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PaidBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payment_AspNetUsers_PaidBy",
+                        column: x => x.PaidBy,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Payment_ChargingSession_ChargingSessionId",
+                        column: x => x.ChargingSessionId,
+                        principalTable: "ChargingSession",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -578,6 +668,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ReferenceCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -587,9 +678,9 @@ namespace Infrastructure.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    PaidBy = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ChargingSessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    RecordedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    PaidBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RecordedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PaymentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -607,9 +698,9 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Transaction_ChargingSession_ChargingSessionId",
-                        column: x => x.ChargingSessionId,
-                        principalTable: "ChargingSession",
+                        name: "FK_Transaction_Payment_PaymentId",
+                        column: x => x.PaymentId,
+                        principalTable: "Payment",
                         principalColumn: "Id");
                 });
 
@@ -628,9 +719,17 @@ namespace Infrastructure.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "Address", "ConcurrencyStamp", "CreatedAt", "DateOfBirth", "Email", "EmailConfirmed", "Gender", "IsDeleted", "LastLogin", "LockoutEnabled", "LockoutEnd", "LoginType", "Name", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "ProfilePictureUrl", "RegistrationDate", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), 0, null, "457f1c5c-f68e-4364-912e-f0e443f8243d", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "admin@gmail.com", true, null, false, null, true, null, "System", "Admin", "ADMIN@GMAIL.COM", null, "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", null, false, null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "b0a67e8b-2351-4d2b-8ef1-1e908f5b63e1", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), 0, null, "26aff629-ed41-424c-986c-bec9fb174ae6", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "staff@gmail.com", true, null, false, null, true, null, "System", "Staff", "STAFF@GMAIL.COM", null, "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", null, false, null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "142fa5de-d603-4453-81f9-5c9347280452", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "staff@gmail.com" }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), 0, "Headquarters, Hanoi", "457f1c5c-f68e-4364-912e-f0e443f8243d", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "admin@gmail.com", true, "Male", false, null, false, null, "System", "System Admin", "ADMIN@GMAIL.COM", "ADMIN@GMAIL.COM", "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", "0123456789", false, "", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "9fd925f3-34b4-46ce-971e-e3bcf4884150", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com" },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), 0, "Hanoi Station", "c7e31c5c-f68e-4364-912e-f0e443f8243d", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "operator@gmail.com", true, "Male", false, null, false, null, "System", "Station Operator", "OPERATOR@GMAIL.COM", "OPERATOR@GMAIL.COM", "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", "0999999999", false, "", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "b9a67e8b-2351-4d2b-8ef1-1e908f5b63e1", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "operator@gmail.com" },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), 0, "Ho Chi Minh City", "b4a5c6d7-e8f9-4012-9abc-de34f56a789b", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "evdriver@gmail.com", true, "Male", false, null, false, null, "System", "EV Driver", "EVDRIVER@GMAIL.COM", "EVDRIVER@GMAIL.COM", "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", "0987654321", false, "", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ef12cd34-5678-49ab-9012-34ef56ab78cd", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "evdriver@gmail.com" },
+                    { new Guid("44444444-4444-4444-4444-444444444444"), 0, "HCM Station", "a3f4c5b6-d7e8-4a9b-9123-f45678a9b012", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "staff@gmail.com", true, "Female", false, null, false, null, "System", "Station Staff", "STAFF@GMAIL.COM", "STAFF@GMAIL.COM", "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", "0123456788", false, "", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "d5e67c7a-32d1-4c9b-b61f-6e701c4b2f72", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "staff@gmail.com" },
+                    { new Guid("77777777-7777-7777-7777-777777777777"), 0, "Da Nang Station", "f1e2d3c4-b5a6-7890-cdef-0987654321ab", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, "operator2@gmail.com", true, "Male", false, null, false, null, "System", "Station Operator 2", "OPERATOR2@GMAIL.COM", "OPERATOR2@GMAIL.COM", "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==", "0888888888", false, "", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "a1b2c3d4-e5f6-7890-abcd-1234567890ef", "Active", false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "operator2@gmail.com" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Rankings",
+                columns: new[] { "Id", "Description", "DiscountPercentage", "MinPoints", "RankName" },
+                values: new object[] { new Guid("11111111-1111-1111-1111-111111111111"), "string", 1, 1, "Gold" });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
@@ -638,8 +737,54 @@ namespace Infrastructure.Migrations
                 values: new object[,]
                 {
                     { new Guid("11111111-1111-1111-1111-111111111111"), new Guid("11111111-1111-1111-1111-111111111111") },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), new Guid("22222222-2222-2222-2222-222222222222") }
+                    { new Guid("33333333-3333-3333-3333-333333333333"), new Guid("33333333-3333-3333-3333-333333333333") }
                 });
+
+            migrationBuilder.InsertData(
+                table: "ChargingStation",
+                columns: new[] { "Id", "AvailableBikeChargingPosts", "AvailableBikeConnectors", "AvailableCarChargingPosts", "AvailableCarConnectors", "CreatedAt", "IsDeleted", "Latitude", "Location", "Longitude", "OperatorId", "Province", "StationName", "Status", "TotalBikeChargingPosts", "TotalBikeConnectors", "TotalCarChargingConnectors", "TotalCarChargingPosts", "UpdatedAt" },
+                values: new object[,]
+                {
+                    { new Guid("55555555-5555-5555-5555-555555555555"), 5, 10, 3, 6, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "21.0285N", "Hanoi", "105.8542E", new Guid("22222222-2222-2222-2222-222222222222"), "Hanoi", "VinFast Station Hanoi", "Active", 5, 10, 6, 3, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { new Guid("66666666-6666-6666-6666-666666666666"), 4, 8, 2, 4, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "10.7769N", "Ho Chi Minh City", "106.7009E", new Guid("77777777-7777-7777-7777-777777777777"), "HCM", "VinFast Station HCM", "Active", 4, 8, 4, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
+                });
+
+            migrationBuilder.InsertData(
+                table: "EVDriverProfile",
+                columns: new[] { "Id", "AccountId", "CreatedAt", "IsDeleted", "RankingId", "Score", "Status", "UpdatedAt" },
+                values: new object[] { new Guid("33333333-3333-3333-3333-333333333333"), new Guid("33333333-3333-3333-3333-333333333333"), new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, null, 100, "Active", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) });
+
+            migrationBuilder.InsertData(
+                table: "SCStaffProfile",
+                columns: new[] { "Id", "AccountId", "CreatedAt", "IsDeleted", "Status", "UpdatedAt", "WorkingLocation" },
+                values: new object[] { new Guid("22222222-2222-2222-2222-222222222222"), new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Active", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Hanoi Station" });
+
+            migrationBuilder.InsertData(
+                table: "SystemConfiguration",
+                columns: new[] { "Id", "CreatedAt", "CreatedBy", "Description", "EffectedDateFrom", "EffectedDateTo", "IsDeleted", "MaxValue", "MinValue", "Name", "Unit", "UpdatedAt", "UpdatedBy", "VersionNo" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "Mức giá vnd trên 1 KWH điện, giá trị chỉ hiệu lực khi lưu ở trường MinValue", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, false, null, 5000m, "PRICE_PER_kWH", "VND", new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), 1 },
+                    { 2, new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "Tích điểm trên 1 KWH điện, giá trị chỉ hiệu lực khi lưu ở trường MinValue", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, false, null, 1m, "POINT_PER_KWH", "point", new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), 1 },
+                    { 3, new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "Mức thuế, giá trị chỉ hiệu lực khi lưu ở trường MinValue", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, false, null, 10m, "VAT", "%", new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), 1 },
+                    { 4, new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "Thời gian token login hiệu lực, giá trị chỉ hiệu lực khi lưu ở trường MinValue", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, false, null, 720m, "LOGIN_TOKEN_TIMEOUT", "Hours", new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), 1 },
+                    { 5, new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "Thời gian cancel booking nếu đến trễ hơn thời gian đặt ra, giá trị chỉ hiệu lực khi lưu ở trường MinValue", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, false, null, 15m, "BOOKING_TIME_CANCEL_TRIGGER", "Minutes", new DateTime(2024, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), 1 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "VehicleModel",
+                columns: new[] { "Id", "BatteryCapacityKWh", "Brand", "CreatedAt", "CreatedBy", "ImageUrl", "IsDeleted", "ModelName", "ModelYear", "RecommendedChargingPowerKW", "Status", "UpdatedAt", "VehicleType" },
+                values: new object[] { new Guid("11111111-1111-1111-1111-111111111111"), 75, "VinFast", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("11111111-1111-1111-1111-111111111111"), "string", false, "VF8", 2025, 11, "Active", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Car" });
+
+            migrationBuilder.InsertData(
+                table: "Booking",
+                columns: new[] { "Id", "ActualEndTime", "ActualEnergyKWh", "ActualStartTime", "BookedBy", "CreatedAt", "CurrentBattery", "EndTime", "EstimatedEnergyKWh", "IsDeleted", "StartTime", "StationId", "Status", "TargetBattery", "UpdatedAt" },
+                values: new object[] { new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), null, null, null, new Guid("11111111-1111-1111-1111-111111111111"), new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2025, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified), null, false, new DateTime(2025, 10, 26, 9, 0, 0, 0, DateTimeKind.Unspecified), new Guid("55555555-5555-5555-5555-555555555555"), "Scheduled", null, new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified) });
+
+            migrationBuilder.InsertData(
+                table: "UserVehicle",
+                columns: new[] { "DriverId", "VehicleModelId" },
+                values: new object[] { new Guid("33333333-3333-3333-3333-333333333333"), new Guid("11111111-1111-1111-1111-111111111111") });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -674,6 +819,13 @@ namespace Infrastructure.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_PhoneNumber",
+                table: "AspNetUsers",
+                column: "PhoneNumber",
+                unique: true,
+                filter: "[PhoneNumber] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -706,29 +858,47 @@ namespace Infrastructure.Migrations
                 column: "ChargingPostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChargingSession_StartedBy",
+                name: "IX_ChargingSession_ConnectorId",
                 table: "ChargingSession",
-                column: "StartedBy");
+                column: "ConnectorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChargingSession_UserVehicleId",
+                name: "IX_ChargingSession_DriverId_VehicleModelId",
                 table: "ChargingSession",
-                column: "UserVehicleId");
+                columns: new[] { "DriverId", "VehicleModelId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChargingSession_UserId",
+                table: "ChargingSession",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChargingStation_OperatorId",
                 table: "ChargingStation",
-                column: "OperatorId");
+                column: "OperatorId",
+                unique: true,
+                filter: "[OperatorId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EVDriver_AccountId",
-                table: "EVDriver",
-                column: "AccountId");
+                name: "IX_Connector_ChargingPostId",
+                table: "Connector",
+                column: "ChargingPostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EVDriver_RankingId",
-                table: "EVDriver",
+                name: "IX_EVDriverProfile_AccountId",
+                table: "EVDriverProfile",
+                column: "AccountId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EVDriverProfile_RankingId",
+                table: "EVDriverProfile",
                 column: "RankingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Feedbacks_AccountId",
+                table: "Feedbacks",
+                column: "AccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notification_CreatedBy",
@@ -746,14 +916,35 @@ namespace Infrastructure.Migrations
                 column: "RecipientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PowerOutputKWPerPosts_PowerOutputKWId",
-                table: "PowerOutputKWPerPosts",
-                column: "PowerOutputKWId");
+                name: "IX_Payment_ChargingSessionId",
+                table: "Payment",
+                column: "ChargingSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SCStaff_AccountId",
-                table: "SCStaff",
-                column: "AccountId");
+                name: "IX_Payment_PaidBy",
+                table: "Payment",
+                column: "PaidBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reports_ChargingPostNavigationId",
+                table: "Reports",
+                column: "ChargingPostNavigationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reports_ReportedById",
+                table: "Reports",
+                column: "ReportedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reports_StationId",
+                table: "Reports",
+                column: "StationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SCStaffProfile_AccountId",
+                table: "SCStaffProfile",
+                column: "AccountId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SystemConfiguration_CreatedBy",
@@ -766,29 +957,19 @@ namespace Infrastructure.Migrations
                 column: "UpdatedBy");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transaction_ChargingSessionId",
-                table: "Transaction",
-                column: "ChargingSessionId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Transaction_PaidBy",
                 table: "Transaction",
                 column: "PaidBy");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Transaction_PaymentId",
+                table: "Transaction",
+                column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transaction_RecordedBy",
                 table: "Transaction",
                 column: "RecordedBy");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserVehicle_DriverId",
-                table: "UserVehicle",
-                column: "DriverId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserVehicle_UserAccountId",
-                table: "UserVehicle",
-                column: "UserAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserVehicle_VehicleModelId",
@@ -820,13 +1001,16 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Feedbacks");
+
+            migrationBuilder.DropTable(
                 name: "NotificationRecipient");
 
             migrationBuilder.DropTable(
-                name: "PowerOutputKWPerPosts");
+                name: "Reports");
 
             migrationBuilder.DropTable(
-                name: "SCStaff");
+                name: "SCStaffProfile");
 
             migrationBuilder.DropTable(
                 name: "SystemConfiguration");
@@ -841,7 +1025,7 @@ namespace Infrastructure.Migrations
                 name: "Notification");
 
             migrationBuilder.DropTable(
-                name: "PowerOutputsKW");
+                name: "Payment");
 
             migrationBuilder.DropTable(
                 name: "ChargingSession");
@@ -850,19 +1034,22 @@ namespace Infrastructure.Migrations
                 name: "Booking");
 
             migrationBuilder.DropTable(
-                name: "ChargingPost");
+                name: "Connector");
 
             migrationBuilder.DropTable(
                 name: "UserVehicle");
 
             migrationBuilder.DropTable(
-                name: "ChargingStation");
+                name: "ChargingPost");
 
             migrationBuilder.DropTable(
-                name: "EVDriver");
+                name: "EVDriverProfile");
 
             migrationBuilder.DropTable(
                 name: "VehicleModel");
+
+            migrationBuilder.DropTable(
+                name: "ChargingStation");
 
             migrationBuilder.DropTable(
                 name: "Rankings");

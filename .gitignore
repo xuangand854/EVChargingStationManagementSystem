@@ -154,7 +154,7 @@ UpgradeLog*.*
 ########################################
 dist/
 node_modules/
-*.js
+
 *.js.map
 npm-debug.log*
 yarn-debug.log*

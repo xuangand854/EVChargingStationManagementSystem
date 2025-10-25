@@ -28,7 +28,8 @@ namespace Infrastructure.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<NotificationRecipient> NotificationRecipients { get; set; }
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
-        public DbSet<SystemConfiguration> Report { get; set; }
+        public DbSet<Report> Reports { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
         //public DbSet<PowerOutputKW> PowerOutputsKW { get; set; }
         //public DbSet<PowerOutputKWPerPost> PowerOutputKWPerPosts { get; set; }
 

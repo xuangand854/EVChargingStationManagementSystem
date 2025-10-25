@@ -29,13 +29,13 @@ const ChargingPost = ({ onClose, onUpdated }) => {
 
   const statusMap = {
     InActive: 0,
-    Active: 1,
+    Available: 1,
     Busy: 2,
     Maintained: 3,
   };
 
 
-  // 📦 Load danh sách trạm
+  //  Load danh sách trạm
   useEffect(() => {
     const fetchStations = async () => {
       try {
@@ -43,24 +43,24 @@ const ChargingPost = ({ onClose, onUpdated }) => {
         const stationList = Array.isArray(res.data) ? res.data : [];
         setStations(stationList);
       } catch (err) {
-        console.error("❌ Lỗi load danh sách trạm:", err);
+        console.error(" Lỗi load danh sách trạm:", err);
         setStations([]);
       }
     };
     fetchStations();
   }, []);
 
-  // ⚡ Load trụ theo stationId
+  //  Load trụ theo stationId
       const loadPosts = async (stationId) => {
         try {
           const posts = await getAllChargingPost(stationId);
           setPosts(posts || []);
         } catch (err) {
-          console.error("❌ Lỗi load trụ:", err);
+          console.error(" Lỗi load trụ:", err);
         }
       };
 
-  // 🎯 Khi chọn trạm
+  //  Khi chọn trạm
   const handleSelectStation = (id) => {
     const found = stations.find((s) => s.id === id);
     setSelectedStation(found || null);
@@ -69,7 +69,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     setShowPostList(true);
   };
 
-  // ✏️ Chọn trụ để sửa
+  //  Chọn trụ để sửa
   const handleSelectPost = (post) => {
     setSelectedPost(post);
     setFormData({
@@ -82,7 +82,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     setMode("edit");
   };
 
-  // 💾 Thêm hoặc cập nhật trụ
+  // Thêm hoặc cập nhật trụ
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedStation) return toast.warn("⚠️ Vui lòng chọn trạm trước!");
@@ -93,13 +93,13 @@ const ChargingPost = ({ onClose, onUpdated }) => {
           ...formData,
           stationId: selectedStation.id,
         });
-        toast.success("✅ Cập nhật trụ thành công!");
+        toast.success("Cập nhật trụ thành công!");
       } else {
         await addChargingPost({
           ...formData,
           stationId: selectedStation.id,
         });
-        toast.success("✅ Thêm trụ mới thành công!");
+        toast.success("Thêm trụ mới thành công!");
       }
 
       setFormData({
@@ -113,7 +113,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
       loadPosts(selectedStation.id);
       onUpdated?.();
     } catch (err) {
-      console.error("❌ Lỗi submit:", err);
+      console.error(" Lỗi submit:", err);
       toast.error("Thao tác thất bại!");
     }
   };
@@ -132,7 +132,7 @@ const handleDelete = async (id) => {
 
       onUpdated?.();
     } catch (err) {
-      console.error("❌ Lỗi xóa:", err);
+      console.error(" Lỗi xóa:", err);
       toast.error("Xóa thất bại!");
     }
   }
@@ -141,7 +141,7 @@ const handleDelete = async (id) => {
 
 
 
-  // ⚙️ Đổi trạng thái
+  //  Đổi trạng thái
   const handleChangeStatus = async (post, newStatusString) => {
     try {
       const numericStatus = statusMap[newStatusString];
@@ -150,7 +150,7 @@ const handleDelete = async (id) => {
       loadPosts(selectedStation?.id);
       onUpdated?.();
     } catch (err) {
-      console.error("❌ Lỗi đổi trạng thái:", err);
+      console.error("Lỗi đổi trạng thái:", err);
     }
     onUpdated?.();
   };
@@ -197,7 +197,7 @@ const handleDelete = async (id) => {
 
           {!selectedStation && (
             <p className="warning-text">
-              ⚠️ Vui lòng chọn trạm để hiển thị danh sách trụ!
+               Vui lòng chọn trạm để hiển thị danh sách trụ!
             </p>
           )}
 
@@ -352,7 +352,7 @@ const handleDelete = async (id) => {
                         onChange={(e) => handleChangeStatus(p, e.target.value)}
                       >
                         <option value="InActive">Inactive</option>
-                        <option value="Active">Active</option>
+                        <option value="Available">Active</option>
                         <option value="Busy">Busy</option>
                         <option value="Maintained">Maintained</option>
                       </select>

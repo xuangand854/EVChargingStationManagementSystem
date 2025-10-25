@@ -2,6 +2,7 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.BookingDto;
+using Common.Enum.ChargingSession;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
@@ -15,79 +16,75 @@ namespace BusinessLogic.Services
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly UserManager<UserAccount> _userManager = userManager;
 
-    
-        /// Tạo mới một booking cho người dùng EVDriver.
-  
+        // Tạo booking mới (EndTime mặc định +2h)
         public async Task<IServiceResult> CreateBooking(BookingCreateDto dto, Guid userId)
         {
             try
             {
-                // 1. Kiểm tra tài khoản người dùng có tồn tại và chưa bị xóa
+                // Lấy thông tin người dùng
                 var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(
-                    predicate: u => u.Id == userId && !u.IsDeleted,
-                    asNoTracking: false
-                );
+                    u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản người dùng");
 
-                // 2. Kiểm tra vai trò: chỉ người dùng có vai trò EVDriver mới được phép đặt chỗ
+                // Chỉ cho phép EVDriver đặt chỗ
                 var roles = await _userManager.GetRolesAsync(user);
-                if (!roles.Any(r => r.Equals("EVDriver", StringComparison.OrdinalIgnoreCase)))
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Chỉ người dùng EVDriver mới được phép đặt chỗ");
+                if (!roles.Contains("EVDriver", StringComparer.OrdinalIgnoreCase))
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Chỉ EVDriver mới được phép đặt chỗ");
 
-                // 3. Kiểm tra hồ sơ EVDriver: người dùng phải có hồ sơ EVDriver hợp lệ
+                // Lấy hồ sơ EVDriver (kèm danh sách xe)
                 var evDriver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: e => e.AccountId == userId && !e.IsDeleted
+                    e => e.AccountId == userId && !e.IsDeleted,
+                    include: e => e.Include(x => x.UserVehicles)
+                                   .ThenInclude(uv => uv.VehicleModel)
                 );
                 if (evDriver == null)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Người dùng chưa có hồ sơ EVDriver");
 
-                // 4. Kiểm tra xe: xe phải tồn tại và chưa bị xóa
-                var vehicle = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: v => v.Id == dto.VehicleId && !v.IsDeleted
-                );
-                if (vehicle == null)
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Xe được chọn không hợp lệ");
+                // Lấy xe đầu tiên của EVDriver
+                var vehicle = evDriver.UserVehicles
+                    .Select(uv => uv.VehicleModel)
+                    .FirstOrDefault(v => v != null && !v.IsDeleted);
 
-                // 5. Kiểm tra loại xe: chỉ hỗ trợ EV hoặc Plug-in Hybrid
+                if (vehicle == null)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Hồ sơ EVDriver chưa có xe hợp lệ");
+
+                // Chỉ hỗ trợ xe EV hoặc Plug-in Hybrid
                 if (!vehicle.VehicleType.Equals("EV", StringComparison.OrdinalIgnoreCase) &&
                     !vehicle.VehicleType.Equals("Plug-in Hybrid", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Loại xe không được hệ thống hỗ trợ");
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Loại xe không được hỗ trợ");
 
-                // 6. Kiểm tra thời gian bắt đầu: phải cách thời điểm hiện tại ít nhất 15 phút
+                // Thời gian bắt đầu phải cách hiện tại ít nhất 15 phút
                 if (dto.StartTime < DateTime.UtcNow.AddMinutes(15))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Thời gian bắt đầu phải cách hiện tại ít nhất 15 phút");
 
-                // 7. Kiểm tra người dùng có booking đang hoạt động không (Scheduled hoặc InProgress)
+                // Kiểm tra người dùng có booking đang hoạt động không
                 var activeBookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    predicate: b => b.BookedBy == userId &&
-                                    (b.Status == "Scheduled" || b.Status == "InProgress")
-                );
+                    b => b.BookedBy == userId && (b.Status == "Scheduled" || b.Status == "InProgress"));
                 if (activeBookings.Any())
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Bạn đã có một booking đang hoạt động");
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Bạn đã có booking đang hoạt động");
 
-                // 8. Kiểm tra không được đặt liên tiếp tại cùng trạm trong vòng 30 phút
+                // Không cho đặt lại cùng trạm trong 30 phút
                 var recentBooking = await _unitOfWork.BookingRepository.GetAllAsync(
-                    predicate: b => b.BookedBy == userId &&
-                                    b.StationId == dto.StationId &&
-                                    b.ActualEndTime.HasValue &&
-                                    b.ActualEndTime.Value > DateTime.UtcNow.AddMinutes(-30)
-                );
+                    b => b.BookedBy == userId &&
+                         b.StationId == dto.StationId &&
+                         b.ActualEndTime.HasValue &&
+                         b.ActualEndTime.Value > DateTime.UtcNow.AddMinutes(-30));
                 if (recentBooking.Any())
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong vòng 30 phút");
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong 30 phút");
 
-                // 9. Kiểm tra trạm sạc: trạm phải tồn tại, chưa bị xóa và không gặp sự cố
+                // Lấy trạm sạc
                 var station = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StationId && !s.IsDeleted,
-                    include: s => s.Include(p => p.ChargingPosts)
-                );
+                    s => s.Id == dto.StationId && !s.IsDeleted,
+                    include: s => s.Include(p => p.ChargingPosts));
                 if (station == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc");
 
+                // Trạm đang lỗi thì không cho đặt
                 if (station.Status.Equals("Error", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc đang gặp sự cố, vui lòng chọn trạm khác");
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc đang gặp sự cố");
 
-                // 10. Tìm trụ sạc khả dụng tại trạm (ưu tiên trụ được tạo sớm nhất)
+                // Lấy trụ khả dụng đầu tiên trong trạm
                 var availablePost = station.ChargingPosts
                     .Where(p => p.Status == "Available")
                     .OrderBy(p => p.CreatedAt)
@@ -95,60 +92,54 @@ namespace BusinessLogic.Services
                 if (availablePost == null)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Không có trụ sạc khả dụng tại trạm này");
 
-                // 11. Tạo mới booking
+                // Tạo đối tượng booking
                 var booking = dto.Adapt<Booking>();
                 booking.Id = Guid.NewGuid();
                 booking.BookedBy = userId;
                 booking.Status = "Scheduled";
-                booking.EndTime = dto.StartTime.AddHours(2); // Mặc định thời lượng sạc là 2 tiếng
                 booking.CreatedAt = DateTime.UtcNow;
                 booking.UpdatedAt = DateTime.UtcNow;
+                booking.EndTime = dto.StartTime.AddHours(2);
                 booking.StationId = dto.StationId;
 
-                // 12. Cập nhật trạng thái trụ sạc thành Reserved
+                // Đánh dấu trụ đã được giữ
                 availablePost.Status = "Reserved";
                 availablePost.UpdatedAt = DateTime.UtcNow;
 
-                // Lưu booking và cập nhật trụ sạc
+                // Lưu booking
                 await _unitOfWork.BookingRepository.CreateAsync(booking);
                 var result = await _unitOfWork.SaveChangesAsync();
 
-                // Trả về kết quả thành công nếu lưu thành công
                 if (result > 0)
                 {
                     var response = booking.Adapt<BookingViewDto>();
                     return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Đặt chỗ thành công", response);
                 }
 
-                // Trường hợp lưu thất bại
                 return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể tạo đặt chỗ");
             }
             catch (Exception ex)
             {
-                // Xử lý ngoại lệ và trả về lỗi hệ thống
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
 
-
+        // Lấy chi tiết 1 booking cụ thể
         public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
         {
             try
             {
-                // 1️ Lấy booking từ DB kèm các quan hệ
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    predicate: b => b.Id == bookingId && !b.IsDeleted,
+                    b => b.Id == bookingId && !b.IsDeleted,
                     include: b => b
                         .Include(x => x.BookedByNavigation)
                         .Include(x => x.ChargingStationNavigation)
                         .Include(x => x.ChargingStationNavigation.ChargingPosts)
                 );
 
-                // 2️ Kiểm tra tồn tại
                 if (booking == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
 
-                // 3️ Map sang DTO hiển thị
                 var response = booking.Adapt<BookingViewDto>();
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
@@ -157,13 +148,14 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+        // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
         public async Task<IServiceResult> GetBookingList(Guid? userId = null)
         {
             try
             {
-                // Nếu userId != null → chỉ lấy booking của người đó (EVDriver)
                 var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    predicate: b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
+                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
                     include: b => b
                         .Include(x => x.ChargingStationNavigation)
                         .Include(x => x.BookedByNavigation),
@@ -173,7 +165,6 @@ namespace BusinessLogic.Services
                 if (bookings == null || bookings.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
 
-                // Map sang BookingViewDto
                 var response = bookings.Adapt<List<BookingViewDto>>();
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
@@ -182,151 +173,105 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-      
-        /// Thực hiện check-in cho một booking của người dùng EVDriver.
-        /// Kiểm tra quyền, thời gian hợp lệ và cập nhật trạng thái booking và trụ sạc.
+
+        // Check-in cho booking (cập nhật trạng thái sang InProgress + tính thời gian sạc)
         public async Task<IServiceResult> CheckInBooking(Guid bookingId, Guid userId)
         {
             try
             {
-                // 1️. Kiểm tra người dùng có tồn tại và chưa bị xóa
-                var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(
-                    predicate: u => u.Id == userId && !u.IsDeleted,
-                    asNoTracking: false
-                );
+                // Kiểm tra tài khoản EVDriver
+                var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy người dùng");
 
-                // 2️. Kiểm tra quyền: chỉ người dùng có vai trò EVDriver mới được phép check-in
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Contains("EVDriver", StringComparer.OrdinalIgnoreCase))
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ EVDriver mới có thể check-in");
 
-                // 3️. Lấy thông tin booking theo ID, bao gồm thông tin trạm và các trụ sạc
+                // Lấy booking + trạm + trụ
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    predicate: b => b.Id == bookingId && !b.IsDeleted,
+                    b => b.Id == bookingId && !b.IsDeleted,
                     include: b => b
                         .Include(x => x.ChargingStationNavigation)
-                        .ThenInclude(cs => cs.ChargingPosts),
-                    asNoTracking: false
+                        .ThenInclude(cs => cs.ChargingPosts)
+                        .ThenInclude(p => p.Connectors)
                 );
                 if (booking == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
 
-                // Kiểm tra người dùng có phải là người đã đặt booking này không
                 if (booking.BookedBy != userId)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Bạn không có quyền check-in cho booking này");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không có quyền check-in booking này");
 
-                // Kiểm tra trạng thái booking phải là "Scheduled" (đang chờ check-in)
                 if (!booking.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase))
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Booking không ở trạng thái chờ check-in");
 
-                // 4️. Kiểm tra thời gian check-in hợp lệ: chỉ được check-in trong khoảng ±15 phút so với giờ bắt đầu
+                // Lấy thời gian check-in cho phép
+                var checkinConfig = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                    c => !c.IsDeleted && c.Name == "CHECKIN_ALLOW_MINUTES");
+                int checkinAllowance = (int)(checkinConfig?.MinValue ?? 15);
                 var now = DateTime.UtcNow;
-                if (now < booking.StartTime.AddMinutes(-15) || now > booking.StartTime.AddMinutes(15))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Bạn chỉ có thể check-in trong vòng 15 phút trước hoặc sau giờ bắt đầu");
 
-                // 5️. Cập nhật trạng thái booking sang "InProgress" và ghi nhận thời gian bắt đầu thực tế
-                booking.Status = "InProgress";
-                booking.ActualStartTime = DateTime.UtcNow;
-                booking.UpdatedAt = DateTime.UtcNow;
+                if (now < booking.StartTime.AddMinutes(-checkinAllowance) ||
+                    now > booking.StartTime.AddMinutes(checkinAllowance))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể check-in ngoài thời gian cho phép");
 
-                // 6️. Cập nhật trạng thái trụ sạc từ "Reserved" sang "Charging"
-                var post = booking.ChargingStationNavigation.ChargingPosts
-                    .FirstOrDefault(p => p.Status == "Reserved");
-                if (post != null)
-                {
-                    post.Status = "Charging";
-                    post.UpdatedAt = DateTime.UtcNow;
-                }
-
-                // 7️. Lưu thay đổi vào cơ sở dữ liệu
-                var result = await _unitOfWork.SaveChangesAsync();
-                if (result > 0)
-                {
-                    var response = booking.Adapt<BookingViewDto>();
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công, quá trình sạc đã bắt đầu", response);
-                }
-
-                // Trường hợp lưu thất bại
-                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Check-in thất bại, vui lòng thử lại");
-            }
-            catch (Exception ex)
-            {
-                // Xử lý ngoại lệ và trả về lỗi hệ thống
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
-            }
-        }
-
-        public async Task<IServiceResult> CompleteBooking(Guid bookingId, double? batteryCapacity = null)
-        {
-            try
-            {
-                // 1️. Lấy thông tin booking và các quan hệ liên quan (Trạm sạc + Trụ sạc)
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    predicate: b => b.Id == bookingId && !b.IsDeleted,
-                    include: b => b
-                        .Include(x => x.ChargingStationNavigation)
-                        .ThenInclude(cs => cs.ChargingPosts),
-                    asNoTracking: false
+                // Lấy hồ sơ EVDriver + xe
+                var evDriver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
+                    e => e.AccountId == userId && !e.IsDeleted,
+                    include: e => e
+                        .Include(x => x.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel)
                 );
+                if (evDriver == null)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không tìm thấy hồ sơ EVDriver");
 
-                if (booking == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin đặt chỗ");
+                var vehicle = evDriver.UserVehicles
+                    .Select(uv => uv.VehicleModel)
+                    .FirstOrDefault(v => v != null && !v.IsDeleted);
+                if (vehicle == null)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Hồ sơ chưa có xe hợp lệ");
 
-                // 2️. Chỉ cho phép hoàn tất khi đang trong trạng thái sạc
-                if (!booking.Status.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ có thể hoàn tất khi booking đang ở trạng thái InProgress");
+                // Lấy trụ Reserved
+                var post = booking.ChargingStationNavigation.ChargingPosts
+                    .FirstOrDefault(p => p.Status == "Reserved" && !p.IsDeleted);
+                if (post == null)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không tìm thấy trụ được giữ");
 
-                // 3️. Lấy dung lượng pin của xe (nếu có VehicleModel thì lấy thật, tạm mặc định nếu chưa có)
-                double vehicleBatteryCapacity = batteryCapacity ?? 60.0; // 60kWh: giá trị mặc định phổ biến cho xe điện trung bình
+                // Lấy connector đầu tiên
+                var connector = post.Connectors.FirstOrDefault(c => !c.IsDeleted);
+                if (connector == null)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không có connector hợp lệ");
 
-                // 4️. Xử lý giá trị phần trăm pin trước và sau sạc
+                // Tính công suất, dung lượng pin, thời gian sạc
+                double chargerPower = post.MaxPowerKw;
+                double batteryCapacity = Convert.ToDouble(vehicle.BatteryCapacityKWh);
                 double currentBattery = booking.CurrentBattery ?? 0;
                 double targetBattery = booking.TargetBattery ?? 100;
 
-                // Đảm bảo dữ liệu nằm trong phạm vi 0–100%
-                currentBattery = Math.Clamp(currentBattery, 0, 100);
-                targetBattery = Math.Clamp(targetBattery, currentBattery, 100);
-                // check điều kiện để có thể sạc pin mong muốn phải lớn hơn pin hiện tại có 
                 if (targetBattery <= currentBattery)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Mức pin mục tiêu phải lớn hơn mức pin hiện tại để tính năng lượng");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Mức pin mục tiêu phải lớn hơn mức hiện tại");
 
-                // 5️. Tính toán năng lượng tiêu thụ thực tế (kWh)
-                //  Công thức: Energy = ((TargetBattery - CurrentBattery) / 100) × BatteryCapacity
-                double actualEnergyUsed = ((targetBattery - currentBattery) / 100.0) * vehicleBatteryCapacity;
-                actualEnergyUsed = Math.Round(actualEnergyUsed, 2);
+                double energyNeeded = ((targetBattery - currentBattery) / 100.0) * batteryCapacity;
+                double estimatedHours = energyNeeded / chargerPower;
 
-                // 6️. Cập nhật thông tin booking
-                booking.Status = "Completed";
-                booking.ActualEnergyKWh = actualEnergyUsed;
-                booking.ActualEndTime = DateTime.UtcNow;
-                booking.UpdatedAt = DateTime.UtcNow;
+                // Cập nhật trạng thái booking và trụ
+                booking.Status = "InProgress";
+                booking.ActualStartTime = now;
+                booking.EndTime = now.AddHours(estimatedHours);
+                booking.EstimatedEnergyKWh = energyNeeded;
+                post.Status = "Charging";
 
-                // 7️⃣. Cập nhật trụ sạc trở lại trạng thái khả dụng
-                var activePost = booking.ChargingStationNavigation.ChargingPosts
-                    .FirstOrDefault(p => p.Status == "Charging" || p.Status == "Reserved");
-
-                if (activePost != null)
-                {
-                    activePost.Status = "Available";
-                    activePost.UpdatedAt = DateTime.UtcNow;
-                }
-
-                // 8️. Lưu thay đổi xuống DB
                 var result = await _unitOfWork.SaveChangesAsync();
-
                 if (result > 0)
                 {
                     var response = booking.Adapt<BookingViewDto>();
-                    response.ActualEnergyKWh = actualEnergyUsed;
-
+                    response.EstimatedEnergyKWh = energyNeeded;
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE,
-                        $"Hoàn tất sạc thành công. Tổng năng lượng tiêu thụ: {actualEnergyUsed} kWh",
+                        $"Check-in thành công. Dự kiến sạc {energyNeeded:F2} kWh trong {estimatedHours:F2} giờ.",
                         response);
                 }
 
-                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hoàn tất sạc, vui lòng thử lại");
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Check-in thất bại");
             }
             catch (Exception ex)
             {
@@ -334,58 +279,101 @@ namespace BusinessLogic.Services
             }
         }
 
+        // Hoàn tất booking sau khi phiên sạc đã xong
+        public async Task<IServiceResult> CompleteBooking(Guid bookingId)
+        {
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
+                    b => b.Id == bookingId && !b.IsDeleted,
+                    include: b => b
+                        .Include(x => x.ChargingStationNavigation)
+                        .ThenInclude(cs => cs.ChargingPosts)
+                );
+                if (booking == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking");
 
+                // Tìm session hoàn tất tương ứng
+                var session = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
+                    s => !s.IsDeleted &&
+                         s.UserId == booking.BookedBy &&
+                         s.ChargingPostId == booking.StationId &&
+                         s.Status == ChargingSessionStatus.Completed.ToString());
+                if (session == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy session hoàn tất");
 
-        /// Hủy một booking đã được đặt bởi người dùng EVDriver.
-        /// Kiểm tra quyền sở hữu, trạng thái hợp lệ và giải phóng trụ sạc nếu cần.
-        /// ID của booking cần hủy.
-        /// ID của người dùng thực hiện yêu cầu hủy.
-        /// Kết quả thực hiện hủy booking.
+                // Đồng bộ dữ liệu session → booking
+                booking.Status = "Completed";
+                booking.ActualEnergyKWh = (double?)session.EnergyDeliveredKWh;
+                booking.ActualStartTime = session.StartTime;
+                booking.ActualEndTime = session.EndTime;
+                booking.UpdatedAt = DateTime.Now;
+
+                // Giải phóng trụ
+                var activePost = booking.ChargingStationNavigation.ChargingPosts
+                    .FirstOrDefault(p => p.Status == "Charging" || p.Status == "Reserved");
+                if (activePost != null)
+                {
+                    activePost.Status = "Available";
+                    activePost.UpdatedAt = DateTime.Now;
+                }
+
+                var result = await _unitOfWork.SaveChangesAsync();
+                if (result > 0)
+                {
+                    var response = booking.Adapt<BookingViewDto>();
+                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hoàn tất booking thành công", response);
+                }
+
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể cập nhật booking");
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
+        // Hủy booking nếu chưa tới thời gian bắt đầu
         public async Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId)
         {
             try
             {
-                // 1️. Lấy thông tin người dùng theo userId, đảm bảo tài khoản tồn tại và chưa bị xóa
-                var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(
-                    predicate: u => u.Id == userId && !u.IsDeleted,
-                    asNoTracking: false
-                );
+                // Lấy thông tin user đang thực hiện yêu cầu
+                var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy người dùng");
 
-                // 2️. Kiểm tra vai trò: chỉ người dùng có vai trò EVDriver mới được phép hủy booking
+                // Chỉ cho phép người có vai trò EVDriver được hủy booking
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Any(r => r.Equals("EVDriver", StringComparison.OrdinalIgnoreCase)))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ EVDriver mới được phép hủy đặt chỗ");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ EVDriver được hủy booking");
 
-                // 3️. Lấy thông tin booking theo bookingId, bao gồm trạm sạc và danh sách trụ sạc
+                // Lấy booking cần hủy (kèm thông tin trạm và danh sách trụ sạc)
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    predicate: b => b.Id == bookingId && !b.IsDeleted,
-                    include: b => b
-                        .Include(x => x.ChargingStationNavigation)
-                        .ThenInclude(cs => cs.ChargingPosts),
-                    asNoTracking: false
+                    b => b.Id == bookingId && !b.IsDeleted,
+                    include: b => b.Include(x => x.ChargingStationNavigation)
+                                  .ThenInclude(cs => cs.ChargingPosts)
                 );
                 if (booking == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking");
 
-                // 4️. Kiểm tra quyền sở hữu: người dùng chỉ được hủy booking do chính mình đặt
+                // Kiểm tra quyền: chỉ người tạo booking mới được hủy
                 if (booking.BookedBy != userId)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Bạn không có quyền hủy booking này");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không có quyền hủy booking này");
 
-                // 5️. Kiểm tra trạng thái booking: chỉ được hủy khi đang ở trạng thái "Scheduled"
+                // Chỉ được hủy khi booking đang ở trạng thái Scheduled
                 if (!booking.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ có thể hủy khi booking đang ở trạng thái Scheduled");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ được hủy khi booking đang Scheduled");
 
-                // 6️. Kiểm tra thời gian: không được hủy nếu đã đến hoặc qua thời điểm bắt đầu sạc
+                // Không cho hủy nếu đã tới hoặc quá thời gian bắt đầu
                 if (DateTime.UtcNow >= booking.StartTime)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy sau thời điểm bắt đầu sạc");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy sau thời điểm bắt đầu");
 
-                // 7️. Cập nhật trạng thái booking thành "Cancelled" và ghi nhận thời gian cập nhật
+                // Cập nhật trạng thái booking → Cancelled
                 booking.Status = "Cancelled";
                 booking.UpdatedAt = DateTime.UtcNow;
 
-                // 8️. Giải phóng trụ sạc nếu có trụ đang ở trạng thái "Reserved"
+                // Tìm trụ sạc đang ở trạng thái Reserved để giải phóng lại
                 var reservedPost = booking.ChargingStationNavigation.ChargingPosts
                     .FirstOrDefault(p => p.Status == "Reserved");
                 if (reservedPost != null)
@@ -394,29 +382,188 @@ namespace BusinessLogic.Services
                     reservedPost.UpdatedAt = DateTime.UtcNow;
                 }
 
-                // 9️. Lưu thay đổi vào cơ sở dữ liệu
+                // Lưu thay đổi vào database
                 var result = await _unitOfWork.SaveChangesAsync();
+
+                // Nếu lưu thành công → trả về kết quả kèm dữ liệu booking vừa cập nhật
                 if (result > 0)
                 {
                     var response = booking.Adapt<BookingViewDto>();
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hủy đặt chỗ thành công", response);
+                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hủy booking thành công", response);
                 }
 
-                // Trường hợp lưu thất bại
-                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy đặt chỗ, vui lòng thử lại");
+                // Nếu không có thay đổi nào được lưu
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy booking");
             }
             catch (Exception ex)
             {
-                // Xử lý ngoại lệ và trả về lỗi hệ thống
+                // Bắt lỗi ngoại lệ hệ thống
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
 
 
-        public Task LockAccountsWithTooManyNoShows() => throw new NotImplementedException();
-    
-        public Task AutoCancelExpiredBookings() => throw new NotImplementedException();
-        public Task AutoReassignBookingsForErrorStations() => throw new NotImplementedException();
+        // Tự động khóa tài khoản EVDriver nếu no-show >= 3 lần/tháng
+        public async Task LockAccountsWithTooManyNoShows()
+        {
+            var threshold = 3;
+            var since = DateTime.UtcNow.AddMonths(-1);
 
+            var evDrivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
+                e => !e.IsDeleted,
+                include: e => e.Include(x => x.UserAccount)
+            );
+
+            foreach (var ev in evDrivers)
+            {
+                var noShows = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => b.BookedBy == ev.AccountId &&
+                         b.Status == "NoShow" &&
+                         b.CreatedAt >= since
+                );
+
+                if (noShows.Count >= threshold)
+                {
+                    ev.Status = "Locked";
+                    ev.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // Tự động hủy các booking quá thời gian check-in cho phép
+        // Chú ý: phương thức này sẽ xử lý những booking có trạng thái "Scheduled" mà
+        // hiện tại (UTC) đã vượt quá StartTime + CHECKIN_ALLOW_MINUTES.
+        // CHECKIN_ALLOW_MINUTES lấy từ SystemConfiguration (nếu không có → mặc định 15 phút).
+        public async Task AutoCancelExpiredBookings()
+        {
+            // Lấy thời điểm hiện tại (dùng UTC cho thống nhất trên server)
+            var now = DateTime.UtcNow;
+
+            // Lấy cấu hình CHECKIN_ALLOW_MINUTES từ DB (nếu không tồn tại thì mặc định 15)
+            // Đây là khoảng thời gian cho phép người dùng check-in trước/sau StartTime.
+            var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                c => !c.IsDeleted && c.Name == "CHECKIN_ALLOW_MINUTES");
+            int allowance = (int)(config?.MinValue ?? 15); // if null -> default 15 minutes
+
+            // Lấy tất cả booking có trạng thái "Scheduled" mà thời điểm hiện tại đã vượt quá StartTime + allowance
+            // Kèm theo include để load thông tin ChargingStation và danh sách ChargingPosts
+            // Vì khi hủy cần thao tác trên các trụ đã bị Reserved trong trạm tương ứng.
+            var expiredBookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                b => !b.IsDeleted &&
+                     b.Status == "Scheduled" &&
+                     now > b.StartTime.AddMinutes(allowance),
+                include: b => b.Include(x => x.ChargingStationNavigation)
+                               .ThenInclude(cs => cs.ChargingPosts)
+            );
+
+            // Duyệt từng booking quá hạn
+            foreach (var booking in expiredBookings)
+            {
+                // Cập nhật trạng thái booking → "Cancelled"
+                // Ghi lại thời điểm cập nhật bằng now (UTC)
+                booking.Status = "Cancelled";
+                booking.UpdatedAt = now;
+
+                // Nếu có trụ nào trong danh sách trụ của trạm đang ở trạng thái "Reserved",
+                // thì giải phóng trụ đó (trở về "Available") vì người đặt không đến (no-show)
+                foreach (var post in booking.ChargingStationNavigation.ChargingPosts
+                             .Where(p => p.Status == "Reserved"))
+                {
+                    post.Status = "Available";
+                    post.UpdatedAt = now;
+                }
+
+                // Lưu ý: không gọi SaveChangesAsync() trong vòng foreach để tránh nhiều lần commit nhỏ.
+                // Ta sẽ lưu chung sau khi xử lý xong tất cả expiredBookings để giảm số lần gọi DB.
+            }
+
+            // Lưu mọi thay đổi (cập nhật booking + thay đổi trạng thái trụ) vào DB 1 lần
+            // Nếu có deadlock / concurrency, UnitOfWork hoặc DbContext phải được cấu hình retry/transaction phù hợp.
+            await _unitOfWork.SaveChangesAsync();
+            // - Phương thức này "chỉ" tác động lên booking đã ở trạng thái Scheduled và đã quá StartTime + allowance.
+            // - Nếu muốn đảm bảo idempotency: chạy lại nhiều lần cũng không gây lỗi vì booking đã chuyển sang "Cancelled".
+
+            // - Sử dụng UTC để tránh sai lệch timezone giữa server và client.
+        }
+
+        // Tự động xử lý các booking thuộc trạm bị lỗi
+        // Tự động xử lý các booking thuộc trạm bị lỗi
+        // - Mục đích: Khi một trạm sạc bị lỗi (Status = "Error"), tất cả booking "Scheduled" tại đó
+        //   sẽ được chuyển sang trạm khả dụng khác. Nếu không có trạm khả dụng, booking sẽ bị hủy.
+        // - Chạy định kỳ bởi scheduler (ví dụ: background service hoặc cron job).
+        // Tự động xử lý lại các booking thuộc các trạm sạc đang gặp lỗi
+        public async Task AutoReassignBookingsForErrorStations()
+        {
+            //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
+            var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
+                s => s.Status == "Error" && !s.IsDeleted,
+                include: s => s.Include(x => x.ChargingPosts)
+            );
+
+            // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
+            if (errorStations == null || !errorStations.Any())
+                return;
+
+            // 🔹 Cache (tải sẵn) danh sách trạm sạc đang khả dụng
+            //     Mục đích: tránh việc truy vấn database nhiều lần trong vòng lặp
+            var availableStations = (await _unitOfWork.ChargingStationRepository.GetAllAsync(
+                s => s.Status == "Available" && !s.IsDeleted,
+                include: s => s.Include(p => p.ChargingPosts)
+            )).ToList();
+
+            //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
+            var now = DateTime.UtcNow;
+
+            //  Duyệt từng trạm sạc đang bị lỗi
+            foreach (var station in errorStations)
+            {
+                //  Lấy toàn bộ booking thuộc trạm này có trạng thái "Scheduled" (đang chờ sạc)
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => b.StationId == station.Id && b.Status == "Scheduled"
+                );
+
+                //  Duyệt từng booking cần xử lý
+                foreach (var booking in bookings)
+                {
+                    //  Tìm một trạm thay thế có ít nhất 1 post đang ở trạng thái "Available"
+                    //     => Ưu tiên trạm sẵn sàng phục vụ
+                    var alternativeStation = availableStations.FirstOrDefault(
+                        s => s.ChargingPosts.Any(p => p.Status == "Available")
+                    );
+
+                    if (alternativeStation != null)
+                    {
+                        //  Tìm thấy trạm thay thế phù hợp
+                        //    → Cập nhật lại StationId của booking
+                        booking.StationId = alternativeStation.Id;
+                        booking.UpdatedAt = now;
+
+                        //  Chọn một post đang Available trong trạm thay thế và đánh dấu nó là Reserved
+                        var availablePost = alternativeStation.ChargingPosts
+                            .FirstOrDefault(p => p.Status == "Available");
+
+                        if (availablePost != null)
+                        {
+                            availablePost.Status = "Reserved";   // Post được giữ chỗ cho booking này
+                            availablePost.UpdatedAt = now;
+                        }
+                    }
+                    else
+                    {
+                        //  Không tìm thấy trạm thay thế nào phù hợp
+                        //    → Hủy booking để tránh khách hàng chờ vô ích
+                        booking.Status = "Cancelled";
+                        booking.UpdatedAt = now;
+                    }
+                }
+            }
+
+            //  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+    
     }
 }

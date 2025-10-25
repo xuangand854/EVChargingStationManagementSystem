@@ -162,5 +162,33 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+        // EVDriver tự xem hồ sơ của mình
+        public async Task<IServiceResult> GetMyProfile(Guid currentUserId)
+        {
+            try
+            {
+                //  Ở đây dùng AccountId vì entity không có UserAccountId
+                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
+                    predicate: d => d.AccountId == currentUserId && !d.IsDeleted,
+                    include: q => q
+                        .Include(d => d.UserAccount)
+                        .Include(d => d.Ranking)
+                        .Include(d => d.UserVehicles)
+                            .ThenInclude(uv => uv.VehicleModel),
+                    asNoTracking: true
+                );
+
+                if (driver == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE,
+                        "Không tìm thấy hồ sơ tài xế tương ứng với tài khoản hiện tại.");
+
+                var response = driver.Adapt<EVDriverViewDto>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
     }
-}
+    }

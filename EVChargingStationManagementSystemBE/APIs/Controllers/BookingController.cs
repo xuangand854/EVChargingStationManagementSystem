@@ -93,9 +93,9 @@ namespace APIs.Controllers
         // PATCH: api/booking/{bookingId}/complete (EVDriver)
         [HttpPatch("{bookingId}/complete")]
         [Authorize(Roles = "EVDriver")]
-        public async Task<IActionResult> CompleteBooking([FromRoute] Guid bookingId, [FromQuery] double? batteryCapacity = null)
+        public async Task<IActionResult> CompleteBooking([FromRoute] Guid bookingId)
         {
-            var result = await _bookingService.CompleteBooking(bookingId, batteryCapacity);
+            var result = await _bookingService.CompleteBooking(bookingId );
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

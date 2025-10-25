@@ -34,7 +34,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ===================== LẤY CHI TIẾT BÁO CÁO =====================
+        //  LẤY CHI TIẾT BÁO CÁO 
         // GET: api/report/{id} (Admin, Staff)
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin,Staff")]
@@ -51,7 +51,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ===================== TẠO BÁO CÁO MỚI =====================
+        //  TẠO BÁO CÁO MỚI 
         // POST: api/report (EVDriver)
         [HttpPost]
         [Authorize(Roles = "EVDriver")]
@@ -71,7 +71,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ===================== CẬP NHẬT BÁO CÁO =====================
+        // CẬP NHẬT BÁO CÁO
         // PUT: api/report/{id} (Admin, Staff)
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Staff")]
@@ -94,7 +94,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // ===================== XÓA (SOFT DELETE) BÁO CÁO =====================
+        // XÓA (SOFT DELETE) BÁO CÁO 
         // DELETE: api/report/{id} (Admin)
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]

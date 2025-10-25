@@ -2,6 +2,7 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileEVDriverDto;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -118,25 +119,20 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
         [HttpGet("profile")]
-        [Authorize(Roles = "Admin,EVDriver")]
-        public async Task<IActionResult> GetProfile([FromQuery] Guid? driverId = null)
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> GetMyProfile()
         {
-            Guid finalDriverId;
-
-            // Nếu là Admin và có driverId trong query => xem profile người khác
-            if (User.IsInRole("Admin") && driverId.HasValue)
+            Guid userId;
+            try
             {
-                finalDriverId = driverId.Value;
+                userId = User.GetUserId();
             }
-            else
+            catch
             {
-                // Nếu là EVDriver => lấy ID từ token
-                var driverIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(driverIdClaim) || !Guid.TryParse(driverIdClaim, out finalDriverId))
-                    return Unauthorized(new { message = "Không tìm thấy hoặc ID không hợp lệ trong token." });
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
             }
 
-            var result = await _evDriverService.GetById(finalDriverId);
+            var result = await _evDriverService.GetMyProfile(userId);
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

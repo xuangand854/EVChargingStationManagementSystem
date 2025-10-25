@@ -33,7 +33,8 @@ builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationServi
 builder.Services.AddScoped<IConnectorService, ConnectorService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(options =>
 {

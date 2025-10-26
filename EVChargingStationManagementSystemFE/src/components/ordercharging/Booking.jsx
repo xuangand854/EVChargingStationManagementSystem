@@ -52,7 +52,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         parseInt(bookingData.currentBattery),
         parseInt(bookingData.targetBattery)
       );
-      toast.success("✅ Thêm booking thành công!");
+      toast.success(" Thêm booking thành công!");
       if (onAdded) onAdded();
       onClose();
       setBookingData({

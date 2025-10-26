@@ -13,14 +13,18 @@ const ProfilePage = () => {
       try {
         const authStatus = await getAuthStatus();
         if (authStatus.isAuthenticated && authStatus.user) {
-          setUser({ name: authStatus.user.name || "Người dùng" });
-        } else setUser({ name: "Khách" });
+          setUser({ 
+            name: authStatus.user.name || "Người dùng",
+            role: authStatus.user.role 
+          });
+        } else setUser({ name: "Khách", role: null });
       } catch {
-        setUser({ name: "Khách" });
+        setUser({ name: "Khách", role: null });
       }
     };
     fetchUser();
   }, []);
+
 
   const quickActions = [
     { title: "Tìm trạm sạc", icon: <MapPin size={20} />, path: "/order-charging" },
@@ -48,17 +52,25 @@ const ProfilePage = () => {
       </div>
 
       {/* Thao tác nhanh */}
-      <div className="quick-actions">
-        <h2>Thao tác nhanh</h2>
-        <div className="actions-grid">
-          {quickActions.map((a, i) => (
-            <div key={i} className="action-box" onClick={() => navigate(a.path)}>
-              <div className="icon">{a.icon}</div>
-              <p>{a.title}</p>
-            </div>
-          ))}
+      {user && (
+        <div className="quick-actions">
+          <h2>Thao tác nhanh</h2>
+          <div className="actions-grid">
+            {quickActions.map((a, i) => {
+              // Ẩn "/profile" và "/Payment" nếu là admin/staff
+              if ((a.path === "/profile" || a.path === "/Payment") && (user.role === "Admin" || user.role === "Staff")) {
+                return null;
+              }
+              return (
+                <div key={i} className="action-box" onClick={() => navigate(a.path)}>
+                  <div className="icon">{a.icon}</div>
+                  <p>{a.title}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Giao dịch & Trạng thái */}
       <div className="bottom-section">

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { updateEVDriver, getEVDriverProfile } from "../../API/EVDriver";
+import { changePassword } from "../../API/Auth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const defaultAvatars = {
   customer: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
@@ -11,30 +14,30 @@ const defaultAvatars = {
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Chỉ EVDriver hoặc staff mới được xem thông tin tài khoản
-  
-  const [mode, setMode] = useState("view"); // view | edit | password
+  const [mode, setMode] = useState("view");
+  const [showPopup, setShowPopup] = useState(""); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    role: "customer",
+    role: "",
+    address:"",
     avatar: "",
     car: "",
+    driverId: "",
   });
   const [passwordData, setPasswordData] = useState({
-    oldPass: "",
-    newPass: "",
-    confirmPass: "",
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
+  //  Lấy thông tin tài xế khi load
   useEffect(() => {
     const fetchDriver = async () => {
       try {
-        // BE sẽ tự nhận token trong header (axios interceptor hoặc cookie)
         const res = await getEVDriverProfile();
         const driver = res?.data?.data || res?.data;
-
         if (driver) {
           const userData = {
             name: driver.name || "Chưa cập nhật",
@@ -42,6 +45,7 @@ const Profile = () => {
             phone: driver.phoneNumber || "Chưa cập nhật",
             role: driver.role || "customer",
             avatar: driver.profilePictureUrl || "",
+            address:driver.address ||"Chưa Cập Nhật",
             car:
               driver.vehicleModelIds && driver.vehicleModelIds.length > 0
                 ? driver.vehicleModelIds.join(", ")
@@ -51,12 +55,11 @@ const Profile = () => {
           setUser(userData);
           setFormData(userData);
         } else {
-          console.warn("Không có dữ liệu tài xế trả về!");
-          setUser(null);
+          toast.warn("Không có dữ liệu tài xế!");
         }
       } catch (err) {
         console.error("Lỗi khi load EVDriver:", err);
-        setUser(null);
+        toast.error("Không thể tải thông tin tài xế!");
       } finally {
         setLoading(false);
       }
@@ -65,15 +68,11 @@ const Profile = () => {
     fetchDriver();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
+  //  Cập nhật thông tin tài xế
   const handleSaveProfile = async () => {
     try {
       if (!user?.driverId) {
-        alert("Không tìm thấy mã tài xế để cập nhật!");
+        toast.error("Không tìm thấy mã tài xế!");
         return;
       }
 
@@ -94,86 +93,83 @@ const Profile = () => {
             : "Chưa có xe",
       });
 
-      alert("Cập nhật thông tin thành công!");
+      toast.success("Cập nhật thông tin thành công!");
       setMode("view");
     } catch (error) {
       console.error("Lỗi khi cập nhật:", error);
-      alert("Cập nhật thất bại, vui lòng thử lại!");
+      toast.error("Cập nhật thất bại, vui lòng thử lại!");
     }
   };
 
-  const handlePasswordChange = () => {
-    if (passwordData.newPass !== passwordData.confirmPass) {
-      alert("Mật khẩu mới và xác nhận không khớp!");
+  //  Đổi mật khẩu
+  const handlePasswordChange = async () => {
+    const { oldPassword, newPassword, confirmPassword } = passwordData;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
-    alert("Đổi mật khẩu thành công! (Giả lập)");
-    setPasswordData({ oldPass: "", newPass: "", confirmPass: "" });
-    setMode("view");
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu mới và xác nhận không khớp!");
+      return;
+    }
+
+    try {
+      const res = await changePassword(oldPassword, newPassword, confirmPassword);
+      if (res?.status === 200 || res?.success) {
+        toast.success("Đổi mật khẩu thành công!");
+        setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setMode("view");
+      } else {
+        toast.error(res?.message || "Đổi mật khẩu thất bại!");
+      }
+    } catch (err) {
+      console.error("Lỗi đổi mật khẩu:", err);
+      toast.error("Mật khẩu cũ không đúng hoặc có lỗi hệ thống!");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (loading) return <p className="loading">Đang tải...</p>;
   if (!user) return <p>Không tìm thấy thông tin tài xế</p>;
 
-  // Nếu là admin: chỉ hiển thị nút chuyển sang Admin Dashboard
-  if (user.role === "admin") {
-    return (
-      <div className="profile-wrapper">
-        <div className="profile-sidebar">
-          <div className="sidebar-card user-card">
-            <img
-              src={user.avatar || defaultAvatars[user.role]}
-              alt="avatar"
-              className="avatar"
-            />
-            <p className="welcome">Xin chào,</p>
-            <h3>{user.name}</h3>
-          </div>
-        </div>
-
-        <div className="profile-main">
-          <div className="profile-card">
-            <h2>Chế độ quản trị</h2>
-            <p>Bạn đang đăng nhập bằng quyền Admin.</p>
-            <button
-              className="switch-admin-btn"
-              onClick={() => (window.location.href = "/admin")}
-            >
-              Chuyển sang trang Admin
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Chỉ EVDriver hoặc staff mới được xem thông tin tài khoản
-
-
   return (
     <div className="profile-wrapper">
+      <ToastContainer position="top-right" autoClose={2000} />
+
       {/* Sidebar */}
       <div className="profile-sidebar">
         <div className="sidebar-card user-card">
-          <img
-            src={user.avatar || defaultAvatars[user.role]}
-            alt="avatar"
-            className="avatar"
-          />
+          <div className="avatar-container">
+            <img
+              src={formData.avatar || defaultAvatars[user.role]}
+              alt="avatars"
+              className="avatars"
+            />
+            <button
+              className="edit-avatar-icon"
+              onClick={() => setShowPopup("avatar")}
+              title="Đổi ảnh đại diện"
+            >
+            📷
+            </button>
+          </div>
           <p className="welcome">Xin chào,</p>
           <h3>{user.name}</h3>
         </div>
 
         <div className="sidebar-card notice-card">
-          <p className="warning">⚡ Thông tin tài xế</p>
-          <p className="desc">
-            Thông tin được đồng bộ từ hệ thống EVDriver. Bạn có thể chỉnh sửa và
-            lưu lại tại đây.
-          </p>
+          <p className="warning">Thông tin tài xế</p>
+          <p className="desc">Hãy cập nhật đầy đủ để sử dụng dịch vụ tốt hơn.</p>
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Main Content */}
       <div className="profile-main">
         <div className="profile-card">
           <div className="profile-header">
@@ -185,7 +181,6 @@ const Profile = () => {
             )}
           </div>
 
-          {/* View mode */}
           {mode === "view" && (
             <div className="profile-info">
               <div className="info-row">
@@ -201,22 +196,29 @@ const Profile = () => {
                 <span>{user.phone}</span>
               </div>
               <div className="info-row">
-                <span className="label">Xe</span>
-                <span>{user.car}</span>
+                <span className="label">Địa Chỉ</span>
+                <span>{user.address}</span>
               </div>
+              <div className="info-row vehicle-row">
+                <span className="label">Xe</span>
+                <div className="vehicle-right">
+                
+                  <span className="info-value">{user.car}</span>
+                  <button className="link-btn" onClick={() => setShowPopup("vehicle")}>
+                    Chỉnh sửa
+                  </button>
+                </div>
+              </div>
+
               <div className="info-row">
                 <span className="label">Mật khẩu</span>
-                <button
-                  className="link-btn"
-                  onClick={() => setMode("password")}
-                >
+                <button className="link-btn" onClick={() => setMode("password")}>
                   Đổi mật khẩu
                 </button>
               </div>
             </div>
           )}
 
-          {/* Edit mode */}
           {mode === "edit" && (
             <div className="profile-form">
               <h3>Tên</h3>
@@ -227,17 +229,19 @@ const Profile = () => {
                 onChange={handleInputChange}
               />
               <h3>Email</h3>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                readOnly
-              />
+              <input type="email" name="email" value={formData.email} readOnly />
               <h3>Số điện thoại</h3>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
+                onChange={handleInputChange}
+              />
+              <h3>Địa chỉ</h3>
+              <input
+                type="text"
+                name="address"
+                value={formData.address || ""}
                 onChange={handleInputChange}
               />
               <div className="form-buttons">
@@ -251,33 +255,32 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Password mode */}
           {mode === "password" && (
             <div className="profile-form">
               <input
                 type="password"
                 placeholder="Mật khẩu cũ"
-                value={passwordData.oldPass}
+                value={passwordData.oldPassword}
                 onChange={(e) =>
-                  setPasswordData({ ...passwordData, oldPass: e.target.value })
+                  setPasswordData({ ...passwordData, oldPassword: e.target.value })
                 }
               />
               <input
                 type="password"
                 placeholder="Mật khẩu mới"
-                value={passwordData.newPass}
+                value={passwordData.newPassword}
                 onChange={(e) =>
-                  setPasswordData({ ...passwordData, newPass: e.target.value })
+                  setPasswordData({ ...passwordData, newPassword: e.target.value })
                 }
               />
               <input
                 type="password"
                 placeholder="Xác nhận mật khẩu mới"
-                value={passwordData.confirmPass}
+                value={passwordData.confirmPassword}
                 onChange={(e) =>
                   setPasswordData({
                     ...passwordData,
-                    confirmPass: e.target.value,
+                    confirmPassword: e.target.value,
                   })
                 }
               />
@@ -293,6 +296,71 @@ const Profile = () => {
           )}
         </div>
       </div>
+
+      {/* Popup avatar / vehicle */}
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            {showPopup === "avatar" ? (
+              <>
+                <h3> Nhập URL ảnh đại diện</h3>
+                <input
+                  type="text"
+                  placeholder="Dán link ảnh vào đây để đổi ảnh đại diện"
+                  value={formData.avatar}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, avatar: e.target.value }))
+                  }
+                  className="avatar-url-input"
+                />
+                <div className="popup-buttons">
+                  <button
+                    className="save"
+                    onClick={async () => {
+                      await handleSaveProfile();
+                      setUser((prev) => ({ ...prev, avatar: formData.avatar }));
+                      setShowPopup("");
+                      
+                    }}
+                  >
+                    Lưu
+                  </button>
+                  <button className="cancel" onClick={() => setShowPopup("")}>
+                    Hủy
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3>Nhập loại xe của bạn</h3>
+                <input
+                  type="text"
+                  placeholder="VD: VinFast VF8"
+                  value={formData.car}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, car: e.target.value }))
+                  }
+                />
+                <div className="popup-buttons">
+                  <button
+                    className="save"
+                    onClick={() => {
+                      setUser((prev) => ({ ...prev, car: formData.car }));
+                      toast.success("Đã cập nhật loại xe!");
+                      setShowPopup("");
+                    }}
+                  >
+                    Lưu
+                  </button>
+                  <button className="cancel" onClick={() => setShowPopup("")}>
+                    Hủy
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

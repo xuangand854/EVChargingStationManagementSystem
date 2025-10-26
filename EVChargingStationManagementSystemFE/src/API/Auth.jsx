@@ -232,3 +232,14 @@ export const resetPassword = async (userId, token, newPassword) => { // đặt l
     throw error;
   }
 }
+export const changePassword = async(oldPassword,newPassword,confirmPassword) => {
+  try {
+    const response = await api.post(`${BASE_URL}/change-password`,{
+      oldPassword,newPassword,confirmPassword
+    });
+    return response.data
+  } catch (error) {
+    console.error('ErrorChange-password',error);
+    throw error;
+  }
+}

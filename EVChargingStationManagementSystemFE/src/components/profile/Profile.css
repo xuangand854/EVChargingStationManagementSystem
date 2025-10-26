@@ -1,12 +1,19 @@
+/* ===========================
+   Tổng thể layout
+=========================== */
 .profile-wrapper {
   display: flex;
   gap: 20px;
   padding: 20px;
-  background: #eee;
-  color: #000; /* toàn bộ chữ mặc định là đen */
+  background: #f3f4f6;
+  color: #000;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
 }
 
-/* Sidebar */
+/* ===========================
+   Sidebar
+=========================== */
 .profile-sidebar {
   width: 280px;
   display: flex;
@@ -18,58 +25,100 @@
   background: #fff;
   padding: 20px;
   border-radius: 10px;
-  color: #000; /* chữ trong sidebar đen */
+  color: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* ===========================
+   Avatar + tên người dùng
+=========================== */
 .user-card {
   text-align: center;
+  position: relative;
 }
 
-.user-card .avatar {
-  width: 70px;
-  height: 70px;
+.avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px;
+}
+
+.avatars{
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  margin-bottom: 10px;
+  object-fit: cover;
+  border: 3px solid #38bdf8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background-color: #e2e8f0;
+}
+
+.edit-avatar-icon {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.edit-avatar-icon:hover {
+  background: #2563eb;
+  transform: scale(1.05);
 }
 
 .user-card .welcome {
   font-size: 14px;
-  color: #000;
+  color: #555;
+  margin-bottom: 4px;
 }
 
+.user-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* ===========================
+   Thông báo phụ
+=========================== */
 .notice-card .warning {
   font-weight: bold;
-  color: #000;
+  color: #111;
+  font-size: 15px;
 }
 
 .notice-card .desc {
   font-size: 14px;
   margin: 10px 0;
-  color: #000;
+  color: #444;
 }
 
-.notice-card a {
-  color: #000;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.app-links img {
-  width: 120px;
-  margin-top: 10px;
-  display: block;
-}
-
-/* Main content */
+/* ===========================
+   Main content
+=========================== */
 .profile-main {
   flex: 1;
 }
 
 .profile-card {
   background: #fff;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 25px;
+  border-radius: 12px;
   color: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header {
@@ -80,22 +129,31 @@
 
 .profile-header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #000;
+  color: #111;
 }
 
-/* Nút "Chỉnh sửa thông tin" có underline xanh */
+/* ===========================
+   Nút chỉnh sửa thông tin
+=========================== */
 .edit-btn {
   border: none;
   background: none;
-  color: blue;
+  color: #2563eb;
   cursor: pointer;
   font-size: 14px;
-  text-decoration: underline;         /* gạch chân */
-  text-decoration-color: blue;        /* màu xanh dương */
+  text-decoration: underline;
+  transition: color 0.2s ease;
 }
 
+.edit-btn:hover {
+  color: #1d4ed8;
+}
+
+/* ===========================
+   Thông tin hiển thị
+=========================== */
 .profile-info {
   margin-top: 15px;
 }
@@ -103,6 +161,7 @@
 .info-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
   color: #000;
@@ -113,16 +172,26 @@
   color: #000;
 }
 
-/* Nút "Đổi mật khẩu" cũng underline xanh */
+/* ===========================
+   Link chỉnh sửa và đổi mật khẩu
+=========================== */
 .link-btn {
   border: none;
   background: none;
-  color: blue;
+  color: #2563eb;
   cursor: pointer;
   text-decoration: underline;
-  text-decoration-color: blue;
+  text-decoration-color: #2563eb;
+  font-size: 14px;
 }
 
+.link-btn:hover {
+  color: #1d4ed8;
+}
+
+/* ===========================
+   Form chỉnh sửa
+=========================== */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -135,11 +204,23 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   color: #000;
+  width: 100%;
+  transition: border 0.2s;
 }
 
+.profile-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 3px rgba(59,130,246,0.4);
+}
+
+/* ===========================
+   Nút lưu & hủy
+=========================== */
 .form-buttons {
   display: flex;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .form-buttons button {
@@ -147,15 +228,161 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  color: #000;
+  font-weight: 500;
+  font-size: 14px;
 }
 
 .save {
-  background: #ccc;
-  color: #000;
+  background: #3b82f6;
+  color: white;
+}
+
+.save:hover {
+  background: #2563eb;
 }
 
 .cancel {
-  background: #eee;
+  background: #e5e7eb;
+  color: #111;
+}
+
+.cancel:hover {
+  background: #d1d5db;
+}
+
+/* ===========================
+   Popup chỉnh ảnh / xe
+=========================== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 41, 59, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.popup {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  width: 340px;
+  text-align: center;
+  animation: popupFade 0.25s ease;
+}
+
+@keyframes popupFade {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.popup h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #111;
+}
+
+.avatar-url-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
   color: #000;
 }
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+
+.popup-buttons .save {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popup-buttons .save:hover {
+  background: #2563eb;
+}
+
+.popup-buttons .cancel {
+  background: #e5e7eb;
+  color: #111;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.popup-buttons .cancel:hover {
+  background: #d1d5db;
+}
+
+/* ===========================
+   Loading text
+=========================== */
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  padding: 40px;
+}
+/* Xe + Chỉnh sửa gộp cùng 1 bên trái */
+
+.vehicle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.vehicle-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-weight: 500;
+  color: #111;
+  min-width: 60px;
+}
+
+.vehicle-row .link-btn {
+  border: none;
+  background: none;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #2563eb;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.vehicle-row .link-btn:hover {
+  color: #1d4ed8;
+}
+
+.info-value {
+  color: #0f172a;
+  font-size: 17px;
+}
+

@@ -143,7 +143,7 @@ const OrderChargingST = () => {
       setStationPosts(postsByStation);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách trạm:", error);
-      toast.error("❌ Lấy danh sách trạm thất bại!");
+      toast.error(" Lấy danh sách trạm thất bại!");
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ const OrderChargingST = () => {
   if (!user)
     return (
       <div className="login-required">
-        <h3>⚠️ Bạn phải đăng nhập để đặt lịch sạc</h3>
+        <h3> Bạn phải đăng nhập để đặt lịch sạc</h3>
         <p>Vui lòng đăng nhập để tiếp tục sử dụng dịch vụ.</p>
         <button className="btn-login" onClick={() => navigate("/login")}>
           Đăng nhập ngay
@@ -213,8 +213,8 @@ const OrderChargingST = () => {
               className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
               onClick={() => handleSelectStation(st)}
             >
-              <h4>🏙️ {st.stationName}</h4>
-              <p>📍 {st.location}, {st.province}</p>
+              <h4> {st.stationName}</h4>
+              <p> {st.location}, {st.province}</p>
 
               {/*  Chỉ hiện danh sách trụ khi trạm này được chọn */}
               {selectedStation?.id === st.id && (

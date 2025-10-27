@@ -34,6 +34,9 @@ import RatingPage from "./components/profile/RatingPage";
 import AdminStationPanel from "./components/ordercharging/AdminStationPannel";
 import IOTChargingSystem from "./components/IOTChargingSystem/IOTChargingSystem.jsx"
 import Booking from "./components/ordercharging/Booking.jsx";
+import StaffLayout from "./components/pages/staff/StaffLayout.jsx";
+import StaffPrivateRoute from "./components/pages/staff/StaffPrivateRoute.jsx";
+
 
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
@@ -66,7 +69,7 @@ export default function App() {
           <Route path="order-charging" element={<OrderChargingST />} />
           <Route path="charging-post" element={<ChargingPost />} />
           <Route path="admin-pannel" element={<AdminStationPanel />} />
-          <Route path="" element={<Booking/>} />
+          <Route path="" element={<Booking />} />
           {/* // */}
           {/* IOTChargingSystem */}
           <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
@@ -83,6 +86,15 @@ export default function App() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path="stations" element={<AdminStations />} />
+          <Route path="staff" element={<AdminStaff />} />
+          <Route path="vehicles" element={<AdminVehicles />} />
+          <Route path="system-configuration" element={<SystemConfigEditor />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
+        {/* Staff Routes */}
+        <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
+          <Route index element={<StaffLayout />} />
           <Route path="stations" element={<AdminStations />} />
           <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />

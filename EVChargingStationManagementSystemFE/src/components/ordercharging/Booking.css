@@ -15,9 +15,9 @@
 /* Container popup */
 .popup-container {
   background-color: #fff;
-  padding: 20px;
-  width: 400px;
   max-width: 90%;
+  padding: 30px;
+  width: 500px;
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   position: relative;

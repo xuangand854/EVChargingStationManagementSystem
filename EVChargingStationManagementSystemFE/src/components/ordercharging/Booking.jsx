@@ -1,12 +1,16 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { addBooking } from "../../API/Booking";
+import { addBooking } from "../../API/Booking.js";
+import {getVehicleModels} from "../../API/Admin"
 import "react-toastify/dist/ReactToastify.css";
 import "./Booking.css";
 
 export default function BookingPopup({ stations = [], stationId, onClose, onAdded }) {
   const [term, setTerm] = useState("");
+  const [termVehicle,setTermVehicle] = useState("");
+  const [showDropdownVehicle,setShowDropdownVehicle] = useState (false);
+  const [VehicleModels,setVehicleModels] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false); // state hiển thị dropdown
   const [bookingData, setBookingData] = useState({
     stationId: stationId || "",
@@ -15,6 +19,19 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     currentBattery: 0,
     targetBattery: 0,
   });
+  //lấy api xe 
+  useEffect(()=>{
+    const fetchVehicleModels = async ()=>{
+      try {
+        const res = await getVehicleModels();
+        setVehicleModels(res.data);
+      } catch (error) {
+        console.log('không thể lấy danh sách xe',error);
+        toast.error("Không thể tải danh sách xe!");
+      }
+    };
+    fetchVehicleModels();
+  },[]);
 
   const normalize = (str) =>
     str
@@ -31,6 +48,19 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         normalize(st.province).includes(normalize(term))
       )
     : stations; // show all if empty
+
+  const filteredVehicles = termVehicle
+    ? VehicleModels.filter((v) =>
+        normalize(v.modelName).includes(normalize(termVehicle)) ||
+        normalize(v.vehicleType).includes(normalize(termVehicle))
+      )
+    : VehicleModels;
+
+  const handleSelectVehicle = (v) => {
+    setTermVehicle(`${v.vehicleType} ${v.modelName}`);
+    setBookingData({ ...bookingData, vehicleId: v.id });
+    setShowDropdownVehicle(false);
+  };
 
   const handleSelect = (st) => {
     setTerm(st.stationName);
@@ -66,7 +96,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
       setShowDropdown(false);
     } catch (error) {
       console.error(error);
-      toast.error("❌ Lỗi khi thêm booking!");
+      toast.error(" Lỗi khi thêm booking!");
     }
   };
 
@@ -113,15 +143,45 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
           )}
         </div>
 
-        <input
-          type="text"
-          placeholder="Mã xe / Vehicle ID"
-          value={bookingData.vehicleId}
-          onChange={(e) =>
-            setBookingData({ ...bookingData, vehicleId: e.target.value })
-          }
-        />
+        <label>Chọn xe:</label>
+        <div className="autocomplete-container">
+          <input
+            type="text"
+            placeholder="Nhập tên hoặc hãng xe"
+            value={termVehicle}
+            onFocus={() => setShowDropdownVehicle(true)}
+            onChange={(e) => {
+              setTermVehicle(e.target.value);
+              setShowDropdownVehicle(true);
+            }}
+            className="autocomplete-input"
+          />
+          {showDropdownVehicle && filteredVehicles.length > 0 && (
+            <div className="autocomplete-list">
+              {filteredVehicles.map((v) => {
+                const regex = new RegExp(`(${escapeRegex(termVehicle)})`, "i");
+                const parts = `${v.vehicleType} ${v.modelName}`.split(regex);
+                return (
+                  <div
+                    key={v.id}
+                    className="autocomplete-item"
+                    onClick={() => handleSelectVehicle(v)}
+                  >
+                    {parts.map((part, i) =>
+                      regex.test(part) ? (
+                        <span key={i} className="highlight">{part}</span>
+                      ) : (
+                        part
+                      )
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
+        <label>Thời Gian Bắt Đầu</label>
         <input
           type="datetime-local"
           value={bookingData.startTime}
@@ -143,3 +203,4 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     </div>
   );
 }
+

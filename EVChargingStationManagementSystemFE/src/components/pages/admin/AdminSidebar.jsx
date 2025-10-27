@@ -6,9 +6,9 @@ import "./AdminSidebar.css";
 const AdminSidebar = () => {
     const menuItems = [
         { name: "Trang chủ", path: "/", icon: <House size={20} /> },
-        { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
+        // { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/admin/stations", icon: <Zap size={20} /> },
-        { name: "sì táp", path: "/admin/staff", icon: <Users size={20} /> },
+        { name: "Nhân viên", path: "/admin/staff", icon: <Users size={20} /> },
         { name: "Xe điện", path: "/admin/vehicles", icon: <Car size={20} /> },
         { name: "Cấu hình hệ thống", path: "/admin/system-configuration", icon: <Settings size={20} /> },
         // { name: "Cài đặt", path: "/admin/settings", icon: <Settings size={20} /> },

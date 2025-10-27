@@ -1,81 +1,29 @@
+// src/API/Staff.js
 import api from './axios';
 
-const BASE_URL = '/Staff';
+const BASE_URL = '/staff'; // ← chữ thường
 
-// GET: Fetch staff information by ID
-export const getStaffInfo = async (id) => {
-    try {
-        const response = await api.get(`${BASE_URL}/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching staff info:', error);
-        throw error;
-    }
-};
-
-//GET: Fetch all staff members
 export const getAllStaff = async () => {
-    try {
-        const response = await api.get(`${BASE_URL}`);
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching all staff:', error);
-        throw error;
-    }
+    const { data } = await api.get(BASE_URL);
+    return data; // { data: [...], message: "..." }
 };
 
-// PATCH: Update staff status
-export const updateStaffStatus = async (staffId, status) => {
-    try {
-        const response = await api.patch(`${BASE_URL}/status`, { staffId, status });
-        return response.data;
-    } catch (error) {
-        console.error('Error updating staff status:', error);
-        throw error;
-    }
+export const createStaffAccount = async (staffData) => {
+    const { data } = await api.post(`${BASE_URL}/account`, staffData);
+    return data;
 };
-
-// // PUT: Update staff information (admin)
-// export const updateStaffInfo = async (staffData) => {
-//     try {
-//         const response = await api.put(`${BASE_URL}/update/admin`, staffData);
-//         return response.data;
-//     } catch (error) {
-//         console.error('Error updating staff info:', error);
-//         throw error;
-//     }
-// };
-
 
 export const updateStaffInfo = async (staffData) => {
-    try {
-        const response = await api.put(`${BASE_URL}/update/self`, staffData);
-        return response.data;
-    } catch (error) {
-        console.error('Error updating staff info:', error);
-        throw error;
-    }
+    const { data } = await api.put(`${BASE_URL}/update/admin`, staffData);
+    return data;
 };
 
-// POST: Create a new staff account
-export const createStaffAccount = async (staffData) => {
-    try {
-        const response = await api.post(`${BASE_URL}/account`, staffData);
-        return response.data;
-    } catch (error) {
-        console.error('Error creating staff account:', error);
-        throw error;
-    }
+export const updateStaffStatus = async (staffId, status) => {
+    const { data } = await api.patch(`${BASE_URL}/status`, { staffId, status });
+    return data;
 };
 
-// DELETE: Delete staff by ID
 export const deleteStaff = async (staffId) => {
-    try {
-        const response = await api.delete(`${BASE_URL}`, { params: { staffId } });
-        return response.data;
-    } catch (error) {
-        console.error('Error deleting staff:', error);
-        throw error;
-    }
+    const { data } = await api.delete(BASE_URL, { params: { staffId } });
+    return data;
 };
-

@@ -2,10 +2,12 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.AuthDto;
+using Google.Apis.Auth;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -237,5 +239,104 @@ namespace BusinessLogic.Services
             return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Đổi mật khẩu thành công");
         }
 
+        public async Task<IServiceResult> LoginWithGoogleAsync(string idToken)
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken);
+            if (payload == null)
+                return new ServiceResult(Const.FAIL_READ_CODE, "Invalid Google token");
+
+            var email = payload.Email;
+            var name = payload.Name;
+            var googleId = payload.Subject;
+
+            // Kiểm tra tài khoản đã tồn tại chưa
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                // Tạo mới nếu chưa có
+                user = new UserAccount
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = email,
+                    Email = email,
+                    Name = name,
+                    ProviderUserId = googleId,
+                    EmailConfirmed = true,
+                    RegistrationDate = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    Status = "Active"
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Cannot create account", createResult.Errors);
+
+                // Gán role mặc định
+                var roleResult = await _userManager.AddToRoleAsync(user, "EVDriver");
+                if (!roleResult.Succeeded)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Failed to assign role", roleResult.Errors);
+
+                // Tạo EVDriverProfile
+                EVDriverProfile eVDriver = new()
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _unitOfWork.EVDriverRepository.CreateAsync(eVDriver);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            else if (string.IsNullOrEmpty(user.ProviderUserId))
+            {
+                // Nếu user đã có mà chưa gắn ProviderUserId -> gắn thêm
+                user.ProviderUserId = googleId;
+                await _userManager.UpdateAsync(user);
+            }
+
+            // Tạo JWT token
+            var authClaims = new List<Claim>
+            {
+                new("userId", user.Id.ToString()),
+                new("email", user.Email),
+                new("name", user.Name),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (var role in userRoles)
+                authClaims.Add(new Claim("role", role));
+
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var t_e = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                    c => !c.IsDeleted && c.Name == "LOGIN_TOKEN_TIMEOUT"
+                );
+
+            double tokenTimeoutHours = 1; // Default to 1 hour if not set
+            if (t_e != null && _unitOfWork.SystemConfigurationRepository.Validate(t_e))
+                tokenTimeoutHours = (double)(t_e.MinValue ?? 1);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                expires: DateTime.Now.AddHours(tokenTimeoutHours),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
+
+            return new ServiceResult
+            (
+                Const.SUCCESS_READ_CODE,
+                Const.SUCCESS_READ_MSG,
+                new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo
+                }
+            );
+        }
     }
 }

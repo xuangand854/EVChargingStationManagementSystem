@@ -39,6 +39,17 @@ namespace APIs.Controllers
             return Ok(result.Data);
         }
 
+        [HttpPost("login-google")]
+        public async Task<IActionResult> LoginWithGoogle([FromBody] GoogleLoginDto dto)
+        {
+            var result = await _authService.LoginWithGoogleAsync(dto.IdToken);
+
+            if (result.Status == Const.FAIL_READ_CODE || result.Status == Const.FAIL_CREATE_CODE)
+                return BadRequest(result.Message);
+
+            return Ok(result.Data);
+        }
+
         [HttpPatch("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
         {

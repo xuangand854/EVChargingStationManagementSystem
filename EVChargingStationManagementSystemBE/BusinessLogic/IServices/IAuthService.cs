@@ -7,7 +7,7 @@ namespace BusinessLogic.IServices
     {
         Task<IServiceResult> RegisterAccount(RegisterAccountDto request);
         Task<IServiceResult> Login(LoginDto dto);
-        //Task<IServiceResult> ConfirmEmail(ConfirmEmailDto dto);
+        Task<IServiceResult> LoginWithGoogleAsync(string idToken);
         Task<IServiceResult> ConfirmEmail(ConfirmEmailDto dto);
         Task<IServiceResult> ResendConfirmEmail(string email);
         Task<IServiceResult> ForgotPassword(string email);

@@ -56,7 +56,13 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
-});
+})
+.AddGoogle(options =>
+ {
+     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+     options.CallbackPath = "/signin-google"; // Google redirect URI
+ });
 
 builder.Services.AddIdentityApiEndpoints<UserAccount>()
     .AddRoles<Role>()
@@ -126,6 +132,8 @@ app.UseCors("AllowAllOrigins");
 //app.MapIdentityApi<UserAccount>();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

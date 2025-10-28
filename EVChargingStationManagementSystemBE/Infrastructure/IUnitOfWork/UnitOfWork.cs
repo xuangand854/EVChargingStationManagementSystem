@@ -22,6 +22,8 @@ namespace Infrastructure.IUnitOfWork
         private IBookingRepository? bookingRepository;
         private IReportRepository? reportRepository;
         private ITransactionRepository transactionRepository;
+        private INotificationRecipientRepository? notificationRecipientRepository;
+        private INotificationRepository? notificationRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -142,6 +144,22 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return transactionRepository ??= new TransactionRepository(context);
+            }
+        }
+
+        public INotificationRecipientRepository NotificationRecipientRepository
+        {
+            get
+            {
+                return notificationRecipientRepository ??= new NotificationRecipientRepository(context);
+            }
+        }
+
+        public INotificationRepository NotificationRepository
+        {
+            get
+            {
+                return notificationRepository ??= new NotificationRepository(context);
             }
         }
     }

@@ -35,6 +35,9 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<INotificationRecipientService, NotificationRecipientService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(options =>
 {

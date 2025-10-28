@@ -15,7 +15,7 @@ namespace Infrastructure.Base
             bool asNoTracking = true
         );
 
-        IQueryable<T> GetAllQueryable();
+        IQueryable<T> GetQueryable();
 
         T GetById(int id);
 

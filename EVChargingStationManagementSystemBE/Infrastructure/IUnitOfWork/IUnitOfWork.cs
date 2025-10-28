@@ -18,5 +18,7 @@ namespace Infrastructure.IUnitOfWork
         ISystemConfigurationRepository SystemConfigurationRepository { get; }
         IConnectorRepository ConnectorRepository { get; }
         ITransactionRepository TransactionRepository { get; }
+        INotificationRecipientRepository NotificationRecipientRepository { get; }
+        INotificationRepository NotificationRepository { get; }
     }
 }

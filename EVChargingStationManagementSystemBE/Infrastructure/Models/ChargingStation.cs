@@ -38,5 +38,7 @@ namespace Infrastructure.Models
         public ICollection<ChargingPost> ChargingPosts { get; set; } = [];
         public ICollection<Booking> Bookings { get; set; } = [];
 
+        public ICollection<UserVoucher> UserVouchers { get; set; } = [];
+
     }
 }

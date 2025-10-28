@@ -15,7 +15,7 @@ namespace Infrastructure.Models
         [StringLength(200)]
         public string Subject { get; set; }  // Chủ đề góp ý
 
-        public double stars { get; set; } 
+        public double Stars { get; set; } 
 
         [StringLength(1000)]
         public string Message { get; set; }  // Nội dung góp ý

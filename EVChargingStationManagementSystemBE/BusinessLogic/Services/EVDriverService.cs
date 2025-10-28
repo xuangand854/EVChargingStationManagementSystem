@@ -23,7 +23,6 @@ namespace BusinessLogic.Services
                     predicate: d => !d.IsDeleted,
                     include: q => q
                         .Include(d => d.UserAccount)
-                        .Include(d => d.Ranking)
                         .Include(d => d.UserVehicles)
                         .ThenInclude(uv => uv.VehicleModel),
                     orderBy: q => q.OrderByDescending(d => d.CreatedAt),
@@ -51,7 +50,6 @@ namespace BusinessLogic.Services
                     predicate: d => d.Id == driverId && !d.IsDeleted,
                     include: q => q
                         .Include(d => d.UserAccount)
-                        .Include(d => d.Ranking)
                         .Include(d => d.UserVehicles)
                         .ThenInclude(uv => uv.VehicleModel),
                     asNoTracking: true
@@ -173,7 +171,6 @@ namespace BusinessLogic.Services
         predicate: d => d.AccountId == accountId && !d.IsDeleted,
         include: q => q
             .Include(d => d.UserAccount)
-            .Include(d => d.Ranking)
             .Include(d => d.UserVehicles)
                 .ThenInclude(uv => uv.VehicleModel),
         asNoTracking: true

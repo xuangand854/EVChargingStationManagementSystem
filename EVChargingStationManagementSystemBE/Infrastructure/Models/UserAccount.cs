@@ -7,7 +7,9 @@ namespace Infrastructure.Models;
 
 public class UserAccount : IdentityUser<Guid>
 {
-    [Required, MaxLength(255)]
+    public string ProviderUserId { get; set; }
+
+    [MaxLength(255)]
     public string Name { get; set; }
 
     public string Gender { get; set; }

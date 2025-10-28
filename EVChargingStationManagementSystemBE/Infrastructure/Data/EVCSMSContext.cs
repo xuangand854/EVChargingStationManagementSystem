@@ -16,7 +16,7 @@ namespace Infrastructure.Data
 
         public DbSet<UserAccount> UserAccounts { get; set; }
         public DbSet<EVDriverProfile> EVDrivers { get; set; }
-        public DbSet<Ranking> Rankings { get; set; }
+        //public DbSet<Ranking> Rankings { get; set; }
         public DbSet<UserVehicle> UserVehicles { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<ChargingStation> ChargingStations { get; set; }
@@ -30,8 +30,8 @@ namespace Infrastructure.Data
         public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
-        //public DbSet<PowerOutputKW> PowerOutputsKW { get; set; }
-        //public DbSet<PowerOutputKWPerPost> PowerOutputKWPerPosts { get; set; }
+        public DbSet<Voucher> Vouchers { get; set; }
+        public DbSet<UserVoucher> UserVouchers { get; set; }        
 
         public static string GetConnectionString(string connectionStringName)
         {
@@ -73,11 +73,16 @@ namespace Infrastructure.Data
             //builder.ApplyConfiguration(new UserRolesSeed());
 
             builder.Entity<Role>().HasData(RoleSeed.GetRoles());
-            //builder.Entity<Ranking>().HasData(RankSeed.GetRankings());
-            //builder.Entity<VehicleModel>().HasData(VehicleModelSeed.GetVehicleModels());
+            builder.Entity<VehicleModel>().HasData(VehicleModelSeed.GetVehicleModels());
             builder.Entity<UserAccount>().HasData(UserAccountSeed.GetUserAccounts());
             builder.Entity<SystemConfiguration>().HasData(SystemConfigurationSeed.GetSystemConfigurations());
             builder.Entity<IdentityUserRole<Guid>>().HasData(UserRolesSeed.GetUserRoles());
+            builder.Entity<UserVehicle>().HasData(UserVehicleSeed.GetUserVehicles());
+            builder.Entity<EVDriverProfile>().HasData(EVDriverSeed.GetEVDrivers());
+            builder.Entity<Booking>().HasData(BookingSeed.GetBookings());
+            builder.Entity<ChargingStation>().HasData(ChargingStationSeed.GetChargingStations());
+            builder.Entity<SCStaffProfile>().HasData(SCStaffSeed.GetSCStaffs());
+
         }
     }
 }

@@ -49,9 +49,6 @@ const OrderChargingST = () => {
   const [stationPosts, setStationPosts] = useState({});
   const navigate = useNavigate();
 
-  // Note: Bỏ auto-fill, chỉ giữ formData trống khi cần
-
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       // Nếu click không nằm trong station-item và cũng không nằm trong các popup
@@ -69,7 +66,7 @@ const OrderChargingST = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside, true);
   }, []);
 
-  // Kiểm tra đăng nhập (chỉ lưu user, không auto-fill formData)
+  // Kiểm tra đăng nhập (chỉ lưu user)
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -152,7 +149,7 @@ const OrderChargingST = () => {
   useEffect(() => {
     fetchStations();
   }, []);
-
+//lọc tên
   const filteredStations = stations.filter((st) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -198,7 +195,7 @@ const OrderChargingST = () => {
                   "_blank"
                 );
               } else {
-                toast.warn("⚠️ Vui lòng chọn trạm trước khi mở Google Map!");
+                toast.warn(" Vui lòng chọn trạm trước khi mở Google Map!");
               }
             }}
           >

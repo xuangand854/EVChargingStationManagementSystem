@@ -24,5 +24,7 @@ namespace BusinessLogic.IServices
 
         // Admin xóa mềm EVDriver
         Task<IServiceResult> Delete(Guid driverId);
+        // ng dùng dùng để xóa xe trong profile của bản thân mình 
+        Task<IServiceResult> DeleteMyVehicle(Guid accountId, Guid userVehicleId);
     }
 }

@@ -120,7 +120,7 @@ namespace Infrastructure.Data.Seed
                 RegistrationDate = new DateTime(2025, 1, 1),
                 CreatedAt = new DateTime(2025, 1, 1),
                 UpdatedAt = new DateTime(2025, 1, 1),
-                PasswordHash = "string",
+                PasswordHash = "AQAAAAEAACcQAAAAEM1Xyeldl4HuIOaMf7BQdVAlsJeZsckJRwqii7Lw/+qJ1qNg0Q7BS61ODpuUt+/RVQ==",
                 Gender = "Male",
                 Address = "Ho Chi Minh City",
                 ProfilePictureUrl = "",

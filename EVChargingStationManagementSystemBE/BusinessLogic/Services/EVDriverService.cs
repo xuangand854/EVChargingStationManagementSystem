@@ -198,5 +198,41 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+        // EVDriver xóa xe khỏi hồ sơ cá nhân (hard delete chỉ bản ghi UserVehicle)
+        public async Task<IServiceResult> DeleteMyVehicle(Guid accountId, Guid vehicleModelId)
+        {
+            try
+            {
+                // Lấy driver kèm danh sách xe
+                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
+                    predicate: d => d.AccountId == accountId && !d.IsDeleted,
+                    include: q => q.Include(d => d.UserVehicles),
+                    asNoTracking: false
+                );
+
+                if (driver == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy hồ sơ của bạn.");
+
+                // Tìm xe cần xóa trong danh sách
+                var userVehicle = driver.UserVehicles.FirstOrDefault(uv => uv.VehicleModelId == vehicleModelId);
+                if (userVehicle == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy xe trong hồ sơ của bạn.");
+
+                // Xóa cứng bản ghi UserVehicle (KHÔNG đụng vào VehicleModel)
+                _unitOfWork.UserVehicleRepository.RemoveAsync(userVehicle);
+
+
+                var result = await _unitOfWork.SaveChangesAsync();
+                if (result <= 0)
+                    return new ServiceResult(Const.FAIL_DELETE_CODE, "Xóa xe thất bại.");
+
+                return new ServiceResult(Const.SUCCESS_DELETE_CODE, "Xe đã được xóa khỏi hồ sơ thành công.");
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
     }
 }

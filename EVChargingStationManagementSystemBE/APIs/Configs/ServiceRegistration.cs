@@ -117,22 +117,40 @@ namespace APIs.Configs
 
             //  Booking Mapping
             //create booking
-            TypeAdapterConfig<BookingCreateDto, Booking>.NewConfig()
-        .Ignore(dest => dest.Id)
-        .Ignore(dest => dest.CreatedAt)
-        .Ignore(dest => dest.UpdatedAt)
-        .Ignore(dest => dest.Status)
-        .Ignore(dest => dest.IsDeleted)
-        .Ignore(dest => dest.EndTime) // EndTime tính trong service
-        .IgnoreNullValues(true);
+            TypeAdapterConfig<BookingCreatedDto, Booking>.NewConfig()
+         .Ignore(dest => dest.Id)
+         .Ignore(dest => dest.CreatedAt)
+         .Ignore(dest => dest.UpdatedAt)
+         .Ignore(dest => dest.IsDeleted)
+         .Ignore(dest => dest.Status)
+         .Ignore(dest => dest.EndTime)
+         .IgnoreNullValues(true);
+            // CheckIn Booking
+            TypeAdapterConfig<BookingCheckInDto, Booking>.NewConfig()
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.BookedBy)
+                .Ignore(dest => dest.CreatedAt)
+                .Ignore(dest => dest.UpdatedAt)
+                .Ignore(dest => dest.IsDeleted)
+                .Ignore(dest => dest.Status)
+                .IgnoreNullValues(true);
 
-            //View booking 
+            // Complete Booking
+            //TypeAdapterConfig<BookingCompleteDto, Booking>.NewConfig()
+            //    .Ignore(dest => dest.Id)
+            //    .Ignore(dest => dest.BookedBy)
+            //    .Ignore(dest => dest.CreatedAt)
+            //    .Ignore(dest => dest.UpdatedAt)
+            //    .Ignore(dest => dest.IsDeleted)
+            //    .Ignore(dest => dest.Status)
+            //    .IgnoreNullValues(true);
+
+
+            // View Booking
             TypeAdapterConfig<Booking, BookingViewDto>.NewConfig()
-              .Map(dest => dest.DriverName,
-                   src => src.BookedByNavigation != null ? src.BookedByNavigation.Name : null)
-              .Map(dest => dest.StationName,
-                   src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.StationName : null)
-              .IgnoreNullValues(true);
+                .Map(dest => dest.DriverName, src => src.BookedByNavigation != null ? src.BookedByNavigation.Name : null)
+                .Map(dest => dest.StationName, src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.StationName : null)
+                .IgnoreNullValues(true);
 
 
             TypeAdapterConfig<ChargingSession, ChargingSessionViewDetailDto>.NewConfig()

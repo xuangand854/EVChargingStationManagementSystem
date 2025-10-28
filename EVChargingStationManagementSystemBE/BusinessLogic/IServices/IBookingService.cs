@@ -1,5 +1,6 @@
 ﻿using BusinessLogic.Base;
 using Common.DTOs.BookingDto;
+using System.Threading.Tasks;
 
 namespace BusinessLogic.IServices
 {
@@ -14,7 +15,7 @@ namespace BusinessLogic.IServices
         Task AutoCancelExpiredBookings();
         Task AutoReassignBookingsForErrorStations();
         Task LockAccountsWithTooManyNoShows();
-
+        Task<IServiceResult> GetMyBookings(Guid userId);
     }
 }
 

@@ -500,7 +500,32 @@ namespace BusinessLogic.Services
             //  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task<IServiceResult> GetMyBookings(Guid userId)
+        {
+            try
+            {
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    predicate: b => b.BookedBy == userId && !b.IsDeleted,
+                    include: q => q
+                        .Include(b => b.ChargingStationNavigation)
+                            .ThenInclude(s => s.ChargingPosts)
+                                .ThenInclude(p => p.Connectors)
+                );
 
+                if (bookings == null || bookings.Count == 0)
+                {
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có booking nào cho tài khoản hiện tại.");
+                }
 
+                var response = bookings.Adapt<IEnumerable<BookingViewDto>>();
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
     }
 }
+

@@ -11,7 +11,7 @@ namespace Infrastructure.IUnitOfWork
         IVehicleModelRepository VehicleModelRepository { get; }
         IChargingStationRepository ChargingStationRepository { get; }
         IEVDriverRepository EVDriverRepository { get; }
-        public IUserAccountRepository UserAccountRepository { get; }
+         IUserAccountRepository UserAccountRepository { get; }
         IChargingPostRepository ChargingPostRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         IChargingSessionRepository ChargingSessionRepository { get; }
@@ -20,5 +20,6 @@ namespace Infrastructure.IUnitOfWork
         ITransactionRepository TransactionRepository { get; }
         INotificationRecipientRepository NotificationRecipientRepository { get; }
         INotificationRepository NotificationRepository { get; }
+        IUserVehicleRepository UserVehicleRepository { get; }
     }
 }

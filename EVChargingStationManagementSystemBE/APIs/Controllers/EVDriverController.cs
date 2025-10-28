@@ -142,10 +142,42 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
-    }
 
+        //  DELETE: api/evdriver/vehicle/{vehicleModelId} (EVDriver)
+        [HttpDelete("vehicle/{vehicleModelId}")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> DeleteMyVehicle([FromRoute] Guid vehicleModelId)
+        {
+            Guid accountId;
+
+            try
+            {
+                // Lấy accountId từ token (claim)
+                accountId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+
+            var result = await _evDriverService.DeleteMyVehicle(accountId, vehicleModelId);
+
+            if (result.Status == Const.SUCCESS_DELETE_CODE)
+                return Ok(new { message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            if (result.Status == Const.FAIL_DELETE_CODE)
+                return Conflict(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+    }
 }
 
 
-        
+
+
 

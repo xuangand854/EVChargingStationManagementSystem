@@ -11,7 +11,7 @@ namespace Infrastructure.IUnitOfWork
 
         private ISCStaffRepository? sCStaffRepository;
         private IVehicleModelRepository? vehicleModelRepository;
-        private IChargingStationRepository? chargingStationRepository; 
+        private IChargingStationRepository? chargingStationRepository;
         private IEVDriverRepository? evDriverRepository;
         private IUserAccountRepository? userAccountRepository;
         private IChargingPostRepository? chargingPostRepository;
@@ -24,6 +24,7 @@ namespace Infrastructure.IUnitOfWork
         private ITransactionRepository transactionRepository;
         private INotificationRecipientRepository? notificationRecipientRepository;
         private INotificationRepository? notificationRepository;
+        private IUserVehicleRepository? userVehicleRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -162,5 +163,17 @@ namespace Infrastructure.IUnitOfWork
                 return notificationRepository ??= new NotificationRepository(context);
             }
         }
+        public IUserVehicleRepository UserVehicleRepository
+        {
+            get
+            {
+                return userVehicleRepository ??= new UserVehicleRepository(context);
+            }
+        }
     }
 }
+
+
+
+
+

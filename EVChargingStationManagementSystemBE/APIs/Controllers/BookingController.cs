@@ -88,7 +88,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        [HttpDelete("{bookingId}")]
+        [HttpPatch("{bookingId}")]
         [Authorize]
         public async Task<IActionResult> CancelBooking(Guid bookingId)
         {

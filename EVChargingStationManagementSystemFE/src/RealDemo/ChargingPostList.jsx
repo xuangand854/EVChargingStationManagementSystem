@@ -54,7 +54,7 @@ const ChargingPostList = () => {
                                 hoverable
                                 title={post.postName || "Trụ không tên"}
                                 onClick={() =>
-                                    navigate(`/station/${stationID}/post/${post.id}/guns`)
+                                    navigate(`/station-list/${stationID}/posts/${post.id}/connector`)
                                 }
                             >
                                 <p><strong>Trạng thái:</strong> {post.status || "Chưa có"}</p>

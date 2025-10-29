@@ -40,7 +40,7 @@ export default function PaymentPage() {
     <div className="payment-page">
       {/* Header */}
       <div className="payment-header">
-        <h1>Thanh toán dịch vụ đặc sạc</h1>
+        <h1>Thanh toán dịch vụ đặt sạc</h1>
         <p>Chọn phương thức thanh toán phù hợp với nhu cầu của bạn</p>
       </div>
 

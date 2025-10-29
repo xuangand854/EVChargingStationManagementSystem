@@ -26,3 +26,61 @@ export const PostConnector = async (
         throw error;
     }
 }
+
+export const PutConnector = async (
+    connectorId,
+    connectorName,
+    chargingPostId
+) => {
+    try {
+        const response = await api.put(`${BASE_URL}`, {
+            connectorId,
+            connectorName,
+            chargingPostId
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi cập nhật connector:', error);
+        throw error;
+    }
+}
+
+export const DeleteConnector = async (connectorId) => {
+    try {
+        const response = await api.delete(`${BASE_URL}/${connectorId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi xóa connector:', error);
+        throw error;
+    }
+}
+
+export const GetConnectorId = async (connectorId) => {
+    try {
+        const response = await api.get(`${BASE_URL}/${connectorId}`, { connectorId });
+        return response.data;
+    } catch (error) {
+        console.error(`Lỗi khi lấy connector với id ${connectorId}:`, error);
+        throw error;
+    }
+}
+
+export const PatchConnectorStatus = async (connectorId, status) => {
+    try {
+        const response = await api.patch(`${BASE_URL}/status`, { connectorId, status });
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái connector:', error);
+        throw error;
+    }
+}
+
+export const PatchConnectorToggle = async (toogle, connectorId) => {
+    try {
+        const response = await api.patch(`${BASE_URL}/toggle`, { toogle, connectorId });
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi cập nhật trạng thái connector:', error);
+        throw error;
+    }
+}

@@ -10,7 +10,7 @@ import Orb from "../../effect/Orb";
 
 // Thêm import cho Lottie animation
 import Lottie from "lottie-react";
-import chargingAnim from "../animation/Electric vehicle charging animation.json"; // hoặc đổi tên file nếu cần
+// import chargingAnim from "../animation/Electric vehicle charging animation.json"; // hoặc đổi tên file nếu cần
 import chargingStationAnim from "../animation/How does an electric vehicle charging station work_.json";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -155,15 +155,15 @@ const Home = () => {
             <section className="section section-about" id="about">
                 <section className="home-about">
                     <h2 className="section-title">Về <span className="brand-gradient">EVOne</span></h2>
-                    
+
                     <div className="about-content">
                         <div className="about-text">
                             <p className="about-description">
-                                EVOne là nền tảng quản lý và kết nối trạm sạc xe điện hàng đầu Việt Nam, 
-                                giúp người dùng tìm kiếm, đặt lịch và sạc nhanh một cách thuận tiện và an toàn. 
+                                EVOne là nền tảng quản lý và kết nối trạm sạc xe điện hàng đầu Việt Nam,
+                                giúp người dùng tìm kiếm, đặt lịch và sạc nhanh một cách thuận tiện và an toàn.
                                 Chúng tôi hướng tới việc phổ biến hoá xe điện bằng trải nghiệm trực quan, minh bạch và tin cậy.
                             </p>
-                            
+
                             <div className="about-features">
                                 <div className="about-feature-item">
                                     <div className="feature-icon">🗺️</div>
@@ -195,7 +195,7 @@ const Home = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="about-visual">
                             <div className="stats-grid">
                                 <div className="stat-card">
@@ -345,13 +345,13 @@ const Home = () => {
             <section className="section section-contact" id="contact">
                 <section className="home-contact">
                     <h2 className="section-title">Liên hệ <span className="brand-gradient">EVOne</span></h2>
-                    
+
                     <div className="contact-info-only">
                         <div className="contact-intro">
                             <h3>Kết nối với chúng tôi</h3>
                             <p>Chúng tôi luôn sẵn sàng hỗ trợ và lắng nghe ý kiến của bạn. Hãy liên hệ với EVOne để được tư vấn và hỗ trợ tốt nhất.</p>
                         </div>
-                        
+
                         <div className="contact-methods">
                             <div className="contact-method">
                                 <div className="method-icon">📍</div>
@@ -361,7 +361,7 @@ const Home = () => {
                                     <span className="method-note">Trụ sở chính - Tầng 15, Tòa nhà EV Tower</span>
                                 </div>
                             </div>
-                            
+
                             <div className="contact-method">
                                 <div className="method-icon">📞</div>
                                 <div className="method-info">
@@ -370,7 +370,7 @@ const Home = () => {
                                     <span className="method-note">Hỗ trợ 24/7 - Khẩn cấp sự cố trạm</span>
                                 </div>
                             </div>
-                            
+
                             <div className="contact-method">
                                 <div className="method-icon">📧</div>
                                 <div className="method-info">
@@ -379,7 +379,7 @@ const Home = () => {
                                     <span className="method-note">Phản hồi trong 2-4 giờ làm việc</span>
                                 </div>
                             </div>
-                            
+
                             <div className="contact-method">
                                 <div className="method-icon">🕒</div>
                                 <div className="method-info">

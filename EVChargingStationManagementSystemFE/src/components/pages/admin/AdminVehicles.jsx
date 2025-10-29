@@ -28,10 +28,10 @@ const AdminVehicles = () => {
         try {
             const res = await GetVehicleModel();
             console.log("Vehicle models response:", res);
-            
+
             const data = Array.isArray(res) ? res : (res?.data ?? res?.data?.data ?? []);
             console.log("Processed data:", data);
-            
+
             // Kiểm tra xem data có chứa status không, nếu không thì lấy từ API riêng
             const modelsWithStatus = await Promise.all(
                 data.map(async (m) => {
@@ -40,12 +40,12 @@ const AdminVehicles = () => {
                         if (m.status !== undefined && m.status !== null) {
                             return { ...m, status: m.status };
                         }
-                        
+
                         // Nếu chưa có status thì gọi API để lấy
                         const statusRes = await VehicleStatus(m.vehicleModelId ?? m.id);
                         console.log(`Status for ${m.vehicleModelId ?? m.id}:`, statusRes);
-                        return { 
-                            ...m, 
+                        return {
+                            ...m,
                             status: statusRes?.status ?? statusRes?.data?.status ?? 2 // mặc định Inactive
                         };
                     } catch (statusError) {
@@ -54,7 +54,7 @@ const AdminVehicles = () => {
                     }
                 })
             );
-            
+
             console.log("Models with status:", modelsWithStatus);
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
@@ -87,7 +87,7 @@ const AdminVehicles = () => {
             if (editingModel) {
                 // Lấy ID từ record hiện tại
                 const id = editingModel.id;
-                
+
                 // Gọi API để lấy thông tin xe trước khi update
                 const vehicle = await GetVehicleModelById(id);
 
@@ -98,7 +98,7 @@ const AdminVehicles = () => {
 
                 // Chuyển đổi vehicleType từ string sang number
                 const vehicleTypeValue = values.vehicleType === "Car" ? 1 : values.vehicleType === "Bike" ? 0 : Number(values.vehicleType);
-                
+
                 // Chuyển đổi status từ string sang number
                 const statusValue = values.status === "Active" ? 1 : values.status === "Discontinued" ? 2 : values.status === "Unknown" ? 3 : Number(values.status);
 
@@ -145,7 +145,7 @@ const AdminVehicles = () => {
             console.log(`Attempting to delete vehicle with ID: ${id}`);
             const response = await DeleteVehicleModel(id);
             console.log("Delete response:", response);
-            
+
             // Kiểm tra response để xác nhận xóa thành công
             // API trả về 200 OK khi xóa thành công
             message.success("Xóa mẫu xe thành công!");
@@ -157,12 +157,12 @@ const AdminVehicles = () => {
                 status: error.response?.status,
                 data: error.response?.data
             });
-            
+
             // Xử lý các loại lỗi khác nhau
             if (error.response) {
                 const status = error.response.status;
                 const errorMessage = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
-                
+
                 switch (status) {
                     case 404:
                         message.error("Không tìm thấy mẫu xe để xóa!");
@@ -191,17 +191,17 @@ const AdminVehicles = () => {
         try {
             const response = await UpdateVehicleModelStatus(id, newStatus);
             console.log("Update status response:", response);
-            
+
             message.success("Cập nhật trạng thái thành công!");
             fetchModels();
         } catch (error) {
             console.error("Lỗi khi cập nhật trạng thái:", error);
-            
+
             // Xử lý các loại lỗi khác nhau
             if (error.response) {
                 const status = error.response.status;
                 const errorMessage = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
-                
+
                 switch (status) {
                     case 404:
                         message.error("Không tìm thấy mẫu xe để cập nhật!");
@@ -230,7 +230,7 @@ const AdminVehicles = () => {
         if (status === null || status === undefined) {
             return "Unknown";
         }
-        
+
         // Xử lý string
         if (typeof status === 'string') {
             const lowerStatus = status.toLowerCase();
@@ -248,7 +248,7 @@ const AdminVehicles = () => {
                     return status; // Trả về nguyên gốc nếu không match
             }
         }
-        
+
         // Xử lý number
         const numStatus = Number(status);
         switch (numStatus) {
@@ -264,7 +264,7 @@ const AdminVehicles = () => {
         if (status === null || status === undefined) {
             return "geekblue";
         }
-        
+
         // Xử lý string
         if (typeof status === 'string') {
             const lowerStatus = status.toLowerCase();
@@ -282,7 +282,7 @@ const AdminVehicles = () => {
                     return "geekblue";
             }
         }
-        
+
         // Xử lý number
         const numStatus = Number(status);
         switch (numStatus) {
@@ -326,7 +326,7 @@ const AdminVehicles = () => {
             render: (status, record) => {
                 const id = record.vehicleModelId ?? record.id;
                 const isUpdating = updatingStatusId === id;
-                
+
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Tag color={getStatusColor(status)} style={{ margin: 0 }}>

@@ -36,6 +36,10 @@ import IOTChargingSystem from "./components/IOTChargingSystem/IOTChargingSystem.
 import Booking from "./components/ordercharging/Booking.jsx";
 import StaffLayout from "./components/pages/staff/StaffLayout.jsx";
 import StaffPrivateRoute from "./components/pages/staff/StaffPrivateRoute.jsx";
+import AdminStationDetail from "./components/pages/admin/AdminStationDetail.jsx";
+import AdminConnector from "./components/pages/admin/AdminConnector.jsx";
+import StationList from "./RealDemo/StationList.jsx";
+import ChargingPostList from "./RealDemo/ChargingPostList.jsx";
 
 
 // import NoPage from "./pages/NoPage";
@@ -55,6 +59,9 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
+          {/* Demo Charge */}
+          <Route path="station-list" element={<StationList />} />
+          <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
           {/* // */}
           {/* Profile */}
           <Route path="profile-page" element={<ProfilePage />} />
@@ -86,11 +93,14 @@ export default function App() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
-          <Route path="stations" element={<AdminStations />} />
+          <Route path="station" element={<AdminStations />} />
           <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="/admin/station/:stationId" element={<AdminStationDetail />} />
+          <Route path="/admin/stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
+
         </Route>
         {/* Staff Routes */}
         <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>

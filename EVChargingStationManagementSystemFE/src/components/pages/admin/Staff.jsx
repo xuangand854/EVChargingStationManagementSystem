@@ -7,7 +7,7 @@ import {
 import {
     EditOutlined, DeleteOutlined, PlusOutlined,
     SearchOutlined, UserOutlined, MailOutlined,
-    PhoneOutlined, HomeOutlined, LinkOutlined
+    PhoneOutlined, HomeOutlined, LinkOutlined, LockOutlined
 } from "@ant-design/icons";
 
 import {
@@ -57,24 +57,32 @@ const AdminStaff = () => {
     /* ==================== SUBMIT ==================== */
     const handleSubmit = async (values) => {
         try {
-            let res;
             if (editingStaff) {
-                // Cập nhật: cần thêm staffId vào payload
-                res = await updateStaffInfo({
+                // Cập nhật thông tin nhân viên
+                const res = await updateStaffInfo({
                     staffId: editingStaff.staffId,
-                    ...values
+                    ...values,
                 });
-                message.success(res.message || "Cập nhật thành công");
+                message.success(res.message || "Cập nhật nhân viên thành công");
             } else {
-                // Tạo mới
-                res = await createStaffAccount(values);
-                message.success(res.message || "Tạo tài khoản thành công");
+                // Tạo mới tài khoản nhân viên
+                const payload = {
+                    email: values.email,
+                    password: values.password,
+                    confirmPassword: values.confirmPassword,
+                    name: values.name,
+                    phoneNumber: values.phoneNumber,
+                    address: values.address,
+                    profilePictureUrl: values.profilePictureUrl || "",
+                    workingLocation: values.workingLocation || "",
+                };
+                const res = await createStaffAccount(payload);
+                message.success(res.message || "Tạo tài khoản nhân viên thành công");
             }
             closeModal();
             fetchStaff();
         } catch (err) {
-            const msg = err.response?.data?.message || "Thao tác thất bại";
-            message.error(msg);
+            message.error(err.response?.data?.message || "Thao tác thất bại");
         }
     };
 
@@ -114,6 +122,7 @@ const AdminStaff = () => {
             phoneNumber: record.phoneNumber,
             address: record.address,
             profilePictureUrl: record.profilePictureUrl,
+            workingLocation: record.workingLocation,
         });
         setIsModalOpen(true);
     };
@@ -132,7 +141,7 @@ const AdminStaff = () => {
             key: "info",
             render: (_, r) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
                         {r.name?.[0]?.toUpperCase() || "S"}
                     </div>
                     <div>
@@ -196,8 +205,8 @@ const AdminStaff = () => {
     return (
         <div className="admin-staff p-6">
             <div className="header mb-6">
-                <h1 className="text-2xl font-bold">Quản Lý Nhân Viên</h1>
-                <p className="text-gray-600">Quản lý thông tin, trạng thái và tài khoản</p>
+                <h1 className="text-2xl font-bold text-rose-600">Quản Lý Nhân Viên</h1>
+                <p className="text-gray-600">Quản lý thông tin, trạng thái và tài khoản nhân viên</p>
             </div>
 
             {/* Stats */}
@@ -208,8 +217,8 @@ const AdminStaff = () => {
                             : i === 2 ? staffList.filter(s => s.status === "Banned").length
                                 : staffList.filter(s => s.status === "Pending").length;
                     return (
-                        <Card key={label} className="text-center">
-                            <div className="text-2xl font-bold">{count}</div>
+                        <Card key={label} className="text-center shadow-sm">
+                            <div className="text-2xl font-bold text-rose-500">{count}</div>
                             <div className="text-sm text-gray-500">{label}</div>
                         </Card>
                     );
@@ -250,68 +259,102 @@ const AdminStaff = () => {
 
             {/* Modal */}
             <Modal
-                title={editingStaff ? "Chỉnh sửa nhân viên" : "Thêm nhân viên mới"}
+                title={editingStaff ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}
                 open={isModalOpen}
                 onCancel={closeModal}
                 footer={null}
-                width={600}
             >
-                <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                    <Form.Item label="Họ và tên" name="name" rules={[{ required: true }]}>
-                        <Input prefix={<UserOutlined />} />
-                    </Form.Item>
-
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleSubmit}
+                >
                     <Form.Item
-                        label="Email"
                         name="email"
-                        rules={[{ required: true, type: "email" }]}
+                        label="Email"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập email" },
+                            { type: "email", message: "Email không hợp lệ" },
+                        ]}
                     >
-                        <Input prefix={<MailOutlined />} />
+                        <Input prefix={<MailOutlined />} placeholder="Nhập email nhân viên" />
                     </Form.Item>
 
-                    <Form.Item label="Số điện thoại" name="phoneNumber">
-                        <Input prefix={<PhoneOutlined />} />
-                    </Form.Item>
-
-                    <Form.Item label="Địa chỉ" name="address">
-                        <Input prefix={<HomeOutlined />} />
-                    </Form.Item>
-
-                    {/* Chỉ hiện mật khẩu khi tạo mới */}
                     {!editingStaff && (
                         <>
-                            <Form.Item label="Mật khẩu" name="password" rules={[{ required: true }]}>
-                                <Input.Password />
-                            </Form.Item>
                             <Form.Item
-                                label="Xác nhận mật khẩu"
-                                name="confirmPassword"
-                                dependencies={["password"]}
+                                name="password"
+                                label="Mật khẩu"
                                 rules={[
-                                    { required: true },
+                                    { required: true, message: "Vui lòng nhập mật khẩu" },
+                                    { min: 6, message: "Mật khẩu phải ít nhất 6 ký tự" },
+                                ]}
+                                hasFeedback
+                            >
+                                <Input.Password prefix={<LockOutlined />} placeholder="Nhập mật khẩu" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="confirmPassword"
+                                label="Xác nhận mật khẩu"
+                                dependencies={["password"]}
+                                hasFeedback
+                                rules={[
+                                    { required: true, message: "Vui lòng xác nhận mật khẩu" },
                                     ({ getFieldValue }) => ({
-                                        validator(_, v) {
-                                            if (!v || getFieldValue("password") === v) return Promise.resolve();
-                                            return Promise.reject("Mật khẩu không khớp");
+                                        validator(_, value) {
+                                            if (!value || getFieldValue("password") === value) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error("Mật khẩu không khớp!"));
                                         },
                                     }),
                                 ]}
                             >
-                                <Input.Password />
+                                <Input.Password prefix={<LockOutlined />} placeholder="Nhập lại mật khẩu" />
                             </Form.Item>
                         </>
                     )}
 
-                    <Form.Item label="Ảnh đại diện (URL)" name="profilePictureUrl">
-                        <Input prefix={<LinkOutlined />} placeholder="https://..." />
+                    <Form.Item
+                        name="name"
+                        label="Họ và tên"
+                        rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+                    >
+                        <Input prefix={<UserOutlined />} placeholder="VD: Nguyễn Văn A" />
                     </Form.Item>
 
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button onClick={closeModal}>Hủy</Button>
-                        <Button type="primary" htmlType="submit">
-                            {editingStaff ? "Cập nhật" : "Thêm mới"}
+                    <Form.Item
+                        name="phoneNumber"
+                        label="Số điện thoại"
+                        rules={[
+                            { required: true, message: "Vui lòng nhập số điện thoại" },
+                            { pattern: /^[0-9]{9,11}$/, message: "Số điện thoại không hợp lệ" },
+                        ]}
+                    >
+                        <Input prefix={<PhoneOutlined />} placeholder="VD: 0912345678" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="address"
+                        label="Địa chỉ"
+                        rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+                    >
+                        <Input prefix={<HomeOutlined />} placeholder="Nhập địa chỉ cư trú" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="profilePictureUrl"
+                        label="Ảnh đại diện (tuỳ chọn)"
+                    >
+                        <Input prefix={<UserOutlined />} placeholder="Nhập URL ảnh hoặc để trống" />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block icon={<PlusOutlined />}>
+                            {editingStaff ? "Lưu thay đổi" : "Tạo tài khoản nhân viên"}
                         </Button>
-                    </div>
+                    </Form.Item>
                 </Form>
             </Modal>
         </div>

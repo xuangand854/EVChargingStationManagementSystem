@@ -1,30 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { Button, Table, Modal, Input, Form, Select, Card, Tag, Space, message, Tooltip, Progress } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, EnvironmentOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import axios from "axios";
-import "./Stations.css";
+import {
+    Table,
+    Modal,
+    Form,
+    Input,
+    Button,
+    Space,
+    message,
+    Card,
+    Tooltip,
+} from "antd";
+import {
+    PlusOutlined,
+    DeleteOutlined,
+    ReloadOutlined,
+    InfoCircleOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import {
+    getChargingStation,
+    addChargingStation,
+    deleteChargingStation,
+} from "../../../API/Station";
 
-const AdminStations = () => {
+const AdminStation = () => {
     const [stations, setStations] = useState([]);
-    const [filteredStations, setFilteredStations] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingStation, setEditingStation] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [searchText, setSearchText] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
+    const navigate = useNavigate();
 
+    // 📦 Load danh sách trạm
     const fetchStations = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("/api/stations");
-            const data = Array.isArray(res.data) ? res.data : [];
-            setStations(data);
-            setFilteredStations(data);
+            const response = await getChargingStation();
+            setStations(response.data || response);
         } catch (error) {
-            console.error("Error fetching stations:", error);
-            message.error("Không thể tải danh sách trạm sạc");
-            setStations([]);
-            setFilteredStations([]);
+            console.error("Error loading stations:", error);
+            message.error("Không thể tải danh sách trạm sạc!");
         } finally {
             setLoading(false);
         }
@@ -34,308 +48,193 @@ const AdminStations = () => {
         fetchStations();
     }, []);
 
-    useEffect(() => {
-        if (Array.isArray(stations)) {
-            const filtered = stations.filter(station =>
-                station.stationName?.toLowerCase().includes(searchText.toLowerCase()) ||
-                station.address?.toLowerCase().includes(searchText.toLowerCase())
-            );
-            setFilteredStations(filtered);
-        }
-    }, [searchText, stations]);
+    // ➕ Mở modal thêm mới
+    const openAddModal = () => {
+        form.resetFields();
+        setIsModalOpen(true);
+    };
 
-    const handleSave = async (values) => {
+    // 🟢 Thêm trạm mới
+    const handleAddStation = async () => {
         try {
-            if (editingStation) {
-                await axios.put(`/api/stations/${editingStation.stationID}`, values);
-                message.success("Cập nhật trạm sạc thành công!");
-            } else {
-                await axios.post("/api/stations", values);
-                message.success("Thêm trạm sạc thành công!");
-            }
+            const values = await form.validateFields();
+            await addChargingStation(
+                values.stationName,
+                values.location,
+                values.province,
+                values.latitude,
+                values.longitude
+            );
+            message.success("Thêm trạm mới thành công!");
             setIsModalOpen(false);
             form.resetFields();
-            setEditingStation(null);
             fetchStations();
         } catch (error) {
-            message.error("Có lỗi xảy ra khi lưu trạm sạc!");
+            console.error("Error adding station:", error);
+            message.error("Có lỗi xảy ra khi thêm trạm!");
         }
     };
 
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`/api/stations/${id}`);
-            message.success("Xóa trạm sạc thành công!");
-            fetchStations();
-        } catch (error) {
-            message.error("Có lỗi xảy ra khi xóa trạm sạc!");
-        }
+    // 🔴 Xóa trạm
+    const handleDelete = async (stationId) => {
+        Modal.confirm({
+            title: "Xác nhận xóa",
+            content: "Bạn có chắc muốn xóa trạm này không?",
+            okText: "Xóa",
+            cancelText: "Hủy",
+            okType: "danger",
+            onOk: async () => {
+                try {
+                    await deleteChargingStation(stationId);
+                    message.success("Xóa trạm thành công!");
+                    fetchStations();
+                } catch (error) {
+                    console.error("Error deleting station:", error);
+                    message.error("Không thể xóa trạm!");
+                }
+            },
+        });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "Active": return "green";
-            case "Inactive": return "red";
-            case "Maintenance": return "orange";
-            default: return "default";
-        }
+    const handleViewDetail = (stationId) => {
+        console.log("Station ID:", stationId); // kiểm tra log
+        navigate(`/admin/station/${stationId}`); // 🔹 dùng đúng route bạn đã khai báo
     };
 
-    const getStatusText = (status) => {
-        switch (status) {
-            case "Active": return "Hoạt động";
-            case "Inactive": return "Tạm dừng";
-            case "Maintenance": return "Bảo trì";
-            default: return status;
-        }
-    };
 
     const columns = [
         {
-            title: "Thông tin trạm",
-            key: "info",
-            render: (_, record) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                        <ThunderboltOutlined />
-                    </div>
-                    <div>
-                        <div className="font-medium text-gray-800">{record.stationName}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <EnvironmentOutlined size={12} />
-                            {record.address}
-                        </div>
-                    </div>
-                </div>
-            ),
+            title: "Tên trạm",
+            dataIndex: "stationName",
+            key: "stationName",
         },
         {
-            title: "Cổng sạc",
-            key: "chargers",
-            render: (_, record) => (
-                <div>
-                    <div className="text-sm font-medium">
-                        {record.activeChargers || 0}/{record.totalChargers || 0} đang hoạt động
-                    </div>
-                    <Progress
-                        percent={record.totalChargers > 0 ? Math.round(((record.activeChargers || 0) / record.totalChargers) * 100) : 0}
-                        size="small"
-                        strokeColor="#52c41a"
-                    />
-                </div>
-            ),
+            title: "Vị trí",
+            dataIndex: "location",
+            key: "location",
         },
         {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            render: (status) => (
-                <Tag color={getStatusColor(status)}>
-                    {getStatusText(status)}
-                </Tag>
-            ),
+            title: "Tỉnh/Thành phố",
+            dataIndex: "province",
+            key: "province",
         },
         {
-            title: "Giá điện",
-            dataIndex: "pricePerKwh",
-            key: "pricePerKwh",
-            render: (price) => price ? `${price.toLocaleString()} VNĐ/kWh` : "—",
+            title: "Vĩ độ",
+            dataIndex: "latitude",
+            key: "latitude",
         },
         {
-            title: "Ngày tạo",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            render: (date) => date ? new Date(date).toLocaleDateString("vi-VN") : "—",
+            title: "Kinh độ",
+            dataIndex: "longitude",
+            key: "longitude",
         },
         {
-            title: "Thao tác",
-            key: "actions",
+            title: "Hành động",
+            key: "action",
             render: (_, record) => (
                 <Space>
-                    <Tooltip title="Chỉnh sửa">
+                    <Tooltip title="Chi tiết & chỉnh sửa">
                         <Button
-                            type="primary"
-                            size="small"
-                            icon={<EditOutlined />}
-                            onClick={() => {
-                                setEditingStation(record);
-                                setIsModalOpen(true);
-                                form.setFieldsValue(record);
-                            }}
+                            icon={<InfoCircleOutlined />}
+                            onClick={() => handleViewDetail(record.id)}
                         />
                     </Tooltip>
                     <Tooltip title="Xóa">
                         <Button
-                            danger
-                            size="small"
                             icon={<DeleteOutlined />}
-                            onClick={() => {
-                                if (window.confirm("Bạn có chắc chắn muốn xóa trạm sạc này?")) {
-                                    handleDelete(record.stationID);
-                                }
-                            }}
+                            danger
+                            onClick={() => handleDelete(record.stationId)}
                         />
                     </Tooltip>
                 </Space>
             ),
         },
+
     ];
 
     return (
-        <div className="admin-stations">
-            <div className="header">
-                <h1>Quản Lý Trạm Sạc</h1>
-                <p>Quản lý thông tin và trạng thái các trạm sạc xe điện</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-value">{Array.isArray(stations) ? stations.length : 0}</div>
-                    <div className="stat-label">Tổng trạm sạc</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">
-                        {Array.isArray(stations) ? stations.filter(s => s.status === "Active").length : 0}
-                    </div>
-                    <div className="stat-label">Đang hoạt động</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">
-                        {Array.isArray(stations) ? stations.filter(s => s.status === "Maintenance").length : 0}
-                    </div>
-                    <div className="stat-label">Bảo trì</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">
-                        {Array.isArray(stations) ? stations.reduce((sum, s) => sum + (s.totalChargers || 0), 0) : 0}
-                    </div>
-                    <div className="stat-label">Tổng cổng sạc</div>
-                </div>
-            </div>
-
-            {/* Actions */}
-            <div className="actions-card">
-                <div className="actions-container">
-                    <div className="search-container">
-                        <Input
-                            placeholder="Tìm kiếm theo tên trạm, địa chỉ..."
-                            prefix={<SearchOutlined />}
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            allowClear
-                        />
-                    </div>
+        <Card
+            title="Quản lý trạm sạc"
+            extra={
+                <Space>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={fetchStations}
+                        loading={loading}
+                    >
+                        Tải lại
+                    </Button>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={() => setIsModalOpen(true)}
-                        className="add-btn"
+                        onClick={openAddModal}
                     >
-                        Thêm trạm sạc
+                        Thêm trạm mới
                     </Button>
-                </div>
-            </div>
+                </Space>
+            }
+        >
+            <Table
+                columns={columns}
+                dataSource={stations}
+                rowKey="stationId"
+                loading={loading}
+                pagination={{ pageSize: 6 }}
+            />
 
-            {/* Table */}
-            <div className="table-card">
-                <Table
-                    dataSource={filteredStations}
-                    columns={columns}
-                    rowKey="stationID"
-                    loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) =>
-                            `${range[0]}-${range[1]} của ${total} trạm sạc`,
-                    }}
-                />
-            </div>
-
-            {/* Modal */}
+            {/* Modal thêm trạm */}
             <Modal
-                title={
-                    <div className="flex items-center gap-2">
-                        <ThunderboltOutlined className="text-green-500" />
-                        {editingStation ? "Chỉnh sửa trạm sạc" : "Thêm trạm sạc mới"}
-                    </div>
-                }
+                title="Thêm trạm mới"
                 open={isModalOpen}
-                onCancel={() => {
-                    setIsModalOpen(false);
-                    form.resetFields();
-                    setEditingStation(null);
-                }}
-                footer={null}
-                width={600}
+                onOk={handleAddStation}
+                onCancel={() => setIsModalOpen(false)}
+                okText="Thêm"
+                cancelText="Hủy"
             >
-                <Form form={form} layout="vertical" onFinish={handleSave}>
+                <Form layout="vertical" form={form}>
                     <Form.Item
-                        label="Tên trạm sạc"
+                        label="Tên trạm"
                         name="stationName"
-                        rules={[{ required: true, message: "Vui lòng nhập tên trạm sạc!" }]}
+                        rules={[{ required: true, message: "Nhập tên trạm!" }]}
                     >
-                        <Input placeholder="Nhập tên trạm sạc" />
+                        <Input placeholder="Nhập tên trạm" />
                     </Form.Item>
 
                     <Form.Item
-                        label="Địa chỉ"
-                        name="address"
-                        rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
+                        label="Vị trí"
+                        name="location"
+                        rules={[{ required: true, message: "Nhập vị trí!" }]}
                     >
-                        <Input.TextArea rows={3} placeholder="Nhập địa chỉ chi tiết" />
-                    </Form.Item>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <Form.Item
-                            label="Tổng số cổng"
-                            name="totalChargers"
-                            rules={[{ required: true, message: "Vui lòng nhập số cổng!" }]}
-                        >
-                            <Input type="number" placeholder="Số cổng" />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Cổng đang hoạt động"
-                            name="activeChargers"
-                        >
-                            <Input type="number" placeholder="Cổng hoạt động" />
-                        </Form.Item>
-                    </div>
-
-                    <Form.Item
-                        label="Giá điện (VNĐ/kWh)"
-                        name="pricePerKwh"
-                    >
-                        <Input type="number" placeholder="Giá điện" />
+                        <Input placeholder="VD: Hải Châu, Đà Nẵng" />
                     </Form.Item>
 
                     <Form.Item
-                        label="Trạng thái"
-                        name="status"
-                        rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+                        label="Tỉnh/Thành phố"
+                        name="province"
+                        rules={[{ required: true, message: "Nhập tỉnh/thành phố!" }]}
                     >
-                        <Select placeholder="Chọn trạng thái">
-                            <Select.Option value="Active">Hoạt động</Select.Option>
-                            <Select.Option value="Inactive">Tạm dừng</Select.Option>
-                            <Select.Option value="Maintenance">Bảo trì</Select.Option>
-                        </Select>
+                        <Input placeholder="VD: Đà Nẵng" />
                     </Form.Item>
 
-                    <div className="flex justify-end gap-2 pt-4">
-                        <Button onClick={() => setIsModalOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button type="primary" htmlType="submit">
-                            {editingStation ? "Cập nhật" : "Thêm mới"}
-                        </Button>
-                    </div>
+                    <Form.Item
+                        label="Vĩ độ"
+                        name="latitude"
+                        rules={[{ required: true, message: "Nhập vĩ độ!" }]}
+                    >
+                        <Input type="number" placeholder="VD: 16.0471" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Kinh độ"
+                        name="longitude"
+                        rules={[{ required: true, message: "Nhập kinh độ!" }]}
+                    >
+                        <Input type="number" placeholder="VD: 108.2068" />
+                    </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Card>
     );
 };
 
-export default AdminStations;
+export default AdminStation;

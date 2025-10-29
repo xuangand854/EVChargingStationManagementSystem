@@ -24,7 +24,7 @@ namespace Common.DTOs.ChargingStationDto
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChargingStationStatus Status { get; set; } = ChargingStationStatus.Unknown;
         public Guid OperatorId { get; set; }
-
+        public string? OperatorName { get; set; } = string.Empty;
         public ICollection<ChargingPostViewListDto> ChargingPosts { get; set; } = [];
     }
 }

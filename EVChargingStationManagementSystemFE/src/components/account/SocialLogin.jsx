@@ -5,21 +5,33 @@ import "./SocialLogin.css";
 export default function SocialLogin() {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    //  Khởi tạo Google SDK
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id:
-          "564058384344-udma25adjacc77i4kfoo2bs8tmhddirs.apps.googleusercontent.com",
-        callback: handleCredentialResponse,
-      });
-      console.log(" Google SDK initialized");
-    } else {
-      console.error(" Google SDK not loaded");
-    }
-  }, []);
+    useEffect(() => {
+      const initializeGoogle = () => {
+        if (window.google) {
+          window.google.accounts.id.initialize({
+            client_id:
+              "564058384344-udma25adjacc77i4kfoo2bs8tmhddirs.apps.googleusercontent.com",
+            callback: handleCredentialResponse,
+          });
+          console.log("Google SDK initialized");
+        } else {
+          console.error("Google SDK not loaded");
+        }
+      };
 
-  // ✅ Hàm xử lý khi Google trả token
+      // Nếu SDK chưa load thì chờ sự kiện load
+      if (!window.google) {
+        window.addEventListener("load", initializeGoogle);
+      } else {
+        initializeGoogle();
+      }
+
+      return () => {
+        window.removeEventListener("load", initializeGoogle);
+      };
+    }, []);
+
+  //  Hàm xử lý khi Google trả token
   const handleCredentialResponse = async (response) => {
     console.log("Google ID Token:", response.credential);
 

@@ -10,7 +10,7 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> GetById(Guid stationId);
         Task<IServiceResult> Create(ChargingStationCreateDto dto);
         Task<IServiceResult> Update(ChargingStationUpdateDto dto, Guid stationId);
-        Task<IServiceResult> UpdateStatus(ChargingStationStatus status, Guid stationId);
+        Task<IServiceResult> UpdateStatus(ChargingStationUpdateStatus status, Guid stationId);
         Task<IServiceResult> Delete(Guid stationId);
     }
 }

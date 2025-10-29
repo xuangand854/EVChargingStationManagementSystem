@@ -3,6 +3,9 @@ using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ChargingPostDto;
 using Common.Enum.ChargingPost;
+using Common.Enum.ChargingStation;
+using Common.Enum.Connector;
+using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
@@ -20,7 +23,7 @@ namespace BusinessLogic.Services
             {
                 var chargingPost = dto.Adapt<ChargingPost>();
                 chargingPost.Id = Guid.NewGuid();
-                chargingPost.Status = "Inactive";
+                chargingPost.Status = ChargingPostUpdateStatus.InActive.ToString();
                 chargingPost.CreatedAt = DateTime.Now;
                 chargingPost.UpdatedAt = DateTime.Now;
 
@@ -208,7 +211,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> UpdateStatus(ChargingPostStatus status, Guid postId)
+        public async Task<IServiceResult> UpdateStatus(ChargingPostUpdateStatus status, Guid postId)
         {
             try
             {
@@ -224,15 +227,22 @@ namespace BusinessLogic.Services
                     predicate: c => c.Id == chargingPost.StationId,
                     asNoTracking: false
                     );
+
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
-                // Nếu chuyển từ bất kỳ trạng thái nào không phải booked
+                if (!chargingStation.Status.Equals(ChargingStationStatus.Active.ToString()) && status.Equals(ChargingPostUpdateStatus.Available))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Trạm đang dừng hoạt động, vui lòng kích hoạt trạng thái trạm để có thể thay đổi trạng thái trụ sạc");
+
+                if (status.ToString().Equals(chargingPost.Status))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Trụ sạc đã ở trạng thái được chọn rồi");
+
+                // Nếu chuyển từ bất kỳ trạng thái nào
                 // sang Available thì tăng số trụ sạc khả dụng lên 1 và reset số cổng kết nối khả dụng
-                if (!chargingPost.Status.Equals("Available") && status.ToString().Equals("Available"))
+                if (!chargingPost.Status.Equals(ChargingPostUpdateStatus.Available.ToString()) && status.Equals(ChargingPostUpdateStatus.Available))
                 {
                     chargingPost.AvailableConnectors = chargingPost.TotalConnectors;
-                    if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                    if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
                     {
                         chargingStation.AvailableCarChargingPosts += 1;
                         chargingStation.AvailableCarConnectors += chargingPost.TotalConnectors;
@@ -245,17 +255,17 @@ namespace BusinessLogic.Services
 
                     // Chuyển toàn bộ trạng thái các connector từ OutOfService sang Available
                     var connectors = await _unitOfWork.ConnectorRepository.GetAllAsync(
-                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals("OutOfService")
+                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.OutOfService.ToString())
                         , asNoTracking: false);
                     foreach (var connector in connectors)
                     {
-                        connector.Status = "Available";
+                        connector.Status = ConnectorStatus.Available.ToString();
                         connector.UpdatedAt = DateTime.UtcNow;
                     }
                 }
-                else if (chargingPost.Status.Equals("Available") && !status.ToString().Equals("Available"))
+                else if (chargingPost.Status.Equals(ChargingPostStatus.Available.ToString()) && !status.Equals(ChargingPostStatus.Available))
                 {
-                    if (chargingPost.VehicleTypeSupported.Equals("Car"))
+                    if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
                     {
                         chargingStation.AvailableCarChargingPosts -= 1;
                         chargingStation.AvailableCarConnectors -= chargingPost.AvailableConnectors;
@@ -268,11 +278,11 @@ namespace BusinessLogic.Services
 
                     // Chuyển toàn bộ trạng thái các connector từ Available sang OutOfService
                     var connectors = await _unitOfWork.ConnectorRepository.GetAllAsync(
-                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals("Available")
+                        predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ChargingPostStatus.Available.ToString())
                         , asNoTracking: false);
                     foreach (var connector in connectors)
                     {
-                        connector.Status = "OutOfService";
+                        connector.Status = ConnectorStatus.OutOfService.ToString();
                         connector.UpdatedAt = DateTime.UtcNow;
                     }
                 }
@@ -295,7 +305,5 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-
-        
     }
 }

@@ -61,7 +61,7 @@ namespace APIs.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Staff")]
         public async Task<IActionResult> Update([FromBody] ChargingStationUpdateDto dto, Guid stationId)
         {
             if (!ModelState.IsValid)
@@ -83,7 +83,7 @@ namespace APIs.Controllers
 
         [HttpPatch("status")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingStationStatus status, Guid stationId)
+        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingStationUpdateStatus status, Guid stationId)
         {
             var result = await _chargingStationService.UpdateStatus(status, stationId);
 

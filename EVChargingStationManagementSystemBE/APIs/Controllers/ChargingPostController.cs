@@ -86,7 +86,7 @@ namespace APIs.Controllers
 
         [HttpPatch("status")]
         [Authorize(Roles = "Admin, SCStaff")]
-        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingPostStatus status, Guid postId)
+        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingPostUpdateStatus status, Guid postId)
         {
             var result = await _service.UpdateStatus(status, postId);
 

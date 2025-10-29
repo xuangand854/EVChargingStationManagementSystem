@@ -10,7 +10,7 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> GetById(Guid connectorId);
         Task<IServiceResult> Create(ConnectorCreateDto dto);
         Task<IServiceResult> Update(ConnectorUpdateDto dto, Guid connectorId);
-        Task<IServiceResult> UpdateStatus(ConnectorStatus status, Guid connectorId);
+        Task<IServiceResult> UpdateStatus(ConnectorUpdateStatus status, Guid connectorId);
         Task<IServiceResult> UpdateConnectorCount(bool toggle, Guid connectorId);
         Task<IServiceResult> Delete(Guid connectorId);
     }

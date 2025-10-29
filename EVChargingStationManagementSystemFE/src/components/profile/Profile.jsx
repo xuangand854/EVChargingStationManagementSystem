@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import { updateEVDriver, getEVDriverProfile } from "../../API/EVDriver";
-import { getVehicleModels,getVehicleById } from "../../API/Admin";
+import { getVehicleModels } from "../../API/Admin";
 import { changePassword } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,9 +14,9 @@ const defaultAvatars = {
 
 const Profile = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState("view");
-  const [showPopup, setShowPopup] = useState(""); // "avatar" | "vehicle"
+  const [showPopup, setShowPopup] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -25,8 +25,6 @@ const Profile = () => {
     address: "",
     avatar: "",
     driverId: "",
-    vehicleModelIds: [],
-    modelName:"",
   });
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
@@ -37,10 +35,11 @@ const Profile = () => {
   const [selectedVehicles, setSelectedVehicles] = useState([]);
 
   useEffect(() => {
-    const fetchDriver = async () => {
+    const fetchData = async () => {
       try {
         const res = await getEVDriverProfile();
         const driver = res?.data?.data || res?.data;
+
         if (driver) {
           const userData = {
             name: driver.name || "Chưa cập nhật",
@@ -58,61 +57,67 @@ const Profile = () => {
         } else {
           toast.warn("Không có dữ liệu tài xế!");
         }
+
+        const modelRes = await getVehicleModels();
+        setVehicleModels(modelRes?.data || []);
       } catch (err) {
-        console.error("Lỗi khi load EVDriver:", err);
+        console.error("Lỗi khi load dữ liệu:", err);
         toast.error("Không thể tải thông tin tài xế!");
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchVehicleModels = async () => {
+    fetchData();
+  }, []);
+
+    const handleSaveProfile = async () => {
       try {
-        const res = await getVehicleModels();
-        setVehicleModels(res?.data || []);
-      } catch (err) {
-        console.error("Lỗi khi load danh sách xe:", err);
+        if (!user?.driverId) {
+          toast.error("Không tìm thấy mã tài xế!");
+          return;
+        }
+
+        // In ra để debug
+        console.log(" Dữ liệu gửi lên:", {
+          driverId: user.driverId,
+          name: formData.name,
+          phoneNumber: formData.phone,
+          address: formData.address || "",
+          profilePictureUrl: formData.avatar || "",
+          vehicleModelIds: selectedVehicles, //  danh sách ID xe đã chọn
+        });
+
+        const res = await updateEVDriver(
+          user.driverId,
+          formData.name,
+          formData.phone,
+          formData.address || "",
+          formData.avatar || "",
+          selectedVehicles
+        );
+
+        if (res?.status === 200 || res?.data?.success) {
+          toast.success("Cập nhật thông tin thành công!");
+
+          // Cập nhật lại local state sau khi API OK
+          setUser({
+            ...formData,
+            driverId: user.driverId,
+            vehicleModelIds: selectedVehicles,
+          });
+
+          setMode("view");
+          setShowPopup("");
+        } else {
+          toast.error(res?.data?.message || "Lỗi cập nhật!");
+        }
+      } catch (error) {
+        console.error(" Lỗi khi cập nhật:", error.response?.data || error);
+        toast.error("Cập nhật thất bại, vui lòng thử lại!");
       }
     };
 
-    fetchDriver();
-    fetchVehicleModels();
-  }, []);
-   const handleSaveProfile = async () => {
-    try {
-      if (!user?.driverId) {
-        toast.error("Không tìm thấy mã tài xế!");
-        return;
-      }
-
-      const updated = await updateEVDriver(
-        user.driverId,
-        formData.name,
-        formData.phone,
-        formData.address || "",
-        formData.avatar || "",
-        selectedVehicles
-      );
-
-      const vehicleIds = updated?.vehicleModelIds || selectedVehicles;
-
-      const updatedUser = {
-        ...formData,
-        driverId: user.driverId,
-        vehicleModelIds: vehicleIds,
-      };
-
-      setUser(updatedUser);
-      setFormData(updatedUser);
-      setSelectedVehicles([...vehicleIds]);
-
-      toast.success("Cập nhật thông tin thành công!");
-      setMode("view");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật:", error);
-      toast.error("Cập nhật thất bại, vui lòng thử lại!");
-    }
-  };
 
   const handlePasswordChange = async () => {
     const { oldPassword, newPassword, confirmPassword } = passwordData;
@@ -147,6 +152,11 @@ const Profile = () => {
   if (loading) return <p className="loading">Đang tải...</p>;
   if (!user) return <p>Không tìm thấy thông tin tài xế</p>;
 
+  // Hiển thị tên xe
+  const selectedVehicleNames = selectedVehicles
+    .map((id) => vehicleModels.find((v) => v.id === id)?.modelName)
+    .filter(Boolean);
+
   return (
     <div className="profile-wrapper">
       <ToastContainer position="top-right" autoClose={2000} />
@@ -178,7 +188,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="profile-main">
         <div className="profile-card">
           <div className="profile-header">
@@ -190,7 +200,6 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Thông tin hiển thị */}
           {mode === "view" && (
             <div className="profile-info">
               <div className="info-row">
@@ -206,14 +215,16 @@ const Profile = () => {
                 <span>{user.phone}</span>
               </div>
               <div className="info-row">
-                <span className="label">Địa Chỉ</span>
+                <span className="label">Địa chỉ</span>
                 <span>{user.address}</span>
               </div>
               <div className="info-row vehicle-row">
                 <span className="label">Xe</span>
                 <div className="vehicle-right">
                   <span className="info-value">
-                    {(user.modelName || []).join(", ") || "Chưa có xe"}
+                    {selectedVehicleNames.length > 0
+                      ? selectedVehicleNames.join(", ")
+                      : "Chưa có xe"}
                   </span>
                   <button
                     className="link-btn"
@@ -232,172 +243,97 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Form edit thông tin */}
           {mode === "edit" && (
             <div className="profile-form">
               <h3>Tên</h3>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
+              <input type="text" name="name" value={formData.name} onChange={handleInputChange} />
               <h3>Email</h3>
               <input type="email" name="email" value={formData.email} readOnly />
               <h3>Số điện thoại</h3>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-              />
+              <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} />
               <h3>Địa chỉ</h3>
-              <input
-                type="text"
-                name="address"
-                value={formData.address || ""}
-                onChange={handleInputChange}
-              />
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} />
               <div className="form-buttons">
-                <button className="save" onClick={handleSaveProfile}>
-                  Lưu
-                </button>
-                <button className="cancel" onClick={() => setMode("view")}>
-                  Hủy
-                </button>
+                <button className="save" onClick={handleSaveProfile}>Lưu</button>
+                <button className="cancel" onClick={() => setMode("view")}>Hủy</button>
               </div>
             </div>
           )}
 
-          {/* Form đổi mật khẩu */}
           {mode === "password" && (
             <div className="profile-form">
-              <input
-                type="password"
-                placeholder="Mật khẩu cũ"
-                value={passwordData.oldPassword}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, oldPassword: e.target.value })
-                }
-              />
-              <input
-                type="password"
-                placeholder="Mật khẩu mới"
-                value={passwordData.newPassword}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, newPassword: e.target.value })
-                }
-              />
-              <input
-                type="password"
-                placeholder="Xác nhận mật khẩu mới"
-                value={passwordData.confirmPassword}
-                onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    confirmPassword: e.target.value,
-                  })
-                }
-              />
+              <input type="password" placeholder="Mật khẩu cũ" value={passwordData.oldPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })} />
+              <input type="password" placeholder="Mật khẩu mới" value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} />
+              <input type="password" placeholder="Xác nhận mật khẩu mới" value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} />
               <div className="form-buttons">
-                <button className="save" onClick={handlePasswordChange}>
-                  Đổi mật khẩu
-                </button>
-                <button className="cancel" onClick={() => setMode("view")}>
-                  Hủy
-                </button>
+                <button className="save" onClick={handlePasswordChange}>Đổi mật khẩu</button>
+                <button className="cancel" onClick={() => setMode("view")}>Hủy</button>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Popup */}
+      {/* Popup Vehicle */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
-            {/* Popup Avatar */}
             {showPopup === "avatar" && (
               <>
                 <h3>Nhập URL ảnh đại diện</h3>
                 <input
                   type="text"
-                  placeholder="Dán link ảnh vào đây để đổi ảnh đại diện"
+                  placeholder="Dán link ảnh"
                   value={formData.avatar}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, avatar: e.target.value }))
-                  }
-                  className="avatar-url-input"
+                  onChange={(e) => setFormData((prev) => ({ ...prev, avatar: e.target.value }))}
                 />
                 <div className="popup-buttons">
-                  <button
-                    className="save"
-                    onClick={async () => {
-                      await handleSaveProfile();
-                      setShowPopup("");
-                    }}
-                  >
-                    Lưu
-                  </button>
-                  <button className="cancel" onClick={() => setShowPopup("")}>
-                    Hủy
-                  </button>
+                  <button className="save" onClick={async () => { await handleSaveProfile(); setShowPopup(""); }}>Lưu</button>
+                  <button className="cancel" onClick={() => setShowPopup("")}>Hủy</button>
                 </div>
               </>
             )}
 
-            {/* Popup Vehicle */}
             {showPopup === "vehicle" && (
               <>
                 <h3>Xe đã chọn</h3>
-                  <div className="selected-vehicles">
-                    {selectedVehicles.length === 0 && <p>Chưa có xe nào</p>}
-                      {selectedVehicles.map((vId) => {
-                        const vehicle = vehicleModels.find(vm => vm.id === vId);
-                        return (
-                          <div key={vId} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                            <span>{vehicle?.modelName || vId}</span>
-                            <button
-                              className="link-btn"
-                              onClick={() => setSelectedVehicles(selectedVehicles.filter(id => id !== vId))}
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  <h3>Những loại xe hỗ trợ</h3>
-                  <div className="available-vehicles">
-                    {vehicleModels.map((vm) => (
-                      <div key={vm.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                        <span>{vm.modelName}</span>
-                        {!selectedVehicles.includes(vm.id) && (
-                          <button
-                            className="link-btn"
-                            onClick={() => setSelectedVehicles([...selectedVehicles, vm.id])} // thêm id
-                          >
-                            Chọn
-                          </button>
-                        )}
+                <div className="selected-vehicles">
+                  {selectedVehicles.length === 0 && <p>Chưa có xe nào</p>}
+                  {selectedVehicles.map((vId) => {
+                    const vehicle = vehicleModels.find(vm => vm.id === vId);
+                    return (
+                      <div key={vId} className="vehicle-item">
+                        <span>{vehicle?.modelName || vId}</span>
+                        <button className="link-btn"
+                          onClick={() => setSelectedVehicles(selectedVehicles.filter(id => id !== vId))}>
+                          Xóa
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
+
+                <h3>Những loại xe hỗ trợ</h3>
+                <div className="available-vehicles">
+                  {vehicleModels.map((vm) => (
+                    <div key={vm.id} className="vehicle-item">
+                      <span>{vm.modelName}</span>
+                      {!selectedVehicles.includes(vm.id) && (
+                        <button className="link-btn"
+                          onClick={() => setSelectedVehicles([...selectedVehicles, vm.id])}>
+                          Chọn
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
                 <div className="popup-buttons">
-                  <button
-                    className="save"
-                    onClick={async () => {
-                      await handleSaveProfile();
-                      setShowPopup("");
-                    }}
-                  >
-                    Lưu
-                  </button>
-                  <button className="cancel" onClick={() => setShowPopup("")}>
-                    Hủy
-                  </button>
+                  <button className="save" onClick={async () => { await handleSaveProfile(); setShowPopup(""); }}>Lưu</button>
+                  <button className="cancel" onClick={() => setShowPopup("")}>Hủy</button>
                 </div>
               </>
             )}

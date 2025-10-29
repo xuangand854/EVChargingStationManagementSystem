@@ -31,7 +31,7 @@ export const updateEVDriver = async (
             vehicleModelIds,
         }); 
         console.log('updateEvdriver',response.data);
-        return response.data;
+        return response;
     } catch (error) {
         console.log('errorUpdate',error);
         throw error;

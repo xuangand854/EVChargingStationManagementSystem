@@ -24,7 +24,13 @@ export const getAuthStatus = () => {
         user: {
           email: decoded.email,
           name: decoded.name,
-          role: decoded.role || [],
+          role:
+            decoded.role ||
+            decoded.user_role ||
+            decoded.user_role_raw ||
+            decoded.Role ||
+            decoded.UserRole ||
+            [],    
           // Thêm các field khác có thể có trong JWT
           userId: decoded.userId || decoded.sub || decoded.id,
           phone: decoded.phone,

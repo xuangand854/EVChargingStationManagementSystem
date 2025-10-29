@@ -1,8 +1,12 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
+using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingStationDto;
+using Common.Enum.ChargingPost;
 using Common.Enum.ChargingStation;
+using Common.Enum.Connector;
+using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
@@ -126,12 +130,80 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: c => c.Id == stationId,
-                    asNoTracking: false
-                    );
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => c.Id == stationId)
+                    .Include(c => c.ChargingPosts)
+                    .FirstOrDefaultAsync();
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
+
+                if (status.ToString().Equals(chargingStation.Status))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Trạm sạc đã ở trạng thái được chọn rồi");
+
+                if (status.Equals(ChargingStationUpdateStatus.Active) && chargingStation.OperatorId == null)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Trạm này chưa được phân công nhân viên nên không thể chọn trạng thái này");
+
+                // Nếu trạng thái là Maintained hoặc InActive, tắt toàn bộ các trụ và cổng sạc của trạm này
+                if (!status.Equals(ChargingStationUpdateStatus.Active))
+                {
+                    chargingStation.AvailableCarChargingPosts = 0;
+                    chargingStation.AvailableCarConnectors = 0;
+                    chargingStation.AvailableBikeChargingPosts = 0;
+                    chargingStation.AvailableBikeConnectors = 0;
+
+                    foreach (var chargingPost in chargingStation.ChargingPosts)
+                    {
+                        var connectors = await _unitOfWork.ConnectorRepository.GetQueryable()
+                            .Where(c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.Available.ToString()))
+                            .ToListAsync();
+                        foreach (var connector in connectors)
+                        {
+                            if (connector.Status.Equals(ConnectorStatus.InUse.ToString()) || connector.Status.Equals(ConnectorStatus.Charging.ToString()))
+                                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Đang có trụ được sử dụng, không thể đổi trạng thái trạm được");
+                            connector.Status = ConnectorUpdateStatus.OutOfService.ToString();
+                            connector.UpdatedAt = DateTime.UtcNow;
+                        }
+                        if (chargingPost.Status.Equals(ChargingPostStatus.Available.ToString()))
+                        {
+                            chargingPost.Status = ChargingPostUpdateStatus.InActive.ToString();
+                            chargingPost.AvailableConnectors = 0;
+                            chargingPost.UpdatedAt = DateTime.Now;
+                        }
+                    }
+                }
+                // Ngược lại thì bật lên
+                else
+                {
+                    foreach (var chargingPost in chargingStation.ChargingPosts)
+                    {
+                        // Chuyển toàn bộ trạng thái các connector từ OutOfService sang Available
+                        var connectors = await _unitOfWork.ConnectorRepository.GetQueryable()
+                            .Where(c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.OutOfService.ToString()))
+                            .ToListAsync();
+                        
+                        // Nếu status trả về là bật lên mà status của trạm đang là maintained hay available thì sẽ không cập nhật
+                        if (chargingPost.Status.Equals(ChargingPostStatus.InActive.ToString()))
+                        {
+                            foreach (var connector in connectors)
+                            {
+                                connector.Status = ConnectorUpdateStatus.Available.ToString();
+                                connector.UpdatedAt = DateTime.UtcNow;
+
+                                chargingPost.AvailableConnectors += 1;
+                                if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
+                                    chargingStation.AvailableCarConnectors += 1;
+                                else
+                                    chargingStation.AvailableBikeConnectors += 1;
+                            }
+
+                            if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
+                                chargingStation.AvailableCarChargingPosts += 1;
+                            else chargingStation.AvailableBikeChargingPosts += 1;
+                            chargingPost.Status = ChargingPostUpdateStatus.Available.ToString();
+                            chargingPost.UpdatedAt = DateTime.Now;
+                        }
+                    }
+                }
 
                 chargingStation.Status = status.ToString();
                 chargingStation.UpdatedAt = DateTime.UtcNow;

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Common.DTOs.ChargingStationDto
+﻿namespace Common.DTOs.ChargingStationDto
 {
     public class ChargingStationUpdateDto
     {

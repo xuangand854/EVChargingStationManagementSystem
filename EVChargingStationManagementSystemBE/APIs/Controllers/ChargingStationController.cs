@@ -61,7 +61,7 @@ namespace APIs.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Staff")]
         public async Task<IActionResult> Update([FromBody] ChargingStationUpdateDto dto, Guid stationId)
         {
             if (!ModelState.IsValid)

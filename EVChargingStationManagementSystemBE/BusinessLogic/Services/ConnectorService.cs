@@ -4,9 +4,11 @@ using Common;
 using Common.DTOs.ConnectorDto;
 using Common.Enum.ChargingPost;
 using Common.Enum.Connector;
+using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -172,11 +174,43 @@ namespace BusinessLogic.Services
                 if (chargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc không tồn tại");
 
-                if (!chargingPost.Status.Equals("Available") && status.ToString().Equals("Available"))
-                    chargingPost.AvailableConnectors += 1;
-                else if (chargingPost.Status.Equals("Available") && !status.ToString().Equals("Available"))
-                    chargingPost.AvailableConnectors -= 1;
+                if (status.ToString().Equals(connector.Status))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc đã ở trạng thái được chọn rồi");
 
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => c.Id == chargingPost.StationId)
+                    .FirstOrDefaultAsync();
+                if (chargingStation == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
+
+                if (!connector.Status.Equals(ConnectorStatus.Available.ToString()) && status.Equals(ConnectorStatus.Available))
+                {
+                    chargingPost.AvailableConnectors += 1;
+                    if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
+                        chargingStation.AvailableCarConnectors += 1;
+                    else
+                        chargingStation.AvailableBikeConnectors += 1;
+                }
+                else if (connector.Status.Equals(ConnectorStatus.Available.ToString()) && !status.Equals(ChargingPostStatus.Available))
+                {
+                    chargingPost.AvailableConnectors -= 1;
+                    if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
+                        chargingStation.AvailableCarConnectors -= 1;
+                    else
+                        chargingStation.AvailableBikeConnectors -= 1;
+                }
+
+                if (chargingPost.AvailableConnectors == 0)
+                {
+                    if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
+                        chargingStation.AvailableCarChargingPosts -= 1;
+                    else
+                        chargingStation.AvailableBikeChargingPosts -= 1;
+                    chargingPost.Status = ChargingPostStatus.InActive.ToString();
+                }
+
+                chargingStation.UpdatedAt = DateTime.Now;
+                chargingPost.UpdatedAt = DateTime.Now;
                 connector.Status = status.ToString();
                 connector.UpdatedAt = DateTime.UtcNow;
 

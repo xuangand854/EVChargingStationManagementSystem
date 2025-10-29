@@ -77,6 +77,11 @@ const OrderChargingST = () => {
             phone: authStatus.user.phone || "",
             email: authStatus.user.email || "",
             carModel: authStatus.user.car || "",
+            role:
+            authStatus.user.role ||
+            authStatus.user.user_role ||
+            authStatus.user.user_role_raw ||
+            authStatus.role || "",
           };
           setUser(userData);
         } else setUser(null);
@@ -243,9 +248,23 @@ const OrderChargingST = () => {
         </div>
 
         <div className="action-buttons">
-          <button className="btn-book" onClick={() => setShowBookingPopup(true)}> Đặt lịch sạc</button>
-          <button className="btn-admin" onClick={() => setShowAdminPopup(true)}> Admin Panel</button>
-          <button className="btn-admin" onClick={() => setShowPostPopup(true)}> Quản lý trụ sạc </button>
+          <button className="btn-book" onClick={() => setShowBookingPopup(true)}>
+            Đặt lịch sạc
+          </button>
+
+          {/* Chỉ ADMIN mới thấy Admin Panel */}
+          {user?.role === "Admin" && (
+            <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
+              Admin Panel
+            </button>
+          )}
+
+          {/* Admin & Staff đều thấy Quản lý trụ sạc */}
+          {(user?.role === "Admin" || user?.role === "Staff") && (
+            <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
+              Quản lý trụ sạc
+            </button>
+          )}
         </div>
       </div>
 

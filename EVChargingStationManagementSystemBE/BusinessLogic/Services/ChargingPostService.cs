@@ -20,7 +20,7 @@ namespace BusinessLogic.Services
             {
                 var chargingPost = dto.Adapt<ChargingPost>();
                 chargingPost.Id = Guid.NewGuid();
-                chargingPost.Status = "Inactive";
+                chargingPost.Status = ChargingPostUpdateStatus.InActive.ToString();
                 chargingPost.CreatedAt = DateTime.Now;
                 chargingPost.UpdatedAt = DateTime.Now;
 
@@ -208,7 +208,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> UpdateStatus(ChargingPostStatus status, Guid postId)
+        public async Task<IServiceResult> UpdateStatus(ChargingPostUpdateStatus status, Guid postId)
         {
             try
             {

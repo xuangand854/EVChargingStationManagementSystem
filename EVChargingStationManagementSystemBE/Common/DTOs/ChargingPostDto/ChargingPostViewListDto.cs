@@ -12,6 +12,7 @@ namespace Common.DTOs.ChargingPostDto
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public VehicleTypeEnum VehicleTypeSupported { get; set; } = VehicleTypeEnum.Unknown;
+        public int MaxPowerKw { get; set; }
         public int TotalConnectors { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]

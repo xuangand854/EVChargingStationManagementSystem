@@ -1,11 +1,9 @@
 ﻿namespace Common.Enum.ChargingPost
 {
-    public enum ChargingPostStatus
+    public enum ChargingPostUpdateStatus
     {
         InActive,
         Available,
-        Busy,
-        Maintained,
-        Unknown
+        Maintained
     }
 }

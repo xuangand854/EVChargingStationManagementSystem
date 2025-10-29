@@ -82,8 +82,8 @@ namespace APIs.Controllers
         }
 
         [HttpPatch("status")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus([FromQuery] ConnectorStatus status, Guid connectorId)
+        [Authorize(Roles = "Admin, Staff")]
+        public async Task<IActionResult> UpdateStatus([FromQuery] ConnectorUpdateStatus status, Guid connectorId)
         {
             var result = await _service.UpdateStatus(status, connectorId);
 

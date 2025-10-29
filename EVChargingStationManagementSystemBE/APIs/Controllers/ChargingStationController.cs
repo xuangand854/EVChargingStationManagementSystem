@@ -83,7 +83,7 @@ namespace APIs.Controllers
 
         [HttpPatch("status")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingStationStatus status, Guid stationId)
+        public async Task<IActionResult> UpdateStatus([FromQuery] ChargingStationUpdateStatus status, Guid stationId)
         {
             var result = await _chargingStationService.UpdateStatus(status, stationId);
 

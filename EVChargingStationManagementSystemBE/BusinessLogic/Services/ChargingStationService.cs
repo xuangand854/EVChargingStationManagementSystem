@@ -122,7 +122,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> UpdateStatus(ChargingStationStatus status, Guid stationId)
+        public async Task<IServiceResult> UpdateStatus(ChargingStationUpdateStatus status, Guid stationId)
         {
             try
             {

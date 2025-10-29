@@ -1,9 +1,7 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.ChargingSessionDto;
 using Common.Enum.ChargingSession;
-using Common.Enum.Connector;
 using Common.Enum.Payment;
 using Common.Enum.Transaction;
 using Common.Helper;

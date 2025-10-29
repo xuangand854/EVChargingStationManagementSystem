@@ -154,7 +154,7 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> UpdateStatus(ConnectorStatus status, Guid connectorId)
+        public async Task<IServiceResult> UpdateStatus(ConnectorUpdateStatus status, Guid connectorId)
         {
             try
             {

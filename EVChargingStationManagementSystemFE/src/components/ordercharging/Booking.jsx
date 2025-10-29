@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { addBooking } from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
@@ -15,6 +16,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [vehicleModels, setVehicleModels] = useState([]);
   const [profile, setProfile] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const navigate = useNavigate();
 
   const [bookingData, setBookingData] = useState({
     stationId: stationId || "",
@@ -149,7 +151,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         parseInt(bookingData.targetBattery)
       );
 
-      // ✅ Nếu API trả về message từ backend (ví dụ thành công)
+      //  Nếu API trả về message từ backend (ví dụ thành công)
       if (res?.data?.message) {
         toast.success(res.data.message);
       }
@@ -158,18 +160,18 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     } catch (error) {
       console.error("Booking error:", error);
 
-      // ✅ Lấy message cụ thể từ backend hoặc object lỗi
+      //  Lấy message cụ thể từ backend hoặc object lỗi
       const msg =
         error?.response?.data?.message ||
         error?.message ||
         "";
 
       if (msg.includes("Bạn đã có booking đang hoạt động")) {
-        toast.warning("⚠️ Bạn đã có một đơn đặt lịch trước đó, vui lòng hoàn thành đơn hàng cũ!");
+        toast.warning(" Bạn đã có một đơn đặt lịch trước đó, vui lòng hoàn thành đơn hàng cũ!");
       } else if (msg.includes("Thời gian bắt đầu phải cách hiện tại")) {
-        toast.warning("⚠️ Bạn cần đặt lịch sạc trước ít nhất 15 phút so với hiện tại!");
+        toast.warning(" Bạn cần đặt lịch sạc trước ít nhất 15 phút so với hiện tại!");
       } else {
-        toast.error("❌ Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
+        toast.error(" Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
       }
     }
   };
@@ -273,7 +275,12 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
           <div className="popup-container success-popup" onClick={(e) => e.stopPropagation()}>
             <h3>🎉 Đặt Booking Thành Công!</h3>
             <p>Booking của bạn đã được lưu thành công.</p>
-            <button className="add-btn" onClick={closeSuccessPopup}>Đóng</button>
+            
+            <button className="btn-pay" onClick={() => navigate("/payment")}>
+                Thanh Toán
+            </button>
+
+            <button className="btn-close" onClick={closeSuccessPopup}>Đóng</button>
           </div>
         </div>
       )}

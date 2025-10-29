@@ -50,6 +50,10 @@
   box-sizing: border-box;
 }
 
+
+
+
+
 /* Buttons */
 .popup-buttons {
   display: flex;
@@ -131,4 +135,39 @@
   background-color: #fde68a; /* nền vàng */
   color: #111; /* chữ đen */
   font-weight: 600;
+}
+/* Nút trong popup thành công */
+.success-popup .btn-pay,
+.success-popup .btn-close {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.3s ease;
+}
+
+/* Nhóm nút trong popup thành công */
+.success-popup {
+  text-align: center;
+}
+
+/* Bố trí hai nút cách nhau rõ ràng */
+.success-popup .btn-pay {
+  background-color: #22c55e;
+  color: white;
+  margin-right: 15px;
+}
+
+.success-popup .btn-pay:hover {
+  background-color: #16a34a;
+}
+
+.success-popup .btn-close {
+  background-color: #ef4444;
+  color: white;
+}
+
+.success-popup .btn-close:hover {
+  background-color: #b91c1c;
 }

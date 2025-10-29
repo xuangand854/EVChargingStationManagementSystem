@@ -196,6 +196,8 @@ namespace APIs.Configs
                 .Map(dest => dest.PostName, src => src.ChargingPostNavigation != null ? src.ChargingPostNavigation.PostName : null)
                 .IgnoreNullValues(true);
 
+            TypeAdapterConfig<ChargingStation, ChargingStationsViewDetailDto>.NewConfig()
+                .Map(dest => dest.OperatorName, src => src.OperatorNavigation != null ? src.OperatorNavigation.Name : "");
 
             return services;
         }

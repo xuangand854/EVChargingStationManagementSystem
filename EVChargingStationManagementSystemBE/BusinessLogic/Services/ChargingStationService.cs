@@ -49,10 +49,11 @@ namespace BusinessLogic.Services
 
             try
             {
-                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == StationId,
-                    include: c => c.Include(cs => cs.ChargingPosts)
-                    );
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => !c.IsDeleted && c.Id == StationId)
+                    .Include(c => c.ChargingPosts.Where(cp => !cp.IsDeleted))
+                    .Include(cp => cp.OperatorNavigation)
+                    .FirstOrDefaultAsync();
                 if (chargingStation == null)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,

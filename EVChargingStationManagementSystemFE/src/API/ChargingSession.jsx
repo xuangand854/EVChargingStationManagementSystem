@@ -47,15 +47,27 @@ export const StartSession = async (
     }
 }
 
+// export const Stop = async (sessionId, energyDeliveredKWh) => {
+//     try {
+//         const response = await api.patch(`${BASE_URL}/Stop`, {
+//             sessionId,
+//             energyDeliveredKWh
+//         });
+//         return response.data;
+//     } catch (error) {
+//         console.error('Đã có lỗi khi dừng phiên sạc: ', error);
+//         throw error;
+//     }
+// }
 export const Stop = async (sessionId, energyDeliveredKWh) => {
     try {
-        const response = await api.patch(`${BASE_URL}/Stop`, {
-            sessionId,
-            energyDeliveredKWh
-        });
+        const response = await api.patch(
+            `${BASE_URL}/Stop?sessionId=${sessionId}`, // 👈 đưa sessionId lên query
+            { energyDeliveredKWh } // 👈 body chỉ còn field này
+        );
         return response.data;
     } catch (error) {
-        console.error('Đã có lỗi khi dừng phiên sạc', error);
+        console.error('Đã có lỗi khi dừng phiên sạc: ', error);
         throw error;
     }
-}
+};

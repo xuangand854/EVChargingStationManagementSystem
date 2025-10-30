@@ -4,15 +4,14 @@ const BASE_URL = "/Payment";
 
 export const PostPayment = async (sessionId) => {
     try {
-        const response = await api.post(`${BASE_URL}`, {
-            sessionId
-        });
+        const response = await api.post(`${BASE_URL}?sessionId=${sessionId}`);
         return response.data;
     } catch (error) {
         console.error('Lỗi khi tạo payment:', error);
         throw error;
     }
-}
+};
+
 
 export const PostPaymentOffline = async (sessionId) => {
     try {

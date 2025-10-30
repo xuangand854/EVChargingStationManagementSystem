@@ -49,25 +49,25 @@ namespace APIs.Controllers
             string redirectUrl;
 
             //FE mở comment nhưng dòng này lên sau khi đã implement trang kết quả thanh toán 
-            //switch (rspCode)
-            //{
-            //    case "00":
-            //        redirectUrl = $"{feBaseUrl}/success";
-            //        break;
-            //    case "02":
-            //        redirectUrl = $"{feBaseUrl}/failed";
-            //        break;
-            //    case "97":
-            //        redirectUrl = $"{feBaseUrl}/invalid";
-            //        break;
-            //    default:
-            //        redirectUrl = $"{feBaseUrl}/error";
-            //        break;
-            //}
-            //return Redirect(redirectUrl);
+            switch (rspCode)
+            {
+                case "00":
+                    redirectUrl = $"{feBaseUrl}/success";
+                    break;
+                case "02":
+                    redirectUrl = $"{feBaseUrl}/failed";
+                    break;
+                case "97":
+                    redirectUrl = $"{feBaseUrl}/invalid";
+                    break;
+                default:
+                    redirectUrl = $"{feBaseUrl}/error";
+                    break;
+            }
+            return Redirect(redirectUrl);
 
             //Dòng return dưới này là để tạm thời, comment lại sau khi FE đã implement trang kết quả thanh toán
-            return Content(response, "application/json");
+            //return Content(response, "application/json");
         }
 
         [HttpPost("offline")]

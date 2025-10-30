@@ -1,14 +1,15 @@
 // src/components/RealDemo/ConnectorList.jsx
 import React, { useEffect, useState } from "react";
-import { Card, Row, Col, Spin, Tag } from "antd";
-import { useParams } from "react-router-dom";
+import { Card, Row, Col, Spin, Tag, message } from "antd";
+import { useParams, useNavigate } from "react-router-dom";
 import { getChargingPostId } from "../API/ChargingPost";
 
 const ConnectorList = () => {
-    const { postID } = useParams(); // lấy ID trụ sạc từ route
+    const { stationID, postID } = useParams(); // lấy ID trạm và ID trụ sạc từ URL
     const [connectors, setConnectors] = useState([]);
     const [postInfo, setPostInfo] = useState(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchConnectors = async () => {
@@ -17,12 +18,12 @@ const ConnectorList = () => {
                 const response = await getChargingPostId(postID);
                 console.log("Chi tiết trụ sạc:", response);
 
-                // API trả về object { data: { id, connectors: [...] } }
                 const data = response?.data || {};
                 setPostInfo(data);
                 setConnectors(Array.isArray(data.connectors) ? data.connectors : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách connector:", error);
+                message.error("Không thể tải danh sách súng sạc!");
                 setConnectors([]);
             } finally {
                 setLoading(false);
@@ -39,6 +40,11 @@ const ConnectorList = () => {
             </div>
         );
     }
+
+    const handleConnectorClick = (connectorId) => {
+        // Khi click vào 1 súng sạc -> điều hướng đến trang phiên sạc
+        navigate(`/station-list/${stationID}/posts/${postID}/connector/${connectorId}/session/`);
+    };
 
     return (
         <div style={{ padding: "20px" }}>
@@ -66,15 +72,22 @@ const ConnectorList = () => {
                             <Card
                                 hoverable
                                 title={connector.connectorName || "Súng không tên"}
+                                onClick={() => handleConnectorClick(connector.id)}
+                                style={{ borderRadius: 10, border: "1px solid #ffd6e7" }}
                             >
-                                {/* <p><strong>ID:</strong> {connector.id}</p> */}
-                                <p><strong>Trạng thái:</strong>
-                                    <Tag color={connector.status === "Available" ? "green" : "red"}>
+                                <p>
+                                    <strong>Trạng thái:</strong>{" "}
+                                    <Tag color={
+                                        connector.status === "Available"
+                                            ? "green"
+                                            : connector.status === "InUse"
+                                                ? "orange"
+                                                : "red"
+                                    }>
                                         {connector.status}
                                     </Tag>
                                 </p>
-                                {/* <p><strong>Ngày tạo:</strong> {new Date(connector.createdAt).toLocaleString()}</p>
-                                <p><strong>Cập nhật:</strong> {new Date(connector.updatedAt).toLocaleString()}</p> */}
+                                <p><strong>Công suất:</strong> {connector.powerKw} kW</p>
                             </Card>
                         </Col>
                     ))}

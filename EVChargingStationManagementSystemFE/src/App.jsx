@@ -41,6 +41,7 @@ import AdminConnector from "./components/pages/admin/AdminConnector.jsx";
 import StationList from "./RealDemo/StationList.jsx";
 import ChargingPostList from "./RealDemo/ChargingPostList.jsx";
 import ConnectorList from "./RealDemo/ConnectorList.jsx";
+import Session from "./RealDemo/Session.jsx";
 
 
 // import NoPage from "./pages/NoPage";
@@ -64,6 +65,8 @@ export default function App() {
           <Route path="station-list" element={<StationList />} />
           <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
           <Route path="station-list/:stationID/posts/:postID/connector" element={<ConnectorList />} />
+          <Route path="station-list/:stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
+
           {/* // */}
           {/* Profile */}
           <Route path="profile-page" element={<ProfilePage />} />

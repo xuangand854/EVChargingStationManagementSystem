@@ -22,23 +22,23 @@ export const GetSessionId = async (Id) => {
 }
 
 export const StartSession = async (
-    bookingId,
+    // bookingId,
     batteryCapacityKWh,
     initialBatteryLevelPercent,
     expectedEnergiesKWh,
-    phone,
+    // phone,
     connectorId,
-    vehicleModelId
+    // vehicleModelId
 ) => {
     try {
         const response = await api.post(`${BASE_URL}/Start`, {
-            bookingId,
+            // bookingId,
             batteryCapacityKWh,
             initialBatteryLevelPercent,
             expectedEnergiesKWh,
-            phone,
+            // phone,
             connectorId,
-            vehicleModelId
+            // vehicleModelId
         });
         return response.data;
     } catch (error) {

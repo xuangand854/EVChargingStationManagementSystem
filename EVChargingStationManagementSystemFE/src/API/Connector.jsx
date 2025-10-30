@@ -75,12 +75,15 @@ export const PatchConnectorStatus = async (connectorId, status) => {
     }
 }
 
-export const PatchConnectorToggle = async (toogle, connectorId) => {
+export const PatchConnectorToggle = async (toggle, connectorId) => {
     try {
-        const response = await api.patch(`${BASE_URL}/toggle`, { toogle, connectorId });
+        // gửi dữ liệu qua query params chứ không phải body
+        const response = await api.patch(`${BASE_URL}/connector-toggle`, null, {
+            params: { toggle, connectorId },
+        });
         return response.data;
     } catch (error) {
-        console.error('Lỗi khi cập nhật trạng thái connector:', error);
+        console.error("Lỗi khi cập nhật trạng thái connector:", error);
         throw error;
     }
-}
+};

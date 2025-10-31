@@ -14,6 +14,9 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
   const [stations, setStations] = useState([]);
   const [selectedAction, setSelectedAction] = useState("");
   const [editingStation, setEditingStation] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+
   
   const [formData, setFormData] = useState({
     stationName: "",
@@ -21,6 +24,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     province: "",
     latitude: "",
     longitude: "",
+    status:"",
     // operatorId: "",
   });
 
@@ -36,6 +40,18 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
   useEffect(() => {
     loadStations();
   }, []);
+
+  const normalize = (str = "") =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const filteredStations = searchTerm
+    ? stations.filter(
+        (st) =>
+          normalize(st.stationName).includes(normalize(searchTerm)) ||
+          normalize(st.location).includes(normalize(searchTerm)) ||
+          normalize(st.province).includes(normalize(searchTerm))
+      )
+    : stations;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,9 +115,9 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     setSelectedAction("update");
   };
 
-  const handleChangeStatus = async (st, newStatus) => {
+  const handleChangeStatus = async (st,status) => {
     try {
-      await updateChargingStationStatus(st.id, newStatus);
+      await updateChargingStationStatus(st.id, status);
       toast.success(" Cập nhật trạng thái thành công!");
       loadStations();
       onUpdated?.();
@@ -141,45 +157,90 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
           {selectedAction === "update" && (
             <div className="post-popup-list">
               <h4>Danh sách trạm</h4>
-              {stations.map((st) => (
-                <div key={st.id} className="post-popup-item">
-                  <span>{st.stationName} ({st.location})</span>
-                  <button onClick={() => handleEditClick(st)}> Sửa</button>
-                </div>
-              ))}
+
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  
+                }}
+                className="search-input"
+              />
+
+              <div className="dropdown-list">
+                {filteredStations.map((st) => (
+                  <div key={st.id} className="post-popup-item">
+                    <span>{st.stationName} ({st.location})</span>
+                    <button onClick={() => handleEditClick(st)}>✏️ Sửa</button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
 
           {selectedAction === "delete" && (
             <div className="post-popup-list">
               <h4>Danh sách trạm</h4>
-              {stations.map((st) => (
-                <div key={st.id} className="post-popup-item">
-                  <span>{st.stationName} ({st.location})</span>
-                  <button onClick={() => handleDelete(st.id)}>🗑️ Xóa</button>
-                </div>
-              ))}
+
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  
+                }}
+                className="search-input"
+              />
+
+              <div className="dropdown-list">
+                {filteredStations.map((st) => (
+                  <div key={st.id} className="post-popup-item">
+                    <span>{st.stationName} ({st.location})</span>
+                    <button onClick={() => handleDelete(st.id)}>🗑️ Xóa</button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
 
           {selectedAction === "status" && (
             <div className="post-popup-list">
               <h4>Trạng thái trạm</h4>
-              {stations.map((st) => (
-                <div key={st.id} className="post-popup-item">
-                  <span>{st.stationName}</span>
-                  <select
-                    onChange={(e) => handleChangeStatus(st, e.target.value)}
-                    defaultValue={st.status || "Inactive"}
-                  >
-                    <option value="Inactive">Inactive</option>
-                    <option value="Active">Active</option>
-                    <option value="Maintenance">Maintenance</option>
-                  </select>
-                </div>
-              ))}
+
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  
+                }}
+                className="search-input"
+              />
+
+              <div className="dropdown-list">
+                {filteredStations.map((st) => (
+                  <div key={st.id} className="post-popup-item">
+                    <span>{st.stationName}</span>
+                    <select
+                      onChange={(e) => handleChangeStatus(st, e.target.value)}
+                      defaultValue={st.status || "Inactive"}
+                    >
+                      <option value="Inactive">Inactive</option>
+                      <option value="Active">Active</option>
+                      <option value="Maintenance">Maintenance</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

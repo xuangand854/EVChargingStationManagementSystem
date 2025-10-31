@@ -15,6 +15,8 @@ const ChargingPost = ({ onClose, onUpdated }) => {
   const [stations, setStations] = useState([]);
   const [selectedStation, setSelectedStation] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
   const [showPostList, setShowPostList] = useState(false);
   const [mode, setMode] = useState(""); // add | edit | delete | status
   const [formData, setFormData] = useState({
@@ -59,6 +61,18 @@ const ChargingPost = ({ onClose, onUpdated }) => {
           console.error(" Lỗi load trụ:", err);
         }
       };
+  
+  const normalize = (str = "") =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const filteredStations = searchTerm
+    ? stations.filter(
+        (st) =>
+          normalize(st.stationName).includes(normalize(searchTerm)) ||
+          normalize(st.location).includes(normalize(searchTerm)) ||
+          normalize(st.province).includes(normalize(searchTerm))
+      )
+    : stations;
 
   //  Khi chọn trạm
   const handleSelectStation = (id) => {
@@ -85,7 +99,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
   // Thêm hoặc cập nhật trụ
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedStation) return toast.warn("⚠️ Vui lòng chọn trạm trước!");
+    if (!selectedStation) return toast.warn(" Vui lòng chọn trạm trước!");
 
     try {
       if (selectedPost) {
@@ -122,7 +136,7 @@ const handleDelete = async (id) => {
   if (window.confirm("Bạn chắc chắn muốn xóa trụ này?")) {
     try {
       await deleteChargingPost(id);
-      toast.success("🗑️ Xóa trụ thành công!");
+      toast.success(" Xóa trụ thành công!");
 
       // Xóa ngay trong danh sách FE (tránh hiển thị cũ)
       setPosts((prev) => prev.filter((p) => String(p.id) !== String(id)));
@@ -146,7 +160,7 @@ const handleDelete = async (id) => {
     try {
       const numericStatus = statusMap[newStatusString];
       await updateChargingPostStatus(post.id, numericStatus);
-      toast.success("⚙️ Cập nhật trạng thái thành công!");
+      toast.success(" Cập nhật trạng thái thành công!");
       loadPosts(selectedStation?.id);
       onUpdated?.();
     } catch (err) {
@@ -174,19 +188,41 @@ const handleDelete = async (id) => {
           <h3>Quản lý trụ sạc</h3>
 
           {/* Dropdown chọn trạm */}
-          <label>Chọn trạm:</label>
-          <select
-            value={selectedStation?.id || ""}
-            onChange={(e) =>{ handleSelectStation(e.target.value)}}
-             // Mở danh sách trụ khi chọn trạm
-          >
-            <option value="">-- Chọn trạm --</option>
-            {stations.map((st) => (
-              <option key={st.id} value={st.id}>
-                {st.stationName} ({st.province})
-              </option>
-            ))}
-          </select>
+          <label>Tìm trạm:</label>
+          <div className="station-search-box">
+            <input
+              type="text"
+              placeholder="Nhập tên, địa chỉ hoặc tỉnh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setShowDropdown(true)}    // Mở dropdown khi click
+              onBlur={() => setTimeout(() => setShowDropdown(false), 150)} // Ẩn khi rời focus
+              className="station-search-input"
+            />
+
+            {showDropdown && (
+              <div className="station-dropdown">
+                {filteredStations.length > 0 ? (
+                  filteredStations.map((st) => (
+                    <div
+                      key={st.id}
+                      className="station-dropdown-item"
+                      onMouseDown={() => {
+                        handleSelectStation(st.id);
+                        setSearchTerm(st.stationName);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      {st.stationName} ({st.province})
+                    </div>
+                  ))
+                ) : (
+                  <div className="station-dropdown empty">Không tìm thấy trạm</div>
+                )}
+              </div>
+            )}
+          </div>
+
 
           {selectedStation && (
             <h4>

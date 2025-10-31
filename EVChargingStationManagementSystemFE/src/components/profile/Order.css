@@ -77,26 +77,29 @@
 }
 
 /* ====== Trạng thái ====== */
-.order-status {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
+
+
+.order-history-info .scheduled {
   font-weight: 600;
-  font-size: 13px;
-  color: white;
+  font-size: 15px;
+  border-radius: 8px;
+  color: #3b82f6;
 }
 
-.order-status.chờ-xử-lý {
-  background-color: #f59e0b;
-}
-
-.order-status.đang-vận-chuyển {
-  background-color: #3b82f6;
-}
-
-.order-status.hoàn-thành {
+.order-history-info .completed {
   background-color: #16a34a;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 8px;
 }
+
+.order-history-info .cancelled {
+  background-color: #ef4444;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 8px;
+}
+
 
 /* ====== Responsive ====== */
 @media (max-width: 600px) {

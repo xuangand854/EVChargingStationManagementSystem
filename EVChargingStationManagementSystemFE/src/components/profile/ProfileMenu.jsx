@@ -68,11 +68,11 @@ const ProfileMenu = () => {
           </button>
 
           {/*  Chỉ EVDriver mới thấy */}
-          {role === "EVDriver" && (
-            <button onClick={() => handleNavigate("/profile")}>Thông tin cá nhân</button>
-              )}
+          {role === "EVDriver" && (<button onClick={() => handleNavigate("/profile")}>Thông tin cá nhân</button>)}
           <button onClick={() => handleNavigate("/order-charging")}>Đặt chỗ sạc</button>
-          <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
+          {/* {role === "EVDriver" && ( */}
+            <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
+            {/* )} */}
           <button onClick={() => handleNavigate("/Payment")}>Thanh Toán</button>
           <button onClick={() => handleNavigate("/iot-chargingsystem")}>Mô Phỏng Sạc</button>
           <button onClick={() => handleNavigate("/car")}>Xe của tôi</button>

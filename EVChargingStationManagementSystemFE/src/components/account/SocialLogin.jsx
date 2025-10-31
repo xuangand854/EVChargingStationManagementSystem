@@ -5,77 +5,49 @@ import "./SocialLogin.css";
 export default function SocialLogin() {
   const navigate = useNavigate();
 
-    useEffect(() => {
-      const initializeGoogle = () => {
-        if (window.google) {
-          window.google.accounts.id.initialize({
-            client_id:
-              "564058384344-udma25adjacc77i4kfoo2bs8tmhddirs.apps.googleusercontent.com",
-            callback: handleCredentialResponse,
-          });
-          console.log("Google SDK initialized");
-        } else {
-          console.error("Google SDK not loaded");
-        }
-      };
-
-      // Nếu SDK chưa load thì chờ sự kiện load
-      if (!window.google) {
-        window.addEventListener("load", initializeGoogle);
-      } else {
-        initializeGoogle();
-      }
-
-      return () => {
-        window.removeEventListener("load", initializeGoogle);
-      };
-    }, []);
-
-  //  Hàm xử lý khi Google trả token
   const handleCredentialResponse = async (response) => {
-    console.log("Google ID Token:", response.credential);
-
+    console.log("✅ ID Token:", response.credential);
     try {
       const res = await fetch("https://localhost:7252/api/Auth/login-google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken: response.credential }),
       });
-
-      if (!res.ok) throw new Error("Login failed");
-
       const data = await res.json();
-      console.log("Response từ BE:", data);
-
-      const token = data.token;
-      if (token) {
-        localStorage.setItem("token", token);
-        window.dispatchEvent(new Event("auth-changed"));
-        navigate("/", { replace: true });
-      } else {
-        throw new Error("Không tìm thấy token trong phản hồi");
-      }
+      localStorage.setItem("token", data.token);
+      navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
-      alert("Đăng nhập Google thất bại!");
     }
   };
 
-  // Khi click vào nút custom
-  const handleCustomGoogleLogin = () => {
-    if (window.google) {
-      window.google.accounts.id.prompt(); // mở popup Google
-    } else {
-      alert("Google SDK chưa sẵn sàng, vui lòng thử lại!");
-    }
-  };
+  useEffect(() => {
+    if (!window.google) return;
+
+    window.google.accounts.id.initialize({
+      client_id: "1013907037329-9a7jagaa0pql89haevnh74fr88mp5cl3.apps.googleusercontent.com",
+      callback: handleCredentialResponse,
+    });
+
+    // Render nút Google
+    window.google.accounts.id.renderButton(
+      document.getElementById("googleBtn"),
+      {
+        theme: "outline",      
+        size: "large",
+        width: 280,             
+        shape: "rectangular",
+      }
+    );
+  }, []);
 
   return (
     <div className="social-login">
-      <button className="google-btn" onClick={handleCustomGoogleLogin}>
-        <img src="/img/google.svg" alt="Google" className="google-icon" />
-        <span>Đăng nhập với Google</span>
-      </button>
+      {/* Wrapper để kéo dài nút và thêm text */}
+      <div className="google-btn-wrapper">
+        <div id="googleBtn"></div>
+        <span className="google-text">Đăng nhập với Google</span>
+      </div>
     </div>
   );
 }

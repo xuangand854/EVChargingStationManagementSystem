@@ -54,6 +54,11 @@ import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
 // import ResetPassword from "./components/pages/ResetPassword";
 import ResetPassword from "./components/pages/ResetPassword";
 import SystemConfigEditor from "./components/pages/admin/SystemConfiguration";
+import StaffStation from "./components/pages/staff/StaffStation.jsx";
+import ConfirmPaymentOffline from "./components/pages/staff/ConfirmPaymentOffline.jsx";
+import StaffStationDetail from "./components/pages/staff/StaffStationDetail.jsx";
+import StaffConnector from "./components/pages/staff/StaffConnector.jsx";
+
 
 export default function App() {
   return (
@@ -129,11 +134,11 @@ export default function App() {
         {/* Staff Routes */}
         <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
           <Route index element={<StaffLayout />} />
-          <Route path="stations" element={<AdminStations />} />
-          <Route path="staff" element={<AdminStaff />} />
-          <Route path="vehicles" element={<AdminVehicles />} />
-          <Route path="system-configuration" element={<SystemConfigEditor />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="stations" element={<StaffStation />} />
+          <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
+          <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
+          <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
+
         </Route>
       </Routes>
     </BrowserRouter>

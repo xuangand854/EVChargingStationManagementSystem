@@ -43,6 +43,7 @@ import ChargingPostList from "./RealDemo/ChargingPostList.jsx";
 import ConnectorList from "./RealDemo/ConnectorList.jsx";
 import Session from "./RealDemo/Session.jsx";
 import Success from "./PaymentStatus/Success.jsx";
+import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
 
 
 // import NoPage from "./pages/NoPage";
@@ -55,13 +56,14 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
           {/* LOGIN */}
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="login" element={<Login />} />
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
+          
           {/* Demo Charge */}
           {/* <Route path="station-list" element={<StationList />} />
           <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
@@ -108,6 +110,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="station" element={<AdminStations />} />
+          
           <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />

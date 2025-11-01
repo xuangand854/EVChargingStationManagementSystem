@@ -9,15 +9,18 @@ using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Common.Enum.Booking;
+using Common.Enum.Connector;
 
 namespace BusinessLogic.Services
 {
-    public class BookingService(IUnitOfWork unitOfWork, UserManager<UserAccount> userManager) : IBookingService
+    public class BookingService(IUnitOfWork unitOfWork, UserManager<UserAccount> userManager, ICheckInCodeService checkInCodeService) : IBookingService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly UserManager<UserAccount> _userManager = userManager;
+        private readonly ICheckInCodeService _checkInCodeService = checkInCodeService;
 
-        // Tạo booking mới (EndTime mặc định +2h)
+
+        // Tạo booking mới (EndTime mặc định +1h30)
 
         public async Task<IServiceResult> CreateBooking(BookingCreatedDto dto, Guid userId)
         {
@@ -88,9 +91,10 @@ namespace BusinessLogic.Services
                 booking.BookedBy = userId;
                 booking.Status = "Scheduled";
                 booking.EndTime = dto.StartTime.AddMinutes(90);
-                booking.CreatedAt = DateTime.UtcNow;
-                booking.UpdatedAt = DateTime.UtcNow;
-
+                booking.CreatedAt = DateTime.Now;
+                booking.UpdatedAt = DateTime.Now;
+                //  Sinh mã check-in 4 số duy nhất qua service
+                booking.CheckInCode = await _checkInCodeService.GenerateUniqueCodeAsync();
                 await _unitOfWork.BookingRepository.CreateAsync(booking);
                 var result = await _unitOfWork.SaveChangesAsync();
 
@@ -108,49 +112,69 @@ namespace BusinessLogic.Services
             }
         }
 
-        // Lấy chi tiết 1 booking cụ thể
-        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
+        public async Task<IServiceResult> CheckInBooking(BookingCheckInDto request, Guid userId)
         {
             try
             {
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    b => b.Id == bookingId && !b.IsDeleted,
-                    include: b => b
-                        .Include(x => x.BookedByNavigation)
-                        .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.ChargingStationNavigation.ChargingPosts)
+                    b => b.Id == request.BookingId &&
+                         b.BookedBy == userId &&
+                         !b.IsDeleted,
+                    include: b => b.Include(x => x.ConnectorNavigation)
+                                   .ThenInclude(c => c.ChargingPost)
+                                   .ThenInclude(p => p.ChargingStationNavigation)
                 );
 
                 if (booking == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking.");
 
-                var response = booking.Adapt<BookingViewDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
-            }
-        }
+                // So sánh với enum
+                if (!booking.Status.Equals(BookingStatus.Scheduled.ToString(), StringComparison.OrdinalIgnoreCase))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Booking không ở trạng thái 'Scheduled'.");
 
-        // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
-        public async Task<IServiceResult> GetBookingList(Guid? userId = null)
-        {
-            try
-            {
-                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
-                    include: b => b
-                        .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.BookedByNavigation),
-                    orderBy: q => q.OrderByDescending(b => b.CreatedAt)
+                if (string.IsNullOrWhiteSpace(request.CheckInCode) ||
+                    !string.Equals(booking.CheckInCode, request.CheckInCode))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Mã check-in không hợp lệ.");
+
+                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
+                    c => c.Id == request.ConnectorId && !c.IsDeleted,
+                    include: c => c.Include(x => x.ChargingPost)
+                                   .ThenInclude(p => p.ChargingStationNavigation)
                 );
 
-                if (bookings == null || bookings.Count == 0)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
+                if (connector == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc.");
 
-                var response = bookings.Adapt<List<BookingViewDto>>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                if (connector.Status.Equals(ConnectorStatus.InUse.ToString(), StringComparison.OrdinalIgnoreCase))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc đang được sử dụng.");
+
+                var now = DateTime.Now;
+                if (now < booking.StartTime.AddMinutes(-15) || now > booking.EndTime)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể check-in ngoài thời gian cho phép.");
+
+                // Update booking
+                booking.ConnectorId = connector.Id;
+                booking.Status = BookingStatus.InProgress.ToString();
+                booking.CurrentBattery = request.CurrentBattery;
+                booking.TargetBattery = request.TargetBattery ?? 100;
+                booking.ActualStartTime = request.ActualStartTime == default ? DateTime.Now : request.ActualStartTime;
+                booking.UpdatedAt = DateTime.Now;
+
+                // Update connector
+                connector.Status = ConnectorStatus.InUse.ToString();
+                connector.IsPluggedIn = true;
+                connector.IsLocked = true;
+                connector.UpdatedAt = DateTime.Now;
+
+                var result = await _unitOfWork.SaveChangesAsync();
+
+                if (result > 0)
+                {
+                    var response = booking.Adapt<BookingViewDto>();
+                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công.", response);
+                }
+
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hoàn tất check-in.");
             }
             catch (Exception ex)
             {
@@ -159,39 +183,9 @@ namespace BusinessLogic.Services
         }
 
         // Check-in cho booking (cập nhật trạng thái sang InProgress + tính thời gian sạc)
-        public async Task<IServiceResult> CheckInBooking(BookingCheckInDto dto, Guid userId)
-        {
-            try
-            {
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    b => b.Id == dto.BookingId && b.BookedBy == userId && !b.IsDeleted,
-                    asNoTracking: false);
 
-                if (booking == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking hoặc không thuộc quyền sở hữu.");
 
-                if (booking.Status != BookingStatus.Scheduled.ToString())
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Booking không ở trạng thái Scheduled.");
 
-                // Cho phép check-in trong vòng ±15 phút
-                if (DateTime.UtcNow < booking.StartTime.AddMinutes(-15))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chưa đến thời gian check-in cho phép.");
-
-                booking.Status = BookingStatus.InProgress.ToString();
-                booking.ActualStartTime = dto.ActualStartTime ?? DateTime.UtcNow;
-                booking.CurrentBattery = dto.CurrentBattery;
-                booking.TargetBattery = dto.TargetBattery;
-                booking.UpdatedAt = DateTime.UtcNow;
-
-                await _unitOfWork.SaveChangesAsync();
-
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công", booking.Adapt<BookingViewDto>());
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
-            }
-        }
 
 
         //    // Hoàn tất booking sau khi phiên sạc đã xong
@@ -269,6 +263,69 @@ namespace BusinessLogic.Services
         //    }
         //}
 
+        public async Task<IServiceResult> CompleteBookingAsync(Guid bookingId)
+        {
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
+                    predicate: b => !b.IsDeleted && b.Id == bookingId,
+                    include: b => b.Include(x => x.ConnectorNavigation)
+                                   .ThenInclude(c => c.ChargingPost)
+                                   .ThenInclude(p => p.ChargingStationNavigation),
+                    asNoTracking: false
+                );
+
+                if (booking == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking");
+
+                var session = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
+                    predicate: s => s.BookingId == booking.Id && !s.IsDeleted,
+                    asNoTracking: false
+                );
+
+                if (session == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc tương ứng");
+
+                // Kiểm tra đã thanh toán (payment) — nếu bạn lưu trạng thái Paid trên ChargingSession
+                if (!session.Status.Equals(ChargingSessionStatus.Paid.ToString(), StringComparison.OrdinalIgnoreCase))
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chưa thanh toán xong, không thể hoàn tất booking");
+
+                var connector = booking.ConnectorNavigation;
+                if (connector != null)
+                {
+                    connector.IsLocked = false;
+                    connector.IsPluggedIn = false;
+                    connector.Status = ConnectorStatus.Available.ToString();
+                    connector.UpdatedAt = DateTime.Now;
+                }
+
+                booking.Status = BookingStatus.Completed.ToString();
+                booking.ActualEndTime = DateTime.Now;
+                booking.UpdatedAt = DateTime.Now;
+
+                session.Status = ChargingSessionStatus.Completed.ToString();
+                session.EndTime = DateTime.Now;
+                session.UpdatedAt = DateTime.Now;
+
+                var station = connector?.ChargingPost?.ChargingStationNavigation;
+                if (station != null && connector != null)
+                {
+                    if (connector.ChargingPost.VehicleTypeSupported == "Car")
+                        station.AvailableCarConnectors++;
+                    else
+                        station.AvailableBikeConnectors++;
+
+                    station.UpdatedAt = DateTime.Now;
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hoàn tất booking thành công");
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
 
         // Hủy booking nếu chưa tới thời gian bắt đầu
         public async Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId)
@@ -303,12 +360,12 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ được hủy khi booking đang Scheduled");
 
                 // Không cho hủy nếu đã tới hoặc quá thời gian bắt đầu
-                if (DateTime.UtcNow >= booking.StartTime)
+                if (DateTime.Now >= booking.StartTime)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy sau thời điểm bắt đầu");
 
                 // Cập nhật trạng thái booking → Cancelled
                 booking.Status = "Cancelled";
-                booking.UpdatedAt = DateTime.UtcNow;
+                booking.UpdatedAt = DateTime.Now;
 
                 // Tìm trụ sạc đang ở trạng thái Reserved để giải phóng lại
                 var reservedPost = booking.ChargingStationNavigation.ChargingPosts
@@ -316,7 +373,7 @@ namespace BusinessLogic.Services
                 if (reservedPost != null)
                 {
                     reservedPost.Status = "Available";
-                    reservedPost.UpdatedAt = DateTime.UtcNow;
+                    reservedPost.UpdatedAt = DateTime.Now;
                 }
 
                 // Lưu thay đổi vào database
@@ -339,12 +396,62 @@ namespace BusinessLogic.Services
             }
         }
 
+        // Lấy chi tiết 1 booking cụ thể
+        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
+        {
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
+                    b => b.Id == bookingId && !b.IsDeleted,
+                    include: b => b
+                        .Include(x => x.BookedByNavigation)
+                        .Include(x => x.ChargingStationNavigation)
+                        .Include(x => x.ChargingStationNavigation.ChargingPosts)
+                );
+
+                if (booking == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
+
+                var response = booking.Adapt<BookingViewDto>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
+        // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
+        public async Task<IServiceResult> GetBookingList(Guid? userId = null)
+        {
+            try
+            {
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
+                    include: b => b
+                        .Include(x => x.ChargingStationNavigation)
+                        .Include(x => x.BookedByNavigation),
+                    orderBy: q => q.OrderByDescending(b => b.CreatedAt)
+                );
+
+                if (bookings == null || bookings.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
+
+                var response = bookings.Adapt<List<BookingViewDto>>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
 
         // Tự động khóa tài khoản EVDriver nếu no-show >= 3 lần/tháng
         public async Task LockAccountsWithTooManyNoShows()
         {
             var threshold = 3;
-            var since = DateTime.UtcNow.AddMonths(-1);
+            var since = DateTime.Now.AddMonths(-1);
 
             var evDrivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
                 e => !e.IsDeleted,
@@ -362,7 +469,7 @@ namespace BusinessLogic.Services
                 if (noShows.Count >= threshold)
                 {
                     ev.Status = "Locked";
-                    ev.UpdatedAt = DateTime.UtcNow;
+                    ev.UpdatedAt = DateTime.Now;
                 }
             }
 
@@ -375,8 +482,8 @@ namespace BusinessLogic.Services
         // CHECKIN_ALLOW_MINUTES lấy từ SystemConfiguration (nếu không có → mặc định 15 phút).
         public async Task AutoCancelExpiredBookings()
         {
-            // Lấy thời điểm hiện tại (dùng UTC cho thống nhất trên server)
-            var now = DateTime.UtcNow;
+            // Lấy thời điểm hiện tại (dùng  cho thống nhất trên server)
+            var now = DateTime.Now;
 
             // Lấy cấu hình CHECKIN_ALLOW_MINUTES từ DB (nếu không tồn tại thì mặc định 15)
             // Đây là khoảng thời gian cho phép người dùng check-in trước/sau StartTime.
@@ -451,7 +558,7 @@ namespace BusinessLogic.Services
             )).ToList();
 
             //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             //  Duyệt từng trạm sạc đang bị lỗi
             foreach (var station in errorStations)
@@ -500,32 +607,7 @@ namespace BusinessLogic.Services
             //  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task<IServiceResult> GetMyBookings(Guid userId)
-        {
-            try
-            {
-                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    predicate: b => b.BookedBy == userId && !b.IsDeleted,
-                    include: q => q
-                        .Include(b => b.ChargingStationNavigation)
-                            .ThenInclude(s => s.ChargingPosts)
-                                .ThenInclude(p => p.Connectors)
-                );
 
-                if (bookings == null || bookings.Count == 0)
-                {
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có booking nào cho tài khoản hiện tại.");
-                }
 
-                var response = bookings.Adapt<IEnumerable<BookingViewDto>>();
-
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
-            }
-        }
     }
 }
-

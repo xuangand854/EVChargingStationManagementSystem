@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 namespace Common.DTOs.BookingDto
 {
     public class BookingViewDto
     {
         public Guid Id { get; set; }
 
-        // Thời gian đặt và thực tế
+        // Thời gian dự kiến và thực tế
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public DateTime? ActualStartTime { get; set; }
@@ -25,21 +21,26 @@ namespace Common.DTOs.BookingDto
         public double? EstimatedEnergyKWh { get; set; }
         public double? ActualEnergyKWh { get; set; }
 
-        // Thông tin tạo & cập nhật
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-
-        // Thông tin trạm sạc
+        // Trạm sạc
         public Guid StationId { get; set; }
-        public string? StationName { get; set; }      // Lấy từ ChargingStationNavigation.Name
-        public string? StationAddress { get; set; }   // Lấy từ ChargingStationNavigation.Address
+        public string? StationName { get; set; }
+        public string? StationAddress { get; set; }
+
+        // Connector
+        public Guid? ConnectorId { get; set; }
+        public string? ConnectorName { get; set; }
 
         // Người đặt
         public Guid BookedBy { get; set; }
-        public string? DriverName { get; set; }       // Lấy từ UserAccount.FullName hoặc Username
-        public string? DriverEmail { get; set; }      // Lấy từ UserAccount.Email
+        public string? DriverName { get; set; }
+        public string? DriverEmail { get; set; }
 
-        // Flag xóa mềm
+        // Mã check-in
+        public string? CheckInCode { get; set; }
+
+        // Audit
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; }
     }
 }

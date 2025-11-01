@@ -58,7 +58,7 @@ const ProfilePage = () => {
           <div className="actions-grid">
             {quickActions.map((a, i) => {
               // Ẩn "/profile" và "/Payment" nếu là admin/staff
-              if ((a.path === "/profile" || a.path === "/Payment") && (user.role === "Admin" || user.role === "Staff")) {
+              if ((a.path === "/profile" || a.path === "/Payment" || a.path === "/orders"||a.path==="/car") && (user.role === "Admin" || user.role === "Staff")) {
                 return null;
               }
               return (

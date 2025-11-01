@@ -10,7 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AdminStationPanel from "./AdminStationPannel";
 import ChargingPost from "../ordercharging/ChargingPost"; 
 import BookingPopup from "../ordercharging/Booking"; 
-import { getAllChargingPost } from "../../API/ChargingPost";
+// import { getAllChargingPost } from "../../API/ChargingPost";
 import { getChargingStation, getChargingStationId } from "../../API/Station";
 
 // MAP
@@ -43,8 +43,8 @@ const OrderChargingST = () => {
   const [selectedStation, setSelectedStation] = useState(null);
   const [stations, setStations] = useState([]);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
-  const [showAdminPopup, setShowAdminPopup] = useState(false);
-  const [showPostPopup, setShowPostPopup] = useState(false);
+  // const [showAdminPopup, setShowAdminPopup] = useState(false);
+  // const [showPostPopup, setShowPostPopup] = useState(false);
   const [user, setUser] = useState(null);
   const [stationPosts, setStationPosts] = useState({});
   const navigate = useNavigate();
@@ -108,17 +108,17 @@ const OrderChargingST = () => {
     }
   };
 
-  const handleReloadPosts = async (stationId) => {
-    try {
-      const updatedPosts = await getAllChargingPost(stationId);
-      setStationPosts((prev) => ({
-        ...prev,
-        [stationId]: updatedPosts || [].sort((a, b) => a.id - b.id),
-      }));
-    } catch (err) {
-      console.error("Lỗi reload posts:", err);
-    }
-  };
+  // const handleReloadPosts = async (stationId) => {
+  //   try {
+  //     const updatedPosts = await getAllChargingPost(stationId);
+  //     setStationPosts((prev) => ({
+  //       ...prev,
+  //       [stationId]: updatedPosts || [].sort((a, b) => a.id - b.id),
+  //     }));
+  //   } catch (err) {
+  //     console.error("Lỗi reload posts:", err);
+  //   }
+  // };
 
   // Lấy danh sách trạm từ API
   const fetchStations = async () => {
@@ -154,7 +154,7 @@ const OrderChargingST = () => {
   useEffect(() => {
     fetchStations();
   }, []);
-//lọc tên
+  //lọc tên
   const filteredStations = stations.filter((st) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -215,7 +215,13 @@ const OrderChargingST = () => {
               className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
               onClick={() => handleSelectStation(st)}
             >
-              <h4> {st.stationName}</h4>
+              <h4  className="station-header" > 
+                {st.stationName}
+                {st.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
+                {st.status=== "Active"&& <span className="active"> Active</span>}
+                {st.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
+              </h4>
+              
               <p> {st.location}, {st.province}</p>
 
               {/*  Chỉ hiện danh sách trụ khi trạm này được chọn */}
@@ -231,10 +237,10 @@ const OrderChargingST = () => {
                         <p><b>Số Cổng Sạc</b> {post.totalConnectors}</p>
                         <p>
                           <b>Trạng thái:</b>{" "}
-                          {post.status === "InActive" && <span className="inactive">🟥 Inactive</span>}
-                          {post.status === "Available" && <span className="active">🟩 Active</span>}
-                          {post.status === "Busy" && <span className="busy">🟨 Busy</span>}
-                          {post.status === "Maintained" && <span className="maintained">🟧 Maintained</span>}
+                          {post.status === "InActive" && <span className="inactive"> Inactive</span>}
+                          {post.status === "Available" && <span className="active"> Active</span>}
+                          {post.status === "Busy" && <span className="busy"> Busy</span>}
+                          {post.status === "Maintained" && <span className="maintained">Maintained</span>}
                         </p>
                       </div>
                     ))
@@ -253,18 +259,18 @@ const OrderChargingST = () => {
           </button>
 
           {/* Chỉ ADMIN mới thấy Admin Panel */}
-          {user?.role === "Admin" && (
+          {/* {user?.role === "Admin" && (
             <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
               Admin Panel
             </button>
-          )}
+          )} */}
 
           {/* Admin & Staff đều thấy Quản lý trụ sạc */}
-          {(user?.role === "Admin" || user?.role === "Staff") && (
+          {/* {(user?.role === "Admin" || user?.role === "Staff") && (
             <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
               Quản lý trụ sạc
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -273,6 +279,7 @@ const OrderChargingST = () => {
         <MapContainer
           center={[10.7769, 106.7009]}
           zoom={13}
+          zoomControl={false}
           style={{ height: "100%", width: "100%", borderRadius: "10px" }}
         >
           <TileLayer
@@ -294,7 +301,7 @@ const OrderChargingST = () => {
                   <div className="popup-station">
                     {/* Ảnh trạm */}
                     <img
-                      src={station.imageUrl || "/img/default-station.jpg"}
+                      src={station.imageUrl || "/img/station.jfif"}
                       alt={station.stationName}
                       className="popup-image"
                     />
@@ -302,9 +309,15 @@ const OrderChargingST = () => {
                     {/* Thông tin trạm */}
                     <div className="station-info">
                       <h3>{station.stationName}</h3>
+                      <p>
+                        {station.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
+                        {station.status=== "Active"&& <span className="active"> Active</span>}
+                        {station.status=== "Busy"&& <span className="busy"> Busy</span>}
+                        {station.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
+                      </p>
                       <p className="station-address">{station.location}, {station.province}</p>
-                      <p>Slots: {station.slots}</p>
                     </div>
+                    
 
                     {/* Danh sách trụ sạc */}
                     <div className="charging-posts">
@@ -316,7 +329,10 @@ const OrderChargingST = () => {
                               <span className="post-type">{post.connectorType} | {post.vehicleTypeSupported}</span>
                             </div>
                             <div className="post-status">
-                              <span className={post.status.toLowerCase()}>{post.status}</span>
+                              {post.status === "InActive" && <span className="inactive"> Inactive</span>}
+                              {post.status === "Available" && <span className="active"> Active</span>}
+                              {post.status === "Busy" && <span className="busy"> Busy</span>}
+                              {post.status === "Maintained" && <span className="maintained">Maintained</span>}
                             </div>
                           </div>
                         ))
@@ -339,7 +355,7 @@ const OrderChargingST = () => {
       </div>
 
       {/*postpopup */}
-      {showPostPopup && (
+      {/* {showPostPopup && (
         <div className="popup-overlay">
           <div className="popup-content large-popup">
             <ChargingPost
@@ -350,7 +366,7 @@ const OrderChargingST = () => {
             />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* BookingPopup mới */}
       {showBookingPopup && (
@@ -363,7 +379,7 @@ const OrderChargingST = () => {
       )}
 
       {/* Popup AdminPanel */}
-      {showAdminPopup && (
+      {/* {showAdminPopup && (
         <div className="popup-overlay">
           <div className="popup-content large-popup">
             <AdminStationPanel
@@ -373,7 +389,7 @@ const OrderChargingST = () => {
             />
           </div>
         </div>
-      )}
+      )} */}
 
       <ToastContainer />
     </div>

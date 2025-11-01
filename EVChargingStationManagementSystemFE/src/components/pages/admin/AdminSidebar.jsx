@@ -5,7 +5,7 @@ import "./AdminSidebar.css";
 
 const AdminSidebar = () => {
     const menuItems = [
-        { name: "Trang chủ", path: "/", icon: <House size={20} /> },
+        { name: "Trang chủ", path: "/admin", icon: <House size={20} /> },
         // { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/admin/station", icon: <Zap size={20} /> },
         { name: "Nhân viên", path: "/admin/staff", icon: <Users size={20} /> },

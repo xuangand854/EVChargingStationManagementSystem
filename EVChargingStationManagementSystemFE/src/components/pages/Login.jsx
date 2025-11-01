@@ -36,18 +36,26 @@ const Login = () => {
     try {
       setSubmitting(true);
       const result = await loginApi(formValues.email, formValues.password);
-      
-      
-      // loginApi đã lưu token vào localStorage và phát sự kiện auth-changed
-      // Điều hướng thẳng đến trang private
-      navigate("/", { replace: true });
+
+      // lấy role từ kết quả hoặc localStorage
+      const userRole = result?.user?.role || localStorage.getItem("user_role");
+
+      // điều hướng theo role
+      if (userRole === "Admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
+
     } catch (err) {
-      const msg = typeof err === "string" ? err : (err?.message || "Đăng nhập thất bại");
+      const msg =
+        typeof err === "string" ? err : err?.message || "Đăng nhập thất bại";
       setError(msg);
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
 

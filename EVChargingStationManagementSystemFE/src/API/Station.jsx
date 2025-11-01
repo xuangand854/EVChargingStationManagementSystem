@@ -19,7 +19,9 @@ export const addChargingStation = async (
   province,
   latitude,
   longitude,
-  operatorId
+  operatorId,
+  status
+  
 ) => {
   try {
     const response = await api.post(`${BASE_URL}`, {
@@ -29,6 +31,7 @@ export const addChargingStation = async (
       latitude,
       longitude,
       operatorId,
+      status,
     });
     console.log('addStation - response:', response.data);
     return response.data;
@@ -80,7 +83,9 @@ export const getChargingStationId = async (id) => {
 
 export const updateChargingStationStatus = async (id, status) => {
   try {
-    const response = await api.patch(`${BASE_URL}/status`, { id, status });
+    const response = await api.patch(`${BASE_URL}/status`, null,{
+      params:{ stationId: id, status },
+    });
     console.log('updateStatus - response:', response.data);
     return response.data;
   } catch (error) {

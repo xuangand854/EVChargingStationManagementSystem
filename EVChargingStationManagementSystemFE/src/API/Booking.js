@@ -117,6 +117,16 @@ export const AutoLock = async () => {
     throw error;
   }
 };
+export const MyBooking = async ()=>{
+  try {
+    const response = await api.get(`${BASE_URL}/my-bookings`);
+    console.log('MyBooking',response.data);
+    return response.data;
+  } catch (error) {
+    console.log('ErrorToGetMyBooking',error);
+    throw error;
+  }
+}
 
 export default {
   getBooking,
@@ -127,5 +137,6 @@ export default {
   BookCancel,
   AutoCancel,
   AutoReassign,
-  AutoLock
+  AutoLock,
+  MyBooking
 };

@@ -1,8 +1,8 @@
 /* ====== Layout chính ====== */
 .order-container {
   display: flex;
-  gap: 20px;
-  padding: 20px;
+  gap: 10px;
+  padding: 8px;
   background: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -13,13 +13,14 @@
 
 /* ====== Cột trái: danh sách trạm ====== */
 .left-panel {
-  flex: 1;
+  flex: 0.6;
   background: white;
-  padding: 20px;
+  padding: 12px;
   border-radius: 12px;
   overflow-y: auto;
   max-height: none;  
   height: 90%; 
+  
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -34,8 +35,43 @@
 .station-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 13px;
 }
+.station-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  gap: 10px;
+  margin: 8px 0;
+}
+.station-header .inactive{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:red;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-header .active{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#16a34a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-header .maintenance{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#d97706;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
 
 /* ====== Item trạm ====== */
 .station-item {
@@ -51,10 +87,80 @@
   background: #e9f4ff;
   border-color: #007bff;
 }
-
-.station-item.active {
-  background: #d0ebff;
-  border-color: #007bff;
+.station-info .inactive{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:red;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-info .active{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#16a34a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-info .maintained{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#d97706;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-info .busy{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#3b82f6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-posts h5{
+  color:black;
+}
+.station-posts .inactive{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:red;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-posts .active{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#16a34a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-posts .busy{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#3b82f6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.station-posts .maintained{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#d97706;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .station-item h4 {
@@ -121,6 +227,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   min-width: 300px;
   height:90%;
+  
+  
+  margin-left:auto;
 }
 
 /* ====== Các nút hành động ====== */
@@ -237,13 +346,9 @@
   color: #777;
 }
 
-.post-status span {
-  font-weight: bold;
-}
 
-.active { color: #16a34a; }       /* xanh lá */
-.inactive { color: #dc2626; }     /* đỏ */
-.maintained { color: #d97706; }   /* cam */
+
+
 
 .btn-popup-book {
   margin: 10px 12px 12px;
@@ -356,13 +461,44 @@
   color: #777;
 }
 
-.post-status span {
-  font-weight: bold;
+.post-status .inactive{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:red;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.post-status .active{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#16a34a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.post-status .busy{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#3b82f6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.post-status .maintained{
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color:white;
+  background-color:#d97706;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-.active { color: #16a34a; }       /* xanh lá */
-.inactive { color: #dc2626; }     /* đỏ */
-.maintained { color: #d97706; }   /* cam */
+
 
 /* ====== Animation ====== */
 @keyframes fadeIn {

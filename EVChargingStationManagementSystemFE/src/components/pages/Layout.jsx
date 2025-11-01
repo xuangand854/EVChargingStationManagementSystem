@@ -56,11 +56,11 @@ const Layout = () => {
 
 
                     {/* Admin */}
-                    {userRole === "Admin" && (
+                    {/* {userRole === "Admin" && (
                         <li>
                             <Link to="/admin">Admin Dashboard</Link>
                         </li>
-                    )}
+                    )} */}
 
                     {/* Staff (và Admin nếu muốn) */}
                     {(userRole === "Staff" || userRole === "Admin") && (

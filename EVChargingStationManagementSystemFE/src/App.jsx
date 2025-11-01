@@ -63,7 +63,9 @@ import StaffConnector from "./components/pages/staff/StaffConnector.jsx";
 export default function App() {
   return (
     <BrowserRouter>
+      <AdminCheckLogin>
       <Routes>
+        
         <Route path="/" element={<Layout />}>
           <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
           {/* LOGIN */}
@@ -119,6 +121,7 @@ export default function App() {
         <Route path="payment-status/invalid" element={<Invalid />} />
 
         {/* Admin Routes */}
+        
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="station" element={<AdminStations />} />
@@ -140,7 +143,9 @@ export default function App() {
           <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
 
         </Route>
+        
       </Routes>
+      </AdminCheckLogin>
     </BrowserRouter>
   );
 }

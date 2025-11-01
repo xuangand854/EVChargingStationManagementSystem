@@ -1,31 +1,47 @@
-// import { Navigate } from "react-router-dom";
-// import { getAuthStatus } from "../../../API/Auth";
 
-// export default function AdminCheckLogin({ children }) {
-//   const { isAuthenticated, user } = getAuthStatus();
-
-//   // chưa đăng nhập → quay lại login
-//   if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-//   // nếu là admin → ép quay về trang admin
-//   if (user.role === "Admin") return <Navigate to="/admin" replace />;
-
-//   // còn lại (user thường) → được phép vào
-//   return children;
-// }
-import { Navigate } from "react-router-dom";
 import { getAuthStatus } from "../../../API/Auth";
 
 export default function AdminCheckLogin({ children }) {
   const { isAuthenticated, user } = getAuthStatus();
+  const location = useLocation();
 
-  // Nếu đã đăng nhập và là admin → chuyển đến trang admin
-  if (isAuthenticated && user.role === "Admin") {
-    return <Navigate to="/admin" replace />;
+  // ✅ Các trang public (ai cũng vào được)
+  const publicPaths = ["/", "/login", "/sign-up", "/logout", "/forgot-password"];
+
+  // Nếu đang ở trang public → cho phép
+  if (publicPaths.includes(location.pathname)) {
+    return children;
   }
 
-  // Còn lại (chưa login hoặc không phải admin) → cho vào trang Home
+  // 🔹 1️⃣ Nếu chưa đăng nhập → chỉ cho phép trang public
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // 🔹 2️⃣ Nếu là Admin → chỉ cho phép trong /admin
+  if (user?.role === "Admin") {
+    if (!location.pathname.startsWith("/admin")) {
+      return <Navigate to="/admin" replace />;
+    }
+    return children;
+  }
+
+  // 🔹 3️⃣ Nếu là Staff → chỉ cho phép trong /staff
+  if (user?.role === "Staff") {
+    if (!location.pathname.startsWith("/staff")) {
+      return <Navigate to="/staff" replace />;
+    }
+    return children;
+  }
+
+  // 🔹 4️⃣ Nếu là User thường → cấm vào /admin và /staff
+  if (
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/staff")
+  ) {
+    return <Navigate to="/" replace />;
+  }
+
+  // 🔹 5️⃣ Cho phép tất cả còn lại
   return children;
 }
-
-

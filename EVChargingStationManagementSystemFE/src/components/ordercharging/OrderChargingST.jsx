@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./OrderChargingST.css";
-import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { getAuthStatus } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AdminStationPanel from "./AdminStationPannel";
-import ChargingPost from "../ordercharging/ChargingPost"; 
-import BookingPopup from "../ordercharging/Booking"; 
-// import { getAllChargingPost } from "../../API/ChargingPost";
+import BookingPopup from "../ordercharging/Booking";
 import { getChargingStation, getChargingStationId } from "../../API/Station";
-
-// MAP
 
 // Icon marker
 const markerIcon = new L.Icon({
@@ -39,19 +33,71 @@ const FlyToStation = ({ station }) => {
 
 const OrderChargingST = () => {
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(""); //lọc
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStation, setSelectedStation] = useState(null);
   const [stations, setStations] = useState([]);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
-  // const [showAdminPopup, setShowAdminPopup] = useState(false);
-  // const [showPostPopup, setShowPostPopup] = useState(false);
   const [user, setUser] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [filterMode, setFilterMode] = useState("all");
   const [stationPosts, setStationPosts] = useState({});
-  const navigate = useNavigate();
+ 
 
+  // 🔹 Tự động lấy vị trí hiện tại
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn("Không lấy được vị trí:", err);
+        toast.warn("Không thể lấy vị trí hiện tại!");
+      }
+    );
+  }, []);
+
+  // 🔹 Tính khoảng cách giữa 2 điểm (Haversine)
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  // 🔹 Xác định danh sách trạm hiển thị
+  let displayedStations = [...stations];
+
+  if (filterMode === "nearest" && userLocation) {
+    displayedStations = [...stations]
+      .map((st) => ({
+        ...st,
+        distance: getDistance(
+          userLocation.lat,
+          userLocation.lng,
+          parseFloat(st.latitude),
+          parseFloat(st.longitude)
+        ),
+      }))
+      .filter((st) => st.distance <= 5) // chỉ hiện trạm trong bán kính 5km
+      .sort((a, b) => a.distance - b.distance);
+
+    if (displayedStations.length === 0) {
+      toast.info("Không có trạm nào trong bán kính 5km, hiển thị tất cả trạm.");
+      displayedStations = [...stations];
+    }
+  }
+
+  // 🔹 Đóng popup khi click ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // Nếu click không nằm trong station-item và cũng không nằm trong các popup
       if (
         !e.target.closest(".station-item") &&
         !e.target.closest(".popup-content") &&
@@ -61,12 +107,12 @@ const OrderChargingST = () => {
         setSelectedStation(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside, true);
-    return () => document.removeEventListener("mousedown", handleClickOutside, true);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside, true);
   }, []);
 
-  // Kiểm tra đăng nhập (chỉ lưu user)
+  // 🔹 Lấy thông tin đăng nhập
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -78,10 +124,11 @@ const OrderChargingST = () => {
             email: authStatus.user.email || "",
             carModel: authStatus.user.car || "",
             role:
-            authStatus.user.role ||
-            authStatus.user.user_role ||
-            authStatus.user.user_role_raw ||
-            authStatus.role || "",
+              authStatus.user.role ||
+              authStatus.user.user_role ||
+              authStatus.user.user_role_raw ||
+              authStatus.role ||
+              "",
           };
           setUser(userData);
         } else setUser(null);
@@ -93,7 +140,7 @@ const OrderChargingST = () => {
     fetchUser();
   }, []);
 
-  // Hàm chọn trạm và load trụ
+  // 🔹 Chọn trạm & load trụ
   const handleSelectStation = async (station) => {
     try {
       const stationDetail = await getChargingStationId(station.id);
@@ -108,19 +155,7 @@ const OrderChargingST = () => {
     }
   };
 
-  // const handleReloadPosts = async (stationId) => {
-  //   try {
-  //     const updatedPosts = await getAllChargingPost(stationId);
-  //     setStationPosts((prev) => ({
-  //       ...prev,
-  //       [stationId]: updatedPosts || [].sort((a, b) => a.id - b.id),
-  //     }));
-  //   } catch (err) {
-  //     console.error("Lỗi reload posts:", err);
-  //   }
-  // };
-
-  // Lấy danh sách trạm từ API
+  // 🔹 Lấy danh sách trạm
   const fetchStations = async () => {
     try {
       setLoading(true);
@@ -133,19 +168,20 @@ const OrderChargingST = () => {
       for (const st of stationsData) {
         try {
           const detailRes = await getChargingStationId(st.id);
-          postsByStation[st.id] = detailRes.chargingPosts || []
-            .sort((a, b) => a.id - b.id);
-        } catch (err) {
+          postsByStation[st.id] =
+            detailRes.chargingPosts?.sort((a, b) => a.id - b.id) || [];
+        } catch {
           postsByStation[st.id] = [];
-          throw err
         }
       }
 
-      setStations(stationsData.sort((a, b) => a.stationName.localeCompare(b.stationName)));
+      setStations(
+        stationsData.sort((a, b) => a.stationName.localeCompare(b.stationName))
+      );
       setStationPosts(postsByStation);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách trạm:", error);
-      toast.error(" Lấy danh sách trạm thất bại!");
+      toast.error("Lấy danh sách trạm thất bại!");
     } finally {
       setLoading(false);
     }
@@ -154,8 +190,9 @@ const OrderChargingST = () => {
   useEffect(() => {
     fetchStations();
   }, []);
-  //lọc tên
-  const filteredStations = stations.filter((st) => {
+
+  // 🔹 Lọc tên theo từ khóa
+  const filteredStations = displayedStations.filter((st) => {
     const term = searchTerm.toLowerCase();
     return (
       st.stationName.toLowerCase().includes(term) ||
@@ -164,25 +201,15 @@ const OrderChargingST = () => {
     );
   });
 
-  if (!user)
-    return (
-      <div className="login-required">
-        <h3> Bạn phải đăng nhập để đặt lịch sạc</h3>
-        <p>Vui lòng đăng nhập để tiếp tục sử dụng dịch vụ.</p>
-        <button className="btn-login" onClick={() => navigate("/login")}>
-          Đăng nhập ngay
-        </button>
-      </div>
-    );
-
   if (loading) return <p>Đang tải dữ liệu trạm sạc...</p>;
 
   return (
     <div className="order-container">
       {/* Cột trái */}
       <div className="left-panel">
+
         <h2>Trạng thái các trạm sạc</h2>
-        {/* 🔍 Thanh tìm kiếm trạm */}
+
         <div className="search-bar">
           <input
             type="text"
@@ -200,11 +227,25 @@ const OrderChargingST = () => {
                   "_blank"
                 );
               } else {
-                toast.warn(" Vui lòng chọn trạm trước khi mở Google Map!");
+                toast.warn("Vui lòng chọn trạm trước khi mở Google Map!");
               }
             }}
           >
             Google Map
+          </button>
+        </div>
+        <div className="filter-buttons">
+          <button
+            className={filterMode === "all" ? "active" : ""}
+            onClick={() => setFilterMode("all")}
+          >
+            Tất cả trạm
+          </button>
+          <button
+            className={filterMode === "nearest" ? "active" : ""}
+            onClick={() => setFilterMode("nearest")}
+          >
+            Trạm gần nhất
           </button>
         </div>
 
@@ -212,35 +253,62 @@ const OrderChargingST = () => {
           {filteredStations.map((st) => (
             <div
               key={st.id}
-              className={`station-item ${selectedStation?.id === st.id ? "active" : ""}`}
+              className={`station-item ${
+                selectedStation?.id === st.id ? "active" : ""
+              }`}
               onClick={() => handleSelectStation(st)}
             >
-              <h4  className="station-header" > 
+              <h4 className="station-header">
                 {st.stationName}
-                {st.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
-                {st.status=== "Active"&& <span className="active"> Active</span>}
-                {st.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
+                {st.status === "Inactive" && (
+                  <span className="inactive"> Inactive</span>
+                )}
+                {st.status === "Active" && (
+                  <span className="active"> Active</span>
+                )}
+                {st.status === "Maintenance" && (
+                  <span className="maintenance"> Maintained</span>
+                )}
               </h4>
-              
-              <p> {st.location}, {st.province}</p>
+              <p>
+                {st.location}, {st.province}
+              </p>
 
-              {/*  Chỉ hiện danh sách trụ khi trạm này được chọn */}
               {selectedStation?.id === st.id && (
                 <div className="station-posts">
                   {stationPosts[st.id]?.length > 0 ? (
                     stationPosts[st.id].map((post, index) => (
-                      <div key={post.id} className={`post-item status-${post.status}`}>
+                      <div
+                        key={post.id}
+                        className={`post-item status-${post.status}`}
+                      >
                         <h5>Trụ {index + 1}</h5>
-                        <p><b>Tên trụ:</b> {post.postName}</p>
-                        <p><b>Cổng sạc:</b> {post.connectorType}</p>
-                        <p><b>Loại xe hổ trợ</b> {post.vehicleTypeSupported}</p>
-                        <p><b>Số Cổng Sạc</b> {post.totalConnectors}</p>
+                        <p>
+                          <b>Tên trụ:</b> {post.postName}
+                        </p>
+                        <p>
+                          <b>Cổng sạc:</b> {post.connectorType}
+                        </p>
+                        <p>
+                          <b>Loại xe hỗ trợ:</b> {post.vehicleTypeSupported}
+                        </p>
+                        <p>
+                          <b>Số Cổng Sạc:</b> {post.totalConnectors}
+                        </p>
                         <p>
                           <b>Trạng thái:</b>{" "}
-                          {post.status === "InActive" && <span className="inactive"> Inactive</span>}
-                          {post.status === "Available" && <span className="active"> Active</span>}
-                          {post.status === "Busy" && <span className="busy"> Busy</span>}
-                          {post.status === "Maintained" && <span className="maintained">Maintained</span>}
+                          {post.status === "InActive" && (
+                            <span className="inactive"> Inactive</span>
+                          )}
+                          {post.status === "Available" && (
+                            <span className="active"> Active</span>
+                          )}
+                          {post.status === "Busy" && (
+                            <span className="busy"> Busy</span>
+                          )}
+                          {post.status === "Maintained" && (
+                            <span className="maintained"> Maintained</span>
+                          )}
                         </p>
                       </div>
                     ))
@@ -257,24 +325,10 @@ const OrderChargingST = () => {
           <button className="btn-book" onClick={() => setShowBookingPopup(true)}>
             Đặt lịch sạc
           </button>
-
-          {/* Chỉ ADMIN mới thấy Admin Panel */}
-          {/* {user?.role === "Admin" && (
-            <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
-              Admin Panel
-            </button>
-          )} */}
-
-          {/* Admin & Staff đều thấy Quản lý trụ sạc */}
-          {/* {(user?.role === "Admin" || user?.role === "Staff") && (
-            <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
-              Quản lý trụ sạc
-            </button>
-          )} */}
         </div>
       </div>
 
-      {/* Cột phải: bản đồ */}
+      {/* Cột phải - bản đồ */}
       <div className="right-panel">
         <MapContainer
           center={[10.7769, 106.7009]}
@@ -286,6 +340,7 @@ const OrderChargingST = () => {
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
           {filteredStations.map((station) => {
             const lat = parseFloat(station.latitude);
             const lng = parseFloat(station.longitude);
@@ -297,42 +352,35 @@ const OrderChargingST = () => {
                 icon={markerIcon}
                 eventHandlers={{ click: () => handleSelectStation(station) }}
               >
-                <Popup closeButton={true} closeOnClick={false} className="leaflet-popup-station">
+                <Popup className="leaflet-popup-station">
                   <div className="popup-station">
-                    {/* Ảnh trạm */}
                     <img
                       src={station.imageUrl || "/img/station.jfif"}
                       alt={station.stationName}
                       className="popup-image"
                     />
-
-                    {/* Thông tin trạm */}
                     <div className="station-info">
                       <h3>{station.stationName}</h3>
-                      <p>
-                        {station.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
-                        {station.status=== "Active"&& <span className="active"> Active</span>}
-                        {station.status=== "Busy"&& <span className="busy"> Busy</span>}
-                        {station.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
+                      <p className="station-address">
+                        {station.location}, {station.province}
                       </p>
-                      <p className="station-address">{station.location}, {station.province}</p>
                     </div>
-                    
 
-                    {/* Danh sách trụ sạc */}
                     <div className="charging-posts">
                       {stationPosts[station.id]?.length > 0 ? (
                         stationPosts[station.id].map((post, index) => (
-                          <div key={post.id} className={`charging-post-card status-${post.status}`}>
+                          <div
+                            key={post.id}
+                            className={`charging-post-card status-${post.status}`}
+                          >
                             <div className="post-header">
-                              <span className="post-name">Trụ {index + 1}: {post.postName}</span>
-                              <span className="post-type">{post.connectorType} | {post.vehicleTypeSupported}</span>
-                            </div>
-                            <div className="post-status">
-                              {post.status === "InActive" && <span className="inactive"> Inactive</span>}
-                              {post.status === "Available" && <span className="active"> Active</span>}
-                              {post.status === "Busy" && <span className="busy"> Busy</span>}
-                              {post.status === "Maintained" && <span className="maintained">Maintained</span>}
+                              <span className="post-name">
+                                Trụ {index + 1}: {post.postName}
+                              </span>
+                              <span className="post-type">
+                                {post.connectorType} |{" "}
+                                {post.vehicleTypeSupported}
+                              </span>
                             </div>
                           </div>
                         ))
@@ -341,8 +389,10 @@ const OrderChargingST = () => {
                       )}
                     </div>
 
-                    {/* Nút đặt lịch */}
-                    <button className="btn-popup-book" onClick={() => setShowBookingPopup(true)}>
+                    <button
+                      className="btn-popup-book"
+                      onClick={() => setShowBookingPopup(true)}
+                    >
                       Đặt lịch sạc
                     </button>
                   </div>
@@ -350,46 +400,20 @@ const OrderChargingST = () => {
               </Marker>
             );
           })}
+
           {selectedStation && <FlyToStation station={selectedStation} />}
         </MapContainer>
       </div>
 
-      {/*postpopup */}
-      {/* {showPostPopup && (
-        <div className="popup-overlay">
-          <div className="popup-content large-popup">
-            <ChargingPost
-              stationId={selectedStation?.id}
-              onClose={() => setShowPostPopup(false)}
-              onUpdated={() => handleReloadPosts(selectedStation?.id)}
-              onReloadPosts={() => handleReloadPosts(selectedStation?.id)}
-            />
-          </div>
-        </div>
-      )} */}
-
-      {/* BookingPopup mới */}
+      {/* Popup đặt lịch */}
       {showBookingPopup && (
         <BookingPopup
           stations={stations}
           stationId={selectedStation?.id}
           onClose={() => setShowBookingPopup(false)}
-          onAdded={fetchStations} // reload danh sách booking/trạm sau khi thêm
+          onAdded={fetchStations}
         />
       )}
-
-      {/* Popup AdminPanel */}
-      {/* {showAdminPopup && (
-        <div className="popup-overlay">
-          <div className="popup-content large-popup">
-            <AdminStationPanel
-              onClose={() => setShowAdminPopup(false)}
-              onUpdated={fetchStations}
-              onReloadAdminPannel={() => handleSelectStation(selectedStation?.id)}
-            />
-          </div>
-        </div>
-      )} */}
 
       <ToastContainer />
     </div>

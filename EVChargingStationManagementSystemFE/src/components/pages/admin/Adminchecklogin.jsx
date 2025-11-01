@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router-dom";
+
 import { getAuthStatus } from "../../../API/Auth";
 
 export default function AdminCheckLogin({ children }) {

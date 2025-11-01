@@ -43,13 +43,22 @@ import ChargingPostList from "./RealDemo/ChargingPostList.jsx";
 import ConnectorList from "./RealDemo/ConnectorList.jsx";
 import Session from "./RealDemo/Session.jsx";
 import Success from "./PaymentStatus/Success.jsx";
+import Fail from "./PaymentStatus/Fail.jsx";
+import Error from "./PaymentStatus/Error.jsx";
+import Invalid from "./PaymentStatus/Invalid.jsx";
 import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
+
 
 
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
 import ResetPassword from "./components/pages/ResetPassword";
 import SystemConfigEditor from "./components/pages/admin/SystemConfiguration";
+import StaffStation from "./components/pages/staff/StaffStation.jsx";
+import ConfirmPaymentOffline from "./components/pages/staff/ConfirmPaymentOffline.jsx";
+import StaffStationDetail from "./components/pages/staff/StaffStationDetail.jsx";
+import StaffConnector from "./components/pages/staff/StaffConnector.jsx";
+
 
 export default function App() {
   return (
@@ -65,7 +74,7 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
-          
+
           {/* Demo Charge */}
           {/* <Route path="station-list" element={<StationList />} />
           <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
@@ -107,13 +116,16 @@ export default function App() {
 
         {/* // */}
         <Route path="payment-status/success" element={<Success />} />
+        <Route path="payment-status/fail" element={<Fail />} />
+        <Route path="payment-status/error" element={<Error />} />
+        <Route path="payment-status/invalid" element={<Invalid />} />
 
         {/* Admin Routes */}
         
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="station" element={<AdminStations />} />
-          
+
           <Route path="staff" element={<AdminStaff />} />
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
@@ -125,11 +137,11 @@ export default function App() {
         {/* Staff Routes */}
         <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
           <Route index element={<StaffLayout />} />
-          <Route path="stations" element={<AdminStations />} />
-          <Route path="staff" element={<AdminStaff />} />
-          <Route path="vehicles" element={<AdminVehicles />} />
-          <Route path="system-configuration" element={<SystemConfigEditor />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="stations" element={<StaffStation />} />
+          <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
+          <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
+          <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
+
         </Route>
         
       </Routes>

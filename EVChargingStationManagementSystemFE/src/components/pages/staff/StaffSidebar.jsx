@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Zap, Users, Car, LogOut, BarChart3, Settings, House } from "lucide-react";
+import { Zap, Users, Car, LogOut, BarChart3, Settings, House, CreditCard } from "lucide-react";
 // import "./AdminSidebar.css";
 import "./StaffSidebar.css";
 
@@ -9,7 +9,9 @@ const StaffSidebar = () => {
         { name: "Trang chủ", path: "/staff", icon: <House size={20} /> },
         // { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/staff/stations", icon: <Zap size={20} /> },
-        { name: "Xe điện", path: "/staff/vehicles", icon: <Car size={20} /> },
+        // { name: "Xe điện", path: "/staff/vehicles", icon: <Car size={20} /> },
+        { name: "Xác nhận thanh toán", path: "confirm-payment-offline", incon: <CreditCard size={20} /> }
+
 
     ];
 
@@ -53,10 +55,10 @@ const StaffSidebar = () => {
             <div className="user-section">
                 <div className="user-info">
                     <div className="user-avatar">
-                        A
+                        Làm thuê
                     </div>
                     <div className="user-details">
-                        <div className="user-name">Admin User</div>
+                        <div className="user-name">Staff User</div>
                         <div className="user-role">Quản trị viên</div>
                     </div>
                 </div>

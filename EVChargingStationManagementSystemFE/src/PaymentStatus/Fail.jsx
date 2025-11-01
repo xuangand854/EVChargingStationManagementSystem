@@ -3,7 +3,7 @@ import Lottie from "lottie-react";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
-export default function ErrorPage() {
+export default function FailPage() {
     const navigate = useNavigate();
 
     return (
@@ -29,7 +29,7 @@ export default function ErrorPage() {
                 </div>
 
                 <h2 style={{ margin: "12px 0 6px", color: "#052021" }}>Thanh toán thất bại</h2>
-                <p style={{ margin: 0, color: "#475569" }}>Giao dịch đã xảy ra lỗi. Vui lòng thử lại hoặc chọn phương thức khác</p>
+                <p style={{ margin: 0, color: "#475569" }}>Giao dịch thất bại. Vui lòng thử lại hoặc chọn phương thức khác</p>
 
                 <div style={{ marginTop: 20, display: "flex", gap: 12, justifyContent: "center" }}>
                     <Button type="primary" onClick={() => navigate("/")}>Về trang chủ</Button>

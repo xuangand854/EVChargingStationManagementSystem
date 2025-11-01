@@ -54,7 +54,9 @@ import SystemConfigEditor from "./components/pages/admin/SystemConfiguration";
 export default function App() {
   return (
     <BrowserRouter>
+      <AdminCheckLogin>
       <Routes>
+        
         <Route path="/" element={<Layout />}>
           <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
           {/* LOGIN */}
@@ -107,6 +109,7 @@ export default function App() {
         <Route path="payment-status/success" element={<Success />} />
 
         {/* Admin Routes */}
+        
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="station" element={<AdminStations />} />
@@ -128,7 +131,9 @@ export default function App() {
           <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
+        
       </Routes>
+      </AdminCheckLogin>
     </BrowserRouter>
   );
 }

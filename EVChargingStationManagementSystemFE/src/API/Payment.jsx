@@ -15,10 +15,9 @@ export const PostPayment = async (sessionId) => {
 
 export const PostPaymentOffline = async (sessionId) => {
     try {
-        const response = await api.post(`${BASE_URL}/offline`, {
-            sessionId
-        });
+        const response = await api.post(`${BASE_URL}/offline/?sessionId=${sessionId}`);
         return response.data;
+
     } catch (error) {
         console.error('Lỗi khi tạo payment offline:', error);
         throw error;
@@ -27,7 +26,7 @@ export const PostPaymentOffline = async (sessionId) => {
 
 export const PatchPaymentOfflineStatus = async (paymentId) => {
     try {
-        const response = await api.patch(`${BASE_URL}/offline-status`, { paymentId });
+        const response = await api.patch(`${BASE_URL}/offline-status/?paymentId=${paymentId}`);
         return response.data;
     } catch (error) {
         console.error('Lỗi khi cập nhật trạng thái payment offline:', error);

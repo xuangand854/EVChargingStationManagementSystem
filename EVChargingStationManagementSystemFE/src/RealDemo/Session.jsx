@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button, message, Card, Space, Tag } from "antd";
 import { StartSession, Stop } from "../API/ChargingSession";
 import { PatchConnectorToggle } from "../API/Connector";
-import { PostPayment } from "../API/Payment";
 import { PlugZap, Power, StopCircle, Plug, CreditCard } from "lucide-react";
 
 const Session = () => {
@@ -15,9 +14,22 @@ const Session = () => {
     const [isPaid, setIsPaid] = useState(false);
     const [isStopped, setIsStopped] = useState(false);
     const { connectorID } = useParams();
+    const navigate = useNavigate();
     console.log("connectorId:", connectorID);
     console.log("sessionId:", sessionId);
 
+
+    useEffect(() => {
+        // Nếu vừa thanh toán xong, bật quyền rút sạc rồi dọn state lưu tạm
+        try {
+            const paid = sessionStorage.getItem('payment.paid') === 'true';
+            if (paid) {
+                setIsPaid(true);
+                message.success('Thanh toán thành công! Bạn có thể rút sạc.');
+            }
+        } catch {}
+        return () => {};
+    }, []);
 
     // useEffect(() => {
     //     const fetchSession = async () => {
@@ -164,15 +176,15 @@ const Session = () => {
             return;
         }
         try {
-            setLoading(true);
-            await PostPayment(sessionId);
-            message.success("Thanh toán thành công!");
-            setIsPaid(true);
+            message.info("Đang chuyển đến trang thanh toán...");
+            try {
+                sessionStorage.setItem('payment.sessionId', String(sessionId));
+                sessionStorage.setItem('payment.connectorId', String(connectorID));
+                sessionStorage.setItem('payment.returnPath', window.location.pathname);
+            } catch {}
+            navigate(`/payment-method/${sessionId}`); // ✅ chuyển hướng đến trang chọn phương thức thanh toán
         } catch (error) {
-            message.error("Thanh toán thất bại!");
-            console.error("Lỗi thanh toán:", error);
-        } finally {
-            setLoading(false);
+            console.error("Lỗi khi điều hướng:", error);
         }
     };
 
@@ -248,19 +260,16 @@ const Session = () => {
                         >
                             Dừng phiên sạc
                         </Button>
-
-                        {/* Thanh toán */}
-                        {isStopped && !isPaid && (
-                            <Button
-                                type="primary"
-                                onClick={handlePayment}
-                                disabled={isCharging || loading}
-                                className="bg-green-500 hover:bg-green-600 border-none rounded-xl py-5 text-lg"
-                                icon={<CreditCard size={20} />}
-                            >
-                                Thanh toán
-                            </Button>
-                        )}
+                        {/* Nút thanh toán */}
+                        <Button
+                            type="primary"
+                            onClick={handlePayment}
+                            disabled={isCharging || loading || isStopped}
+                            className="bg-green-500 hover:bg-green-600 border-none rounded-xl py-5 text-lg"
+                            icon={<CreditCard size={20} />}
+                        >
+                            Thanh toán
+                        </Button>
                     </div>
 
                     <div className="mt-6">

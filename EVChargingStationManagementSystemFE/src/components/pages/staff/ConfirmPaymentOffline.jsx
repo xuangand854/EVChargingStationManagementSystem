@@ -53,7 +53,7 @@ const ConfirmPaymentOffline = () => {
                 className="shadow-lg w-[420px] rounded-2xl"
             >
                 <Space direction="vertical" className="w-full">
-                    <div>
+                    {/* <div>
                         <label className="block mb-1 font-medium">Mã phiên sạc (sessionId)</label>
                         <Input
                             placeholder="Nhập sessionId..."
@@ -68,7 +68,7 @@ const ConfirmPaymentOffline = () => {
                         >
                             Tạo thanh toán Offline
                         </Button>
-                    </div>
+                    </div> */}
 
                     <div className="mt-5">
                         <label className="block mb-1 font-medium">Mã thanh toán (paymentId)</label>

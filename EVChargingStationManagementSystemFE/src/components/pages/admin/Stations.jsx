@@ -75,25 +75,16 @@ const AdminStation = () => {
         }
     };
 
-    // 🔴 Xóa trạm
-    const handleDelete = async (stationId) => {
-        Modal.confirm({
-            title: "Xác nhận xóa",
-            content: "Bạn có chắc muốn xóa trạm này không?",
-            okText: "Xóa",
-            cancelText: "Hủy",
-            okType: "danger",
-            onOk: async () => {
-                try {
-                    await deleteChargingStation(stationId);
-                    message.success("Xóa trạm thành công!");
-                    fetchStations();
-                } catch (error) {
-                    console.error("Error deleting station:", error);
-                    message.error("Không thể xóa trạm!");
-                }
-            },
-        });
+    const handleDelete = async (id) => {
+        if (window.confirm("Xác nhận xóa trạm này?")) {
+            try {
+                await deleteChargingStation(id);
+                message.success("Xóa trạm thành công!");
+                fetchStations();
+            } catch (err) {
+                console.error("Lỗi xóa:", err);
+            }
+        }
     };
 
     const handleViewDetail = (stationId) => {
@@ -143,7 +134,7 @@ const AdminStation = () => {
                         <Button
                             icon={<DeleteOutlined />}
                             danger
-                            onClick={() => handleDelete(record.stationId)}
+                            onClick={() => handleDelete(record.id)}
                         />
                     </Tooltip>
                 </Space>

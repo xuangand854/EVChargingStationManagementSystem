@@ -15,7 +15,7 @@ export const PostPayment = async (sessionId) => {
 
 export const PostPaymentOffline = async (sessionId) => {
     try {
-        const response = await api.post(`${BASE_URL}/offline/?sessionId=${sessionId}`);
+        const response = await api.post(`${BASE_URL}/offline?sessionId=${sessionId}`);
         return response.data;
 
     } catch (error) {

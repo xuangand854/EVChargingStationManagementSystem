@@ -59,12 +59,15 @@ import StaffStation from "./components/pages/staff/StaffStation.jsx";
 import ConfirmPaymentOffline from "./components/pages/staff/ConfirmPaymentOffline.jsx";
 import StaffStationDetail from "./components/pages/staff/StaffStationDetail.jsx";
 import StaffConnector from "./components/pages/staff/StaffConnector.jsx";
+import AdminStationMap from "./components/pages/admin/AdminMapStation.jsx"
+import AdminSession from "./components/pages/admin/AdminSession.jsx";
+import AdminMapStation from "./components/pages/admin/AdminMapStation.jsx";
 
 
 export default function App() {
   return (
     <BrowserRouter>
-      {/* <AdminCheckLogin> */}
+      
       <Routes>
 
         <Route path="/" element={<Layout />}>
@@ -134,6 +137,13 @@ export default function App() {
           <Route path="station" element={<AdminStations />} />
 
           <Route path="staff" element={<AdminStaff />} />
+          <Route path="map-station" element={<AdminMapStation />} />
+          <Route path="admin-session" element={<AdminSession />}>
+            <Route path=":stationID/posts" element={<ChargingPostList />} />
+            <Route path=":stationID/posts/:postID/connector" element={<ConnectorList />} />
+            <Route path=":stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
+          </Route>
+          <Route path="admin-map" element={<AdminStationMap />} />
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
@@ -152,7 +162,7 @@ export default function App() {
         </Route>
 
       </Routes>
-      {/* </AdminCheckLogin> */}
+     
     </BrowserRouter>
   );
 }

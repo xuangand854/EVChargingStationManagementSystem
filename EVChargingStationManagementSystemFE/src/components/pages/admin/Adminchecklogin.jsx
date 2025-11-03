@@ -1,47 +1,36 @@
-
-import { getAuthStatus } from "../../../API/Auth";
+import { useLocation, Navigate } from "react-router-dom";
+import { getAuthStatus } from "../../../API/Auth"; // hoặc path tương ứng
 
 export default function AdminCheckLogin({ children }) {
+  const location = useLocation();
   const { isAuthenticated, user } = getAuthStatus();
-  // const location = useLocation();
 
-  // ✅ Các trang public (ai cũng vào được)
-  const publicPaths = ["/", "/login", "/sign-up", "/logout", "/forgot-password", "/station-list"];
+  // Nếu chưa đăng nhập → cho phép vào public route (login, signup, home,...)
+  const publicPaths = ["/", "/login", "/sign-up","/logout"];
+  const isPublic = publicPaths.some(p => location.pathname.startsWith(p));
 
-  // Nếu đang ở trang public → cho phép
-  if (publicPaths.includes(location.pathname)) {
-    return children;
-  }
-
-  // 🔹 1️⃣ Nếu chưa đăng nhập → chỉ cho phép trang public
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return isPublic ? children : <Navigate to="/login" replace />;
   }
 
-  // 🔹 2️⃣ Nếu là Admin → chỉ cho phép trong /admin
-  if (user?.role === "Admin") {
-    if (!location.pathname.startsWith("/admin")) {
-      return <Navigate to="/admin" replace />;
-    }
-    return children;
-  }
+  // Nếu là Admin mà vào ngoài /admin → ép về /admin
+  // if (user?.role === "Admin" && !location.pathname.startsWith("/admin")) {
+  //   return <Navigate to="/admin" replace />;
+  // }
 
-  // 🔹 3️⃣ Nếu là Staff → chỉ cho phép trong /staff
-  if (user?.role === "Staff") {
-    if (!location.pathname.startsWith("/staff")) {
-      return <Navigate to="/staff" replace />;
-    }
-    return children;
-  }
+  // // Nếu là Staff mà vào ngoài /staff → ép về /staff
+  // if (user?.role === "Staff" && !location.pathname.startsWith("/staff")) {
+  //   return <Navigate to="/staff" replace />;
+  // }
 
-  // 🔹 4️⃣ Nếu là User thường → cấm vào /admin và /staff
+  // Nếu là User thường mà vào /admin hoặc /staff → ép về /
   if (
-    location.pathname.startsWith("/admin") ||
-    location.pathname.startsWith("/staff")
+    user?.role === "User" &&
+    (location.pathname.startsWith("/admin") || location.pathname.startsWith("/staff"))
   ) {
     return <Navigate to="/" replace />;
   }
 
-  // 🔹 5️⃣ Cho phép tất cả còn lại
   return children;
 }
+// 

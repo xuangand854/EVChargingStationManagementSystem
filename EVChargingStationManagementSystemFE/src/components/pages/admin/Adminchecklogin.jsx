@@ -3,10 +3,10 @@ import { getAuthStatus } from "../../../API/Auth";
 
 export default function AdminCheckLogin({ children }) {
   const { isAuthenticated, user } = getAuthStatus();
-  const location = useLocation();
+  // const location = useLocation();
 
   // ✅ Các trang public (ai cũng vào được)
-  const publicPaths = ["/", "/login", "/sign-up", "/logout", "/forgot-password"];
+  const publicPaths = ["/", "/login", "/sign-up", "/logout", "/forgot-password", "/station-list"];
 
   // Nếu đang ở trang public → cho phép
   if (publicPaths.includes(location.pathname)) {

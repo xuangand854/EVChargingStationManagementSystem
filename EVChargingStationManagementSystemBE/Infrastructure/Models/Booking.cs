@@ -42,7 +42,7 @@ namespace Infrastructure.Models
         public Guid StationId { get; set; }
         public ChargingStation ChargingStationNavigation { get; set; }
 
-        // 👤 Người đặt
+        //  Người đặt
         [ForeignKey("UserAccount")]
         public Guid BookedBy { get; set; }
         public UserAccount BookedByNavigation { get; set; }

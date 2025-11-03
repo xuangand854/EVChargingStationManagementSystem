@@ -6,7 +6,7 @@ namespace Common.DTOs.BookingDto
     {
         public Guid Id { get; set; }
 
-        // Thời gian dự kiến và thực tế
+        // Thời gian dự kiến & thực tế
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public DateTime? ActualStartTime { get; set; }
@@ -24,7 +24,7 @@ namespace Common.DTOs.BookingDto
         // Trạm sạc
         public Guid StationId { get; set; }
         public string? StationName { get; set; }
-        public string? StationAddress { get; set; }
+        public string? Location { get; set; }
 
         // Connector
         public Guid? ConnectorId { get; set; }

@@ -396,23 +396,24 @@ namespace BusinessLogic.Services
             }
         }
 
-        // Lấy chi tiết 1 booking cụ thể
-        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
+        public async Task<IServiceResult> GetBookingList(Guid? userId = null)
         {
             try
             {
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    b => b.Id == bookingId && !b.IsDeleted,
-                    include: b => b
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    predicate: b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
+                    include: q => q
                         .Include(x => x.BookedByNavigation)
                         .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.ChargingStationNavigation.ChargingPosts)
+                        .OrderByDescending(x => x.CreatedAt)
                 );
 
-                if (booking == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
+                if (bookings == null || bookings.Count == 0)
+                {
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có lịch đặt nào.");
+                }
 
-                var response = booking.Adapt<BookingViewDto>();
+                var response = bookings.Adapt<List<BookingViewDto>>();
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
             catch (Exception ex)
@@ -421,23 +422,23 @@ namespace BusinessLogic.Services
             }
         }
 
-        // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
-        public async Task<IServiceResult> GetBookingList(Guid? userId = null)
+        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
         {
             try
             {
-                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
-                    include: b => b
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
+                    predicate: b => !b.IsDeleted && b.Id == bookingId,
+                    include: q => q
+                        .Include(x => x.BookedByNavigation)
                         .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.BookedByNavigation),
-                    orderBy: q => q.OrderByDescending(b => b.CreatedAt)
                 );
 
-                if (bookings == null || bookings.Count == 0)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
+                if (booking == null)
+                {
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy lịch đặt.");
+                }
 
-                var response = bookings.Adapt<List<BookingViewDto>>();
+                var response = booking.Adapt<BookingViewDto>();
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
             catch (Exception ex)

@@ -42,6 +42,7 @@ import StationList from "./RealDemo/StationList.jsx";
 import ChargingPostList from "./RealDemo/ChargingPostList.jsx";
 import ConnectorList from "./RealDemo/ConnectorList.jsx";
 import Session from "./RealDemo/Session.jsx";
+import PaymentOptionPage from "./RealDemo/PaymentOptionPage.jsx";
 import Success from "./PaymentStatus/Success.jsx";
 import Fail from "./PaymentStatus/Fail.jsx";
 import Error from "./PaymentStatus/Error.jsx";
@@ -67,7 +68,7 @@ export default function App() {
     <BrowserRouter>
       
       <Routes>
-        
+
         <Route path="/" element={<Layout />}>
           <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
           {/* LOGIN */}
@@ -116,6 +117,12 @@ export default function App() {
         <Route path="station-list/:stationID/posts/:postID/connector" element={<ConnectorList />} />
         <Route path="station-list/:stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
 
+        {/* Payment method selection */}
+        <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
+
+        Shortcut route to session by connectorID
+        <Route path="session/:connectorID" element={<Session />} />
+
         {/* // */}
         <Route path="payment-status/success" element={<Success />} />
         <Route path="payment-status/fail" element={<Fail />} />
@@ -123,7 +130,7 @@ export default function App() {
         <Route path="payment-status/invalid" element={<Invalid />} />
 
         {/* Admin Routes */}
-        
+
         <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="station" element={<AdminStations />} />
@@ -151,7 +158,7 @@ export default function App() {
           <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
 
         </Route>
-        
+
       </Routes>
      
     </BrowserRouter>

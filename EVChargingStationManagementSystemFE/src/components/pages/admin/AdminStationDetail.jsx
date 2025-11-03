@@ -136,11 +136,11 @@ const AdminStationDetail = () => {
             const payload = {
                 postName: values.postName,
                 connectorType: values.connectorType,
-                maxPowerKw: values.maxPowerKW,
-                vehicleTypeSupported: values.vehicleTypeSupported,
-                totalConnectors: values.totalConnectors,
-                status: values.status || "Active",
-                stationId: stationId,
+                maxPowerKw: Number(values.maxPowerKW),
+                vehicleTypeSupported: Number(values.vehicleTypeSupported),
+                totalConnectors: Number(values.totalConnectors),
+                status: values.status || "Available",
+                stationId: Number(stationId),
             };
 
             if (editingPost) {
@@ -174,7 +174,7 @@ const AdminStationDetail = () => {
     const columns = [
         { title: "Tên trụ sạc", dataIndex: "postName", key: "postName" },
         { title: "Kiểu kết nối", dataIndex: "connectorType", key: "connectorType" },
-        { title: "Loại xe hỗ trợ", dataIndex: "vehicleTypeSupported", key: "vehicleTypeSupported" },
+        { title: "Loại xe hỗ trợ", dataIndex: "vehicleTypeSupported", key: "vehicleTypeSupported", render: (v) => (Number(v) === 0 ? "Xe máy" : "Ô tô") },
         { title: "Số cổng", dataIndex: "totalConnectors", key: "totalConnectors" },
         {
             title: "Trạng thái",
@@ -238,6 +238,7 @@ const AdminStationDetail = () => {
                                     <Option value="Active">Active</Option>
                                     <Option value="Inactive">Inactive</Option>
                                     <Option value="Discontinued">Discontinued</Option>
+                                    <Option value="Maintenance">Maintenance</Option>
                                 </Select>
                                 <Button
                                     icon={<UserSwitchOutlined />}
@@ -278,14 +279,22 @@ const AdminStationDetail = () => {
                         <Form
                             layout="vertical"
                             initialValues={
-                                editingPost || {
-                                    postName: "",
-                                    connectorType: "css2",
-                                    maxPowerKW: 50,
-                                    vehicleTypeSupported: "Bike",
-                                    totalConnectors: 1,
-                                    status: "Available",
-                                }
+                                editingPost
+                                    ? {
+                                        ...editingPost,
+                                        maxPowerKW: editingPost.maxPowerKW ?? editingPost.maxPowerKw ?? 50,
+                                        vehicleTypeSupported: Number(editingPost.vehicleTypeSupported),
+                                        totalConnectors: Number(editingPost.totalConnectors ?? 1),
+                                        status: editingPost.status || "Available",
+                                    }
+                                    : {
+                                        postName: "",
+                                        connectorType: "css2",
+                                        maxPowerKW: 50,
+                                        vehicleTypeSupported: 1,
+                                        totalConnectors: 1,
+                                        status: "Available",
+                                    }
                             }
                             onFinish={handleSavePost}
                         >
@@ -313,10 +322,14 @@ const AdminStationDetail = () => {
                                 <Input type="number" min={1} />
                             </Form.Item>
 
-                            <Form.Item name="vehicleTypeSupported" label="Loại xe hỗ trợ">
+                            <Form.Item
+                                name="vehicleTypeSupported"
+                                label="Loại xe hỗ trợ"
+                                rules={[{ required: true, message: "Vui lòng chọn loại xe" }]}
+                            >
                                 <Select>
-                                    <Option value="Bike">Xe máy</Option>
-                                    <Option value="Car">Ô tô</Option>
+                                    <Option value={0}>Xe máy</Option>
+                                    <Option value={1}>Ô tô</Option>
                                 </Select>
                             </Form.Item>
 

@@ -34,7 +34,11 @@ export default function SuccessPage() {
 
                 <div style={{ marginTop: 20, display: "flex", gap: 12, justifyContent: "center" }}>
                     <Button type="primary" onClick={() => navigate("/")}>Về trang chủ</Button>
-                    <Button onClick={() => navigate(-1)}>Quay lại</Button>
+                    <Button onClick={() => {
+                        try { sessionStorage.setItem('payment.paid', 'true'); } catch {}
+                        const returnPath = (() => { try { return sessionStorage.getItem('payment.returnPath'); } catch { return null; } })();
+                        if (returnPath) navigate(returnPath); else navigate(-1);
+                    }}>Quay lại phiên sạc</Button>
                 </div>
             </div>
         </div>

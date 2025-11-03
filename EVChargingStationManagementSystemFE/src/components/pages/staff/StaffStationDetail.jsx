@@ -124,7 +124,7 @@ const StaffStationDetail = () => {
 
     return (
         <div className="p-6">
-            <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate("/staff/station")}>
+            <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate("/staff/stations")}>
                 Quay lại danh sách trạm
             </Button>
 

@@ -200,7 +200,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
                 {filteredStations.map((st) => (
                   <div key={st.id} className="post-popup-item">
                     <span>{st.stationName} ({st.location})</span>
-                    <button onClick={() => handleDelete(st.id)}>🗑️ Xóa</button>
+                    <button onClick={() => handleDelete(st.id)}> Xóa</button>
                   </div>
                 ))}
               </div>

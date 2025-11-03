@@ -7,7 +7,7 @@ import { getVehicleModels } from "../../API/Admin";
 import { getEVDriverProfile } from "../../API/EVDriver.js";
 import "react-toastify/dist/ReactToastify.css";
 import "./Booking.css";
-
+import Login from "../pages/Login.jsx";
 export default function BookingPopup({ stations = [], stationId, onClose, onAdded }) {
   const [termStation, setTermStation] = useState("");
   const [termVehicle, setTermVehicle] = useState("");
@@ -17,6 +17,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [profile, setProfile] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const navigate = useNavigate();
+  
 
   const [bookingData, setBookingData] = useState({
     stationId: stationId || "",
@@ -64,10 +65,11 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     return (
       <div className="popup-overlay" onClick={onClose}>
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
-          <h3>⚠️ Bạn không có quyền đặt Booking</h3>
+          <h3> Xin hãy đăng nhập để có thể sử dụng dịch vụ.</h3>
           <p>
-            Chỉ người dùng có vai trò <b>EVDriver</b> mới được phép đặt.
+          
           </p>
+          <button className="btn-book" onClick={onclick}><Login/></button>
           <button className="cancel-btn" onClick={onClose}>Đóng</button>
         </div>
       </div>

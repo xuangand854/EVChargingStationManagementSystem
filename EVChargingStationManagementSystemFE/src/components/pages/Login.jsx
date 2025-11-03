@@ -46,6 +46,11 @@ const Login = () => {
       } else {
         navigate("/", { replace: true });
       }
+      if (userRole === "Staff") {
+        navigate("/staff", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
 
     } catch (err) {
       const msg =

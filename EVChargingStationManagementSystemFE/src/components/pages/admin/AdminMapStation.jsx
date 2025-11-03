@@ -1,14 +1,13 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
-import StationList from "../../../RealDemo/StationList";
+import OrderChargingST from "../../ordercharging/OrderChargingST";
 
-const AdminSession = () => {
+const AdminMapStation = () => {
   return (
-    <div className="admin-session">
-      <StationList basePath="/admin/admin-session" />
-      <Outlet />
+    <div className="admin-map-station-container">
+      
+      <OrderChargingST/>
     </div>
   );
 };
 
-export default AdminSession;
+export default AdminMapStation;

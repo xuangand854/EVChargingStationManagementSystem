@@ -124,6 +124,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
       onReloadAdminPanel?.();
     } catch (err) {
       console.error(err);
+      
     }
   };
 
@@ -173,7 +174,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
                 {filteredStations.map((st) => (
                   <div key={st.id} className="post-popup-item">
                     <span>{st.stationName} ({st.location})</span>
-                    <button onClick={() => handleEditClick(st)}>✏️ Sửa</button>
+                    <button onClick={() => handleEditClick(st)}> Sửa</button>
                   </div>
                 ))}
               </div>

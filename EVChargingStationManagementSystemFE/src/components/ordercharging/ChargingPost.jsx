@@ -32,8 +32,8 @@ const ChargingPost = ({ onClose, onUpdated }) => {
   const statusMap = {
     InActive: 0,
     Available: 1,
-    Busy: 2,
-    Maintained: 3,
+    
+    Maintained: 2,
   };
 
 
@@ -127,8 +127,16 @@ const ChargingPost = ({ onClose, onUpdated }) => {
       loadPosts(selectedStation.id);
       onUpdated?.();
     } catch (err) {
-      console.error(" Lỗi submit:", err);
-      toast.error("Thao tác thất bại!");
+        console.error("Lỗi submit:", err);
+        // Nếu BE có phản hồi lỗi rõ ràng
+        const beMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Đã xảy ra lỗi không xác định!";
+
+        toast.error(beMessage);
+      
     }
   };
 
@@ -389,7 +397,6 @@ const handleDelete = async (id) => {
                       >
                         <option value="InActive">Inactive</option>
                         <option value="Available">Active</option>
-                        <option value="Busy">Busy</option>
                         <option value="Maintained">Maintained</option>
                       </select>
                       <span className="status-label">

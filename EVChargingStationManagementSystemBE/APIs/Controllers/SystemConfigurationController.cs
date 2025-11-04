@@ -30,9 +30,24 @@ namespace APIs.Controllers
         }
 
         [HttpGet("{configName}")]
+        [Authorize(Roles = "Admin, Staff")]
         public async Task<IActionResult> GetById([FromRoute] string configName)
         {
             var result = await _service.GetByName(configName);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        [HttpGet("vat")]
+        public async Task<IActionResult> GetVat()
+        {
+            var result = await _service.GetByName("VAT");
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

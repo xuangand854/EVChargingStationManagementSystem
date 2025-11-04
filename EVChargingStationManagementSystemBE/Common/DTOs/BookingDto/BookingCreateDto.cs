@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.DTOs.BookingDto
 {
@@ -18,6 +14,7 @@ namespace Common.DTOs.BookingDto
         [Required(ErrorMessage = "StartTime is required.")]
         public DateTime StartTime { get; set; }
 
-        // EndTime được tự tính (StartTime + 1h30)
+        // Có thể để client chọn duration hoặc mặc định 1.5 tiếng
+        public double? DurationHours { get; set; } = 1.5;
     }
 }

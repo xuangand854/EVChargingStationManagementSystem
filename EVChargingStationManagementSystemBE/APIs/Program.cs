@@ -37,6 +37,7 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<INotificationRecipientService, NotificationRecipientService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ICheckInCodeService, CheckInCodeService>();
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(options =>

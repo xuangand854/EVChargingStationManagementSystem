@@ -1,9 +1,11 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
+using Common.DTOs.PaymentDto;
 using Common.DTOs.SystemConfigurationDto;
 using Infrastructure.IUnitOfWork;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -31,6 +33,29 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+        public async Task<IServiceResult> GetByName(string configName)
+        {
+            try
+            {
+                var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted && s.Name == configName)
+                    .ProjectToType<SystemConfigurationViewDetailDto>()
+                    .FirstOrDefaultAsync();
+
+                if (config == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy đơn thanh toán");
+
+                else
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, config);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
         public async Task<IServiceResult> Update(int id, SystemConfigurationUpdateDto dto, Guid userId)
         {
             try

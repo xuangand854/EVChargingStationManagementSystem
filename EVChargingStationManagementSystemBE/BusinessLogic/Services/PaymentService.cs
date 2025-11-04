@@ -1,22 +1,26 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
+using Common.DTOs.ConnectorDto;
+using Common.DTOs.PaymentDto;
 using Common.Enum.ChargingSession;
 using Common.Enum.Payment;
 using Common.Enum.Transaction;
 using Common.Helper;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Web;
 
 namespace BusinessLogic.Services
 {
-    public class PaymentService(IUnitOfWork unitOfWork, IConfiguration config) : IPaymentService
+    public class PaymentService(IUnitOfWork unitOfWork, IConfiguration config, INotificationService notify) : IPaymentService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IConfiguration _config = config;
+        private readonly INotificationService _notify = notify;
 
         public async Task<IServiceResult> CreatePaymentURL(Guid sessionId)
         {
@@ -183,7 +187,14 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(sessionId);
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .Where( cs => cs.Id == sessionId)
+                    .Include( cs => cs.ChargingPost)
+                        .ThenInclude( cs => cs.ChargingStationNavigation)
+                    .FirstOrDefaultAsync();
+
+                if (chargingSession == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc nào");
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
@@ -200,10 +211,11 @@ namespace BusinessLogic.Services
 
                 var payment = new Payment
                 {
+                    Id = Guid.NewGuid(),
                     ChargingSessionId = sessionId,
                     TxnRef = txnRef,
                     TaxRate = vatValue,
-                    BeforeVatAmount = chargingSession.Cost
+                    BeforeVatAmount = chargingSession.Cost,                    
                 };
                 if (chargingSession.UserId != null || chargingSession.UserId != Guid.Empty)
                     payment.PaidBy = chargingSession.UserId;
@@ -215,7 +227,17 @@ namespace BusinessLogic.Services
 
                 await _unitOfWork.PaymentRepository.CreateAsync(payment);
 
+                if (chargingSession.ChargingPost.ChargingStationNavigation.OperatorId == Guid.Empty)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không tìm thấy nhân viên trạm");
+
                 //Gửi thông báo cho staff
+                var notifyStaffs = await _notify.NotifyStaffOffLinePaymentRecord(
+                    chargingSession.ChargingPost.ChargingStationNavigation.OperatorId ?? Guid.Empty,
+                    chargingSession.UserId ?? Guid.Empty,
+                    "Có người dùng chọn phương thức thanh toán offline cho phiên sạc mã: " + chargingSession.Id +
+                    "\n Vui lòng cập nhật hóa đơn này sau khi đã nhận tiền mặt của khách hàng" +
+                    $"\n Chi tiết hóa đơn: {_config["VnPay:FEOfflinePaymentBillPage"]}?paymentId={payment.Id}"
+                    );
 
                 var result = await _unitOfWork.SaveChangesAsync();
 
@@ -302,9 +324,30 @@ namespace BusinessLogic.Services
             {
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
-
         }
 
+        public async Task<IServiceResult> GetById(Guid paymentId)
+        {
+            try
+            {
+                var payment = await _unitOfWork.PaymentRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted && s.Id == paymentId)
+                    .ProjectToType<PaymentViewDetailDto>()
+                    .FirstOrDefaultAsync();
+
+                if (payment == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy đơn thanh toán");
+
+                else
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, payment);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+
+        }
         private static string JsonResponse(string rspCode, string message)
         {
             return $"{{\"RspCode\":\"{rspCode}\",\"Message\":\"{message}\"}}";

@@ -58,10 +58,21 @@ export const getEVDriverProfile = async ()=>{
         throw error
     }
 }
+export const deleteEVDriverVehicalid = async (vehicleModelId) =>{
+    try {
+        const response = await api.delete(`${BASE_URL}/vehicle/${vehicleModelId}`,);
+        console.log('DeleteVehicleInProfile success',response.data)
+        return response.data;
+    } catch (error) {
+        console.log('Xoa That Bai Xe Trong Profile',error);
+        throw error;
+    }
+}
 
 
 export default {
     getEVDriver,
     updateEVDriver,
-    getEVDriverId
+    getEVDriverId,
+    deleteEVDriverVehicalid
 }

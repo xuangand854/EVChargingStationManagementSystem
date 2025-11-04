@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Profile.css";
-import { updateEVDriver, getEVDriverProfile } from "../../API/EVDriver";
+import { updateEVDriver, getEVDriverProfile,deleteEVDriverVehicalid } from "../../API/EVDriver";
 import { getVehicleModels } from "../../API/Admin";
 import { changePassword } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
@@ -119,7 +119,7 @@ const Profile = () => {
     };
 
 
-  const handlePasswordChange = async () => {
+  const handlePasswordChange = async (vehicleModelIds) => {
     const { oldPassword, newPassword, confirmPassword } = passwordData;
     if (!oldPassword || !newPassword || !confirmPassword) {
       toast.error("Vui lòng nhập đầy đủ thông tin!");
@@ -141,6 +141,18 @@ const Profile = () => {
     } catch (err) {
       console.error("Lỗi đổi mật khẩu:", err);
       toast.error("Mật khẩu cũ không đúng hoặc có lỗi hệ thống!");
+    }
+  };
+  const handleDelete = async (vehicleModelIds) => {
+    if(window.confirm("Bạn Chắc Muốn Xóa Sự Lựa Chọn Này Chứ?")){
+      try {
+        await deleteEVDriverVehicalid(vehicleModelIds);
+        toast.success("Xóa Thành Công!");
+        setSelectedVehicles(prev => prev.filter(id => id !== vehicleModelIds));
+      } catch (error) {
+        console.log("Xóa Thất Bại!",error);
+        toast.error("Xóa Thất Bại!");
+      }
     }
   };
 
@@ -308,7 +320,7 @@ const Profile = () => {
                       <div key={vId} className="vehicle-item">
                         <span>{vehicle?.modelName || vId}</span>
                         <button className="link-btn"
-                          onClick={() => setSelectedVehicles(selectedVehicles.filter(id => id !== vId))}>
+                          onClick={() => handleDelete(vId)}>
                           Xóa
                         </button>
                       </div>

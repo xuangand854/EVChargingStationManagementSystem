@@ -153,7 +153,7 @@ const OrderChargingST = () => {
       setSelectedStation(stationDetail);
       setStationPosts((prev) => ({
         ...prev,
-        [station.id]: stationDetail.chargingPosts || [],
+        [station.id]: (stationDetail.chargingPosts || []).sort((a, b) => a.id - b.id),
       }));
     } catch (err) {
       console.error("Lỗi load trụ sạc:", err);
@@ -165,14 +165,14 @@ const OrderChargingST = () => {
       const updatedPosts = await getAllChargingPost(stationId);
       setStationPosts((prev) => ({
         ...prev,
-        [stationId]: updatedPosts || [].sort((a, b) => a.id - b.id),
+        [stationId]: (updatedPosts || []).sort((a, b) => a.id - b.id),
       }));
     } catch (err) {
       console.error("Lỗi reload posts:", err);
     }
   };
 
-  //  Lấy danh sách trạm
+  // Lấy danh sách trạm
   const fetchStations = async () => {
     try {
       setLoading(true);

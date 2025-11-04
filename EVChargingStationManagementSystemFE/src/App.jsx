@@ -126,7 +126,7 @@ export default function App() {
 
         {/* // */}
         <Route path="payment-status/success" element={<Success />} />
-        <Route path="payment-status/fail" element={<Fail />} />
+        <Route path="payment-status/failed" element={<Fail />} />
         <Route path="payment-status/error" element={<Error />} />
         <Route path="payment-status/invalid" element={<Invalid />} />
 

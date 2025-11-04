@@ -1,10 +1,8 @@
 ﻿using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.ChargingPostDto;
 using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Emit;
 using System.Text.Json;
 
 namespace APIs.Controllers
@@ -108,6 +106,21 @@ namespace APIs.Controllers
 
             if (result.Status == Const.FAIL_UPDATE_CODE)
                 return Conflict(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        [HttpGet("{paymentId}")]
+        [Authorize(Roles = "Admin, Staff")]
+        public async Task<IActionResult> GetById([FromRoute] Guid paymentId)
+        {
+            var result = await _service.GetById(paymentId);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
 
             return StatusCode(500, new { message = result.Message });
         }

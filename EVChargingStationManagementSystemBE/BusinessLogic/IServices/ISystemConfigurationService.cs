@@ -7,5 +7,6 @@ namespace BusinessLogic.IServices
     {
         Task<IServiceResult> GetList();
         Task<IServiceResult> Update(int id, SystemConfigurationUpdateDto dto, Guid userId);
+        Task<IServiceResult> GetByName(string configName);
     }
 }

@@ -248,6 +248,7 @@ namespace BusinessLogic.Services
             var email = payload.Email;
             var name = payload.Name;
             var googleId = payload.Subject;
+            var avatar = payload.Picture;
 
             // Kiểm tra tài khoản đã tồn tại chưa
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
@@ -262,6 +263,7 @@ namespace BusinessLogic.Services
                     Email = email,
                     Name = name,
                     ProviderUserId = googleId,
+                    ProfilePictureUrl = avatar,
                     EmailConfirmed = true,
                     RegistrationDate = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
@@ -293,6 +295,7 @@ namespace BusinessLogic.Services
             {
                 // Nếu user đã có mà chưa gắn ProviderUserId -> gắn thêm
                 user.ProviderUserId = googleId;
+                user.ProfilePictureUrl = avatar;
                 await _userManager.UpdateAsync(user);
             }
 

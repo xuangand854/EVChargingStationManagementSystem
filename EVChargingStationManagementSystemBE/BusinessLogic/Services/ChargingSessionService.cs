@@ -79,14 +79,19 @@ namespace BusinessLogic.Services
 
                 if (dto.Phone.HasValue())
                 {
-                    var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(
-                        predicate: u => !u.IsDeleted && u.PhoneNumber == dto.Phone,
-                        include: c => c.Include(u => u.EVDriverProfile)
-                        );
+                    var user = await _unitOfWork.UserAccountRepository.GetQueryable()
+                        .AsNoTracking()
+                        .Where(u => !u.IsDeleted && u.PhoneNumber == dto.Phone)
+                        .Include(u => u.EVDriverProfile)
+                        .FirstOrDefaultAsync();
                     if (user == null)
-                        return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản người dùng");
+                        return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản người dùng, vui lòng xem lại số điện thoại");
+                    if (user?.EVDriverProfile == null)
+                        return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Số điện thoại này không thuộc tài khoản tài xế");
+
                     chargingSession.UserId = user.Id;
                     chargingSession.DriverId = user.EVDriverProfile.Id;
+
                     if (dto.VehicleModelId == Guid.Empty)
                         return new ServiceResult(Const.FAIL_CREATE_CODE, "Vui lòng chọn xe trong profile của bạn");
                 }
@@ -108,11 +113,12 @@ namespace BusinessLogic.Services
                 if (chargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trụ sạc được chọn");
 
-                // Check status connector
-                //if (!connector.Status.Equals("ConnectedToVehicle"))
-                if (!connector.Status.Equals("InUse"))
+                // Nếu cổng sạc là bất cứ trạng thái nào khác ngoài "InUse - (đang được sử dụng)" thì trả lỗi 
+                if (!connector.Status.Equals(ConnectorStatus.InUse.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Cổng sạc này không khả dụng hiện tại hoặc chưa được cắm vào xe");
-
+                // Sau khi đã chạy api dừng sạc (stop) thì không cho phép chạy api này để ngăn người dùng chưa thanh toán
+                if (connector.IsLocked)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Bạn chưa thanh toán phiên sạc trước, vui lòng thanh toán phiên sạc trước");
 
                 chargingSession.ChargingPostId = connector.ChargingPostId;
                 connector.Status = ConnectorStatus.Charging.ToString();

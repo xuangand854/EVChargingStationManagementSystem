@@ -57,6 +57,9 @@ namespace APIs.Controllers
             if (result.Status == Const.FAIL_CREATE_CODE)
                 return Conflict(new { message = result.Message });
 
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
             return StatusCode(500, new { message = result.Message });
         }
 

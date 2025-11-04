@@ -21,6 +21,19 @@ namespace BusinessLogic.Services
         {
             try
             {
+                var connectorLimit = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.Name == "CONNECTOR_LIMIT")
+                    .FirstOrDefaultAsync();
+
+                decimal connectorCount = 2;
+                if (connectorLimit != null && _unitOfWork.SystemConfigurationRepository.Validate(connectorLimit))
+                    connectorCount = connectorLimit.MinValue ?? 2;
+
+                if (dto.TotalConnectors > connectorCount)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE,
+                        $"Số cổng sạc của trụ này đã vượt mức quy định trong hệ thống là {connectorCount} cổng");
+
                 var chargingPost = dto.Adapt<ChargingPost>();
                 chargingPost.Id = Guid.NewGuid();
                 chargingPost.Status = ChargingPostUpdateStatus.InActive.ToString();
@@ -53,7 +66,7 @@ namespace BusinessLogic.Services
                     var connector = new Connector
                     {
                         Id = Guid.NewGuid(),
-                        ConnectorName = $"{chargingPost.PostName}-C{i + 1}",
+                        ConnectorName = $"C{i + 1}",
                         Status = "OutOfService",
                         ChargingPostId = chargingPost.Id,
                         CreatedAt = DateTime.UtcNow,

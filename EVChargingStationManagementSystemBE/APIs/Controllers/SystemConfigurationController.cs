@@ -1,4 +1,5 @@
 ﻿using BusinessLogic.IServices;
+using BusinessLogic.Services;
 using Common;
 using Common.DTOs.SystemConfigurationDto;
 using Common.Helper;
@@ -18,6 +19,20 @@ namespace APIs.Controllers
         public async Task<IActionResult> GetList()
         {
             var result = await _service.GetList();
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        [HttpGet("{configName}")]
+        public async Task<IActionResult> GetById([FromRoute] string configName)
+        {
+            var result = await _service.GetByName(configName);
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

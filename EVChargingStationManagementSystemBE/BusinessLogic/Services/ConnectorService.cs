@@ -78,17 +78,29 @@ namespace BusinessLogic.Services
                 connector.CreatedAt = DateTime.Now;
                 connector.UpdatedAt = DateTime.Now;
 
-                var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
-                    predicate: cp => !cp.IsDeleted && cp.Id == dto.ChargingPostId,
-                    asNoTracking: false
-                    );
+                var chargingPost = await _unitOfWork.ChargingPostRepository.GetQueryable()
+                    .Where(cp => !cp.IsDeleted && cp.Id == dto.ChargingPostId)
+                    .FirstOrDefaultAsync();
+
                 if (chargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc không tồn tại");
 
-                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: cp => !cp.IsDeleted && cp.Id == chargingPost.StationId,
-                    asNoTracking: false
-                    );
+                var connectorLimit = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.Name == "CONNECTOR_LIMIT")
+                    .FirstOrDefaultAsync();
+
+                decimal connectorCount = 2;
+                if (connectorLimit != null && _unitOfWork.SystemConfigurationRepository.Validate(connectorLimit))
+                    connectorCount = connectorLimit.MinValue ?? 2;
+
+                if (chargingPost.TotalConnectors == connectorCount)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE,
+                        $"Số cổng sạc của trụ này đã vượt mức quy định trong hệ thống là {connectorCount} cổng");
+
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(cp => !cp.IsDeleted && cp.Id == chargingPost.StationId)
+                    .FirstOrDefaultAsync();
 
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");

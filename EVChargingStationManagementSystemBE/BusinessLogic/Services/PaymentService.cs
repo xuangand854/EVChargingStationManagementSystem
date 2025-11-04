@@ -127,6 +127,10 @@ namespace BusinessLogic.Services
                 if (connector == null)
                     return JsonResponse("01", "Không tìm thấy cổng sạc");
 
+                //Tích điểm cho tài xế
+                if (chargingSession.UserId != null && chargingSession.UserId != Guid.Empty)
+                    UpdatePoint(chargingSession.UserId ?? Guid.Empty, chargingSession.EnergyDeliveredKWh);
+
                 if (bankCode != null)
                     payment.BankCode = bankCode;
                 if (cardType != null)
@@ -198,6 +202,10 @@ namespace BusinessLogic.Services
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
+
+                //Tích điểm cho tài xế
+                if (chargingSession.UserId != null && chargingSession.UserId != Guid.Empty)
+                    UpdatePoint(chargingSession.UserId ?? Guid.Empty, chargingSession.EnergyDeliveredKWh);
 
                 var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
 
@@ -348,6 +356,29 @@ namespace BusinessLogic.Services
             }
 
         }
+
+        public async void UpdatePoint(Guid accountId, double EnergyDeliveredKWh)
+        {
+            var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
+                    c => !c.IsDeleted && c.Name == "POINT_PER_KWH"
+                );
+
+            decimal pointValue = 0;
+            if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
+                pointValue = config.MinValue ?? 0;
+
+            var user = await _unitOfWork.UserAccountRepository.GetQueryable()
+                .Where(u => !u.IsDeleted && u.Id == accountId)
+                .Include(u => u.EVDriverProfile)
+                .FirstOrDefaultAsync();
+
+            if (user != null && user.EVDriverProfile != null)
+                {
+                user.EVDriverProfile.Point = (int)((decimal)EnergyDeliveredKWh * pointValue);
+                user.EVDriverProfile.UpdatedAt = DateTime.Now;
+            }
+        }
+
         private static string JsonResponse(string rspCode, string message)
         {
             return $"{{\"RspCode\":\"{rspCode}\",\"Message\":\"{message}\"}}";

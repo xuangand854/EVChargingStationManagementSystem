@@ -5,6 +5,7 @@ using Common.DTOs.ChargingStationDto;
 using Common.Enum.ChargingPost;
 using Common.Enum.ChargingStation;
 using Common.Enum.Connector;
+using Common.Enum.User;
 using Common.Enum.VehicleModel;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
@@ -78,17 +79,20 @@ namespace BusinessLogic.Services
                 if (dto.OperatorId != null)
                 {
                     var staff = await _unitOfWork.UserAccountRepository.GetQueryable()
-                    .AsNoTracking()
                     .Where(s => !s.IsDeleted && s.Id == dto.OperatorId)
                     .Include(s => s.SCStaffProfile)
                     .FirstOrDefaultAsync();
 
-                    if (staff == null || staff.SCStaffProfile == null) 
+                    if (staff == null || staff.SCStaffProfile == null)
                         return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Nhân viên trạm không tồn tại");
+
+                    staff.Status = UserStatus.Assigned.ToString();
+                    staff.UpdatedAt = DateTime.Now;
+                    staff.SCStaffProfile.WorkingLocation = dto.Location;
+                    staff.SCStaffProfile.UpdatedAt = DateTime.Now;
 
                     var chargingStations = await _unitOfWork.ChargingStationRepository.GetQueryable()
                     .AsNoTracking()
-                    .Where(cs => !cs.IsDeleted)
                     .Include(cs => cs.OperatorNavigation)
                     .ToListAsync();
                     foreach (var station in chargingStations)
@@ -96,7 +100,7 @@ namespace BusinessLogic.Services
                             return new ServiceResult(Const.FAIL_CREATE_CODE,
                                 $"Nhân viên {station.OperatorNavigation.Name} đã được phân công ở trạm {station.StationName} rồi");
                 }
-                
+
                 var chargingStation = dto.Adapt<ChargingStation>();
                 chargingStation.Id = Guid.NewGuid();
                 chargingStation.Status = "Inactive";
@@ -126,7 +130,6 @@ namespace BusinessLogic.Services
                 if (dto.OperatorId != null)
                 {
                     var staff = await _unitOfWork.UserAccountRepository.GetQueryable()
-                    .AsNoTracking()
                     .Where(s => !s.IsDeleted && s.Id == dto.OperatorId)
                     .Include(s => s.SCStaffProfile)
                     .FirstOrDefaultAsync();
@@ -134,9 +137,14 @@ namespace BusinessLogic.Services
                     if (staff == null || staff.SCStaffProfile == null)
                         return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Nhân viên trạm không tồn tại");
 
+                    // Cập nhật trạng thái nhân viên được phân công thành Assigned
+                    staff.Status = UserStatus.Assigned.ToString();
+                    staff.UpdatedAt = DateTime.Now;
+                    staff.SCStaffProfile.WorkingLocation = dto.Location ?? staff.SCStaffProfile.WorkingLocation;
+                    staff.SCStaffProfile.UpdatedAt = DateTime.Now;
+
                     var chargingStations = await _unitOfWork.ChargingStationRepository.GetQueryable()
                     .AsNoTracking()
-                    .Where(cs => !cs.IsDeleted)
                     .Include(cs => cs.OperatorNavigation)
                     .ToListAsync();
                     foreach (var station in chargingStations)
@@ -145,19 +153,35 @@ namespace BusinessLogic.Services
                                 $"Nhân viên {station.OperatorNavigation.Name} đã được phân công ở trạm {station.StationName} rồi");
                 }
 
-                var charingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
                     .Where(c => c.Id == stationId)
                     .FirstOrDefaultAsync();
-                if (charingStation == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");                
+                if (chargingStation == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 
-                charingStation = dto.Adapt(charingStation);
-                charingStation.UpdatedAt = DateTime.Now;
+                // Cập nhật trạng thái nhân viên hiện tại thành Active nếu có
+                if (chargingStation.OperatorId != null)
+                {
+                    var currentStaff = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .Where(s => !s.IsDeleted && s.Id == chargingStation.OperatorId)
+                    .Include(s => s.SCStaffProfile)
+                    .FirstOrDefaultAsync();
+                    if (currentStaff != null)
+                    {
+                        currentStaff.Status = UserStatus.Active.ToString();
+                        currentStaff.UpdatedAt = DateTime.Now;
+                        currentStaff.SCStaffProfile.WorkingLocation = null;
+                        currentStaff.SCStaffProfile.UpdatedAt = DateTime.Now;
+                    }
+                }
+
+                chargingStation = dto.Adapt(chargingStation);
+                chargingStation.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
-                    var response = charingStation.Adapt<ChargingStationViewGeneralDto>();
+                    var response = chargingStation.Adapt<ChargingStationViewGeneralDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
                 }
                 else
@@ -223,7 +247,7 @@ namespace BusinessLogic.Services
                         var connectors = await _unitOfWork.ConnectorRepository.GetQueryable()
                             .Where(c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.OutOfService.ToString()))
                             .ToListAsync();
-                        
+
                         // Nếu status trả về là bật lên mà status của trạm đang là maintained hay available thì sẽ không cập nhật
                         if (chargingPost.Status.Equals(ChargingPostStatus.InActive.ToString()))
                         {

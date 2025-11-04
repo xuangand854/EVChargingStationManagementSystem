@@ -88,6 +88,9 @@ namespace BusinessLogic.Services
                 //throw new UnauthorizedAccessException("Invalid username or password.");
                 return new ServiceResult(Const.FAIL_READ_CODE, "Invalid username or password.");
 
+            user.LastLogin = DateTime.Now;
+            await _userManager.UpdateAsync(user);
+
             var authClaims = new List<Claim>
             {
                 new("userId", user.Id.ToString()),
@@ -251,7 +254,7 @@ namespace BusinessLogic.Services
             var avatar = payload.Picture;
 
             // Kiểm tra tài khoản đã tồn tại chưa
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
@@ -298,6 +301,9 @@ namespace BusinessLogic.Services
                 user.ProfilePictureUrl = avatar;
                 await _userManager.UpdateAsync(user);
             }
+
+            user.LastLogin = DateTime.Now;
+            await _userManager.UpdateAsync(user);
 
             // Tạo JWT token
             var authClaims = new List<Claim>

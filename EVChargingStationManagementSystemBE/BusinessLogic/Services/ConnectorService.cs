@@ -284,6 +284,9 @@ namespace BusinessLogic.Services
                 if (connector.Status.Equals(ConnectorStatus.Available.ToString()) && toggle)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được cắm vào, không thể cắm vào thêm nữa");
 
+                if (connector.Status.Equals(ConnectorStatus.Reserved.ToString()) && !toggle)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được đặt trước, vui lòng sử dụng cổng khác");
+
                 // True: súng được cắm vào trụ, false: súng được rút ra khỏi trụ
                 if (toggle)
                 {

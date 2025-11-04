@@ -4,8 +4,6 @@ namespace Common.DTOs.ChargingSessionDto
 {
     public class ChargingSessionStartDto : IValidatableObject
     {
-        //[Required(ErrorMessage = "Cần nhập ID trụ sạc")]
-        //public Guid ChargingPostId { get; set; }
         public Guid? BookingId { get; set; } // Nullable if not booked
 
         [Required(ErrorMessage = "Cần nhập dung lượng pin")]

@@ -1,7 +1,6 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingStationDto;
 using Common.Enum.ChargingPost;
 using Common.Enum.ChargingStation;
@@ -76,6 +75,28 @@ namespace BusinessLogic.Services
         {
             try
             {
+                if (dto.OperatorId != null)
+                {
+                    var staff = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted && s.Id == dto.OperatorId)
+                    .Include(s => s.SCStaffProfile)
+                    .FirstOrDefaultAsync();
+
+                    if (staff == null || staff.SCStaffProfile == null) 
+                        return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Nhân viên trạm không tồn tại");
+
+                    var chargingStations = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(cs => !cs.IsDeleted)
+                    .Include(cs => cs.OperatorNavigation)
+                    .ToListAsync();
+                    foreach (var station in chargingStations)
+                        if (station.OperatorId == dto.OperatorId)
+                            return new ServiceResult(Const.FAIL_CREATE_CODE,
+                                $"Nhân viên {station.OperatorNavigation.Name} đã được phân công ở trạm {station.StationName} rồi");
+                }
+                
                 var chargingStation = dto.Adapt<ChargingStation>();
                 chargingStation.Id = Guid.NewGuid();
                 chargingStation.Status = "Inactive";
@@ -102,15 +123,36 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var charingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: c => c.Id == stationId,
-                    asNoTracking: false
-                    );
+                if (dto.OperatorId != null)
+                {
+                    var staff = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted && s.Id == dto.OperatorId)
+                    .Include(s => s.SCStaffProfile)
+                    .FirstOrDefaultAsync();
+
+                    if (staff == null || staff.SCStaffProfile == null)
+                        return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Nhân viên trạm không tồn tại");
+
+                    var chargingStations = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(cs => !cs.IsDeleted)
+                    .Include(cs => cs.OperatorNavigation)
+                    .ToListAsync();
+                    foreach (var station in chargingStations)
+                        if (station.OperatorId == dto.OperatorId)
+                            return new ServiceResult(Const.FAIL_UPDATE_CODE,
+                                $"Nhân viên {station.OperatorNavigation.Name} đã được phân công ở trạm {station.StationName} rồi");
+                }
+
+                var charingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => c.Id == stationId)
+                    .FirstOrDefaultAsync();
                 if (charingStation == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");                
 
                 charingStation = dto.Adapt(charingStation);
-                charingStation.UpdatedAt = DateTime.UtcNow;
+                charingStation.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)

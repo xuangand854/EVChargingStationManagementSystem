@@ -3,8 +3,8 @@ import "./OrderChargingST.css";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import Login from "../pages/Login";
 import { getAuthStatus } from "../../API/Auth";
+import {getAllStaff} from "../../API/Staff"
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BookingPopup from "../ordercharging/Booking";
@@ -34,6 +34,17 @@ const FlyToStation = ({ station }) => {
   }, [station, map]);
   return null;
 };
+function FlyToUser({ userLocation }) {
+  const map = useMap();
+  useEffect(() => {
+    if (userLocation) {
+      console.log("Map fly tới vị trí user:", userLocation);
+      map.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 1.5 });
+    }
+  }, [userLocation, map]);
+  return null;
+}
+
 
 const OrderChargingST = () => {
   const [loading, setLoading] = useState(true);
@@ -47,23 +58,44 @@ const OrderChargingST = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [filterMode, setFilterMode] = useState("all");
   const [stationPosts, setStationPosts] = useState({});
+  const [staffs, setStaffs] = useState([]);
+  const [showUserLocation, setShowUserLocation] = useState(false);
+  
  
 
   //Tự động lấy vị trí hiện tại
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
-      },
-      (err) => {
-        console.warn("Không lấy được vị trí:", err);
-        toast.warn("Không thể lấy vị trí hiện tại!");
+    const fetchUserLocation = () => {
+      if (!navigator.geolocation) {
+        console.warn("Trình duyệt không hỗ trợ định vị!");
+        setUserLocation({ lat: 10.7769, lng: 106.7009 }); // fallback
+        return;
       }
-    );
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
+          console.log("Vị trí thực của user:", coords);
+          setUserLocation(coords);
+        },
+        (err) => {
+          console.error("Lỗi lấy vị trí:", err.code, err.message);
+          toast.warn(
+            "Không thể lấy vị trí hiện tại, dùng vị trí mặc định."
+          );
+          setUserLocation({ lat: 10.7769, lng: 106.7009 }); // fallback
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
+      );
+    };
+
+    fetchUserLocation();
   }, []);
+
+
 
   //Tính khoảng cách giữa 2 điểm (Haversine)
   const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -146,6 +178,66 @@ const OrderChargingST = () => {
     fetchUser();
   }, []);
 
+  
+  const handleToggleLocation = () => {
+  if (showUserLocation) {
+      setShowUserLocation(false);
+      toast.info("Đã tắt hiển thị vị trí của bạn.");
+    } else {
+      if (!navigator.geolocation) {
+        toast.error("Trình duyệt của bạn không hỗ trợ định vị!");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
+          setUserLocation(coords);
+          setShowUserLocation(true);
+          toast.success("Đã bật hiển thị vị trí hiện tại!");
+        },
+        (err) => {
+          console.error("Lỗi khi lấy vị trí:", err);
+          toast.error("Không thể lấy vị trí! Hãy bật GPS và thử lại.");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+  };
+
+  // --- Làm mới vị trí (nếu muốn ép cập nhật) ---
+  const handleRefreshLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Trình duyệt không hỗ trợ định vị!");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setUserLocation(coords);
+
+        // ép FlyToUser chạy lại
+        setShowUserLocation(false);
+        setTimeout(() => setShowUserLocation(true), 50);
+
+        toast.success(" Vị trí đã được cập nhật!");
+      },
+      (err) => {
+        console.error("Lỗi khi cập nhật vị trí:", err);
+        toast.error("Không thể cập nhật vị trí, hãy bật GPS!");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+
   //Chọn trạm & load trụ
   const handleSelectStation = async (station) => {
     try {
@@ -208,6 +300,20 @@ const OrderChargingST = () => {
     fetchStations();
   }, []);
 
+  //lấy danh sách nhân viên
+  useEffect(() => {
+  const fetchStaffs = async () => {
+    try {
+      const res = await getAllStaff();
+      setStaffs(res.data || []);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách nhân viên:", err);
+    }
+  };
+  fetchStaffs();
+}, []);
+
+
   //  Lọc tên theo từ khóa
   const filteredStations = displayedStations.filter((st) => {
     const term = searchTerm.toLowerCase();
@@ -217,16 +323,7 @@ const OrderChargingST = () => {
       st.province.toLowerCase().includes(term)
     );
   });
-    // if (!user)
-    // return (
-    //   <div className="login-required">
-    //     <h3> Bạn phải đăng nhập để đặt lịch sạc</h3>
-    //     <p>Vui lòng đăng nhập để tiếp tục sử dụng dịch vụ.</p>
-    //     <button className="btn-login" onClick={() => <Login/>}>
-    //       Đăng nhập ngay
-    //     </button>
-    //   </div>
-    // );
+
 
   if (loading) return <p>Đang tải dữ liệu trạm sạc...</p>;
 
@@ -277,6 +374,36 @@ const OrderChargingST = () => {
           >
             Trạm gần nhất
           </button>
+          
+          <button className="btn-admin" onClick={handleToggleLocation}>
+            {showUserLocation ? " Ẩn vị trí của tôi" : " Vị trí của tôi"}
+            </button>
+
+            {showUserLocation && (
+              <button className="btn-admin" onClick={handleRefreshLocation}>
+                🔄 Cập nhật vị trí
+              </button>
+            )}
+        </div>
+        <div className="action-buttons">
+          {(!user || user.role === "EVDriver")&&(
+          <button className="btn-book" onClick={() => setShowBookingPopup(true)}>
+            Đặt lịch sạc
+          </button>
+          )}
+          {/* Chỉ ADMIN mới thấy Admin Panel */}
+          {user?.role === "Admin" && (
+            <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
+              Quản lý trạm sạc
+            </button>
+          )}
+
+          {/* Admin & Staff đều thấy Quản lý trụ sạc */}
+          {(user?.role === "Admin" || user?.role === "Staff") && (
+            <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
+              Quản lý trụ sạc
+            </button>
+          )}
         </div>
 
         <div className="station-list">
@@ -312,6 +439,21 @@ const OrderChargingST = () => {
                         key={post.id}
                         className={`post-item status-${post.status}`}
                       >
+                        <h5> Nhân viên phụ trách:</h5>
+                        {st.operatorId ? (
+                          (() => {
+                            const matchedStaff = staffs.find(stf => stf.accountId === st.operatorId);
+                            return matchedStaff ? (
+                              <p>
+                                <b>{matchedStaff.name}</b> – {matchedStaff.phoneNumber || "Không có số điện thoại"}
+                              </p>
+                            ) : (
+                              <p>Không tìm thấy nhân viên với mã {st.operatorId}</p>
+                            );
+                          })()
+                        ) : (
+                          <p>Chưa có nhân viên</p>
+                        )}
                         <h5>Trụ {index + 1}</h5>
                         <p>
                           <b>Tên trụ:</b> {post.postName}
@@ -346,37 +488,42 @@ const OrderChargingST = () => {
                     <p className="no-post">Chưa có trụ sạc</p>
                   )}
                 </div>
+                
               )}
+              {/* {selectedStation?.id === st.id && (
+                <div className="station-staffs">
+                  <h5> Nhân viên phụ trách:</h5>
+                  {st.operatorId ? (
+                    (() => {
+                      const matchedStaff = staffs.find(stf => stf.accountId === st.operatorId);
+                      return matchedStaff ? (
+                        <p>
+                          <b>{matchedStaff.name}</b> – {matchedStaff.phoneNumber || "Không có số điện thoại"}
+                        </p>
+                      ) : (
+                        <p>Không tìm thấy nhân viên với mã {st.operatorId}</p>
+                      );
+                    })()
+                  ) : (
+                    <p>Chưa có nhân viên</p>
+                  )}
+                </div>
+              )} */}
+
             </div>
           ))}
         </div>
 
-        <div className="action-buttons">
-          {(!user || user.role === "EVDriver")&&(
-          <button className="btn-book" onClick={() => setShowBookingPopup(true)}>
-            Đặt lịch sạc
-          </button>
-          )}
-          {/* Chỉ ADMIN mới thấy Admin Panel */}
-          {user?.role === "Admin" && (
-            <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
-              Quản lý trạm sạc
-            </button>
-          )}
-
-          {/* Admin & Staff đều thấy Quản lý trụ sạc */}
-          {(user?.role === "Admin" || user?.role === "Staff") && (
-            <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
-              Quản lý trụ sạc
-            </button>
-          )}
-        </div>
+        
       </div>
 
       {/* Cột phải - bản đồ */}
       <div className="right-panel">
         <MapContainer
-          center={[10.7769, 106.7009]}
+              center={userLocation
+          ? [userLocation.lat, userLocation.lng]
+          : [10.7769, 106.7009] // fallback tạm
+          }
           zoom={13}
           zoomControl={false}
           style={{ height: "100%", width: "100%", borderRadius: "10px" }}
@@ -415,6 +562,25 @@ const OrderChargingST = () => {
                       <p className="station-address">
                         {station.location}, {station.province}
                       </p>
+                      {selectedStation?.id === station.id && (
+                        <div className="station-staffs">
+                          <h5> Nhân viên phụ trách:</h5>
+                          {station.operatorId ? (
+                            (() => {
+                              const matchedStaff = staffs.find(stf => stf.accountId === station.operatorId);
+                              return matchedStaff ? (
+                                <p>
+                                  <b>{matchedStaff.name}</b> – {matchedStaff.phoneNumber || "Không có số điện thoại"}
+                                </p>
+                              ) : (
+                                <p>Không tìm thấy nhân viên với mã {station.operatorId}</p>
+                              );
+                            })()
+                          ) : (
+                            <p>Chưa có nhân viên</p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="charging-posts">
@@ -448,11 +614,19 @@ const OrderChargingST = () => {
                     )}
                   </div>
                 </Popup>
+              
               </Marker>
+
             );
           })}
+          {showUserLocation && userLocation && (
+              <Marker position={[userLocation.lat, userLocation.lng]}>
+                <Popup> Bạn đang ở đây</Popup>
+              </Marker>
+            )}
 
           {selectedStation && <FlyToStation station={selectedStation} />}
+          {showUserLocation && userLocation && <FlyToUser userLocation={userLocation} />}
         </MapContainer>
       </div>
       {/*postpopup */}

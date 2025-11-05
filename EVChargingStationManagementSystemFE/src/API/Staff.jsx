@@ -57,3 +57,12 @@ export const deleteStaff = async (staffId) => {
         throw error;
     }
 };
+export const getMyAccountStaff = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/staff-accounts`);
+        return response.data;
+    } catch (error) {
+        console.log('GetMyAccountId Error',error);
+        throw error
+    }
+}

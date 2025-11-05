@@ -11,6 +11,7 @@ import {
 import { getChargingStation } from "../../API/Station";
 import "./ChargingPost.css";
 
+
 const ChargingPost = ({ onClose, onUpdated }) => {
   const [stations, setStations] = useState([]);
   const [selectedStation, setSelectedStation] = useState(null);
@@ -44,6 +45,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
         const res = await getChargingStation();
         const stationList = Array.isArray(res.data) ? res.data : [];
         setStations(stationList);
+        
       } catch (err) {
         console.error(" Lỗi load danh sách trạm:", err);
         setStations([]);
@@ -82,6 +84,7 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     loadPosts(id);
     setShowPostList(true);
   };
+
 
   //  Chọn trụ để sửa
   const handleSelectPost = (post) => {
@@ -183,9 +186,10 @@ const handleDelete = async (id) => {
         {/* Sidebar */}
         <div className="post-popup-sidebar">
           <button onClick={() => setMode("add")}>Thêm trụ</button>
+          <button onClick={() => setMode("status")}>Trạng thái</button>
           <button onClick={() => setMode("edit")}>Cập nhật</button>
           <button onClick={() => setMode("delete")}>Xóa</button>
-          <button onClick={() => setMode("status")}>Trạng thái</button>
+          {/* <button onClick={() => setMode("status")}>Trạng thái</button> */}
           <button className="close-btn" onClick={onClose}>
             Đóng
           </button>

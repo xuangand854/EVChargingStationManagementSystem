@@ -77,8 +77,8 @@ const Order = () => {
                   </p>
                   <p>
                     <strong>Trạng thái:</strong>{" "}
-                    {order.status === "Scheduled" && <span className={"scheduled"}>Chờ Thanh Toán </span>}
-                    {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thanh Giao Dịch </span>}
+                    {order.status === "Scheduled" && <span className={"scheduled"}>Chờ Hoàn Thành </span>}
+                    {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thành</span>}
                     {order.status === "Cancelled" && <span className={"cancelled"}>Giao Dịch Của Bạn Đã Bị Hủy </span>}
                   </p>
                 </div>

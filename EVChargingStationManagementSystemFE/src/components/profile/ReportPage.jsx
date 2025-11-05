@@ -5,14 +5,19 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import confetti from "canvas-confetti";
 import "./ReportPage.css";
+import { addReport } from "../../API/Report";
 
 
 const ReportPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    subject: "",
-    type: "bug",
-    description: "",
+    title:"",
+    reportType:"",
+    severity:"",
+    description:"",
+    reportedById:"",
+    stationId:"",
+    postId:""
   });
 
   const submitBtnRef = useRef(null); // ref để lấy nút submit
@@ -38,6 +43,19 @@ const ReportPage = () => {
         colors: ["#27ae60", "#f1c40f", "#2c7be5", "#ff6b6b", "#8e44ad"],
       });
     }
+    // try {
+    //   await addReport(
+    //     formData.title,
+    //     formData.reportType,
+    //     formData.severity,
+    //     formData.description,
+    //     formData.reportedById,
+    //     formData.stationId,
+    //     formData.postId
+    //   );
+    // } catch (error) {
+      
+    // }
 
     toast.success("✅ Báo cáo đã gửi thành công!");
 

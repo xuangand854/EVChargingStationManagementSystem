@@ -1,20 +1,17 @@
-// src/pages/admin/Staff/AdminStaff.jsx
 import React, { useEffect, useState } from "react";
 import {
-    Button, Table, Modal, Input, Form, Card, Tag,
+    Button, Table, Modal, Input, Form, Tag,
     Space, message, Tooltip, Select
 } from "antd";
 import {
     EditOutlined, DeleteOutlined, PlusOutlined,
     SearchOutlined, UserOutlined, MailOutlined,
-    PhoneOutlined, HomeOutlined, LinkOutlined, LockOutlined
+    PhoneOutlined, HomeOutlined, LockOutlined
 } from "@ant-design/icons";
-
 import {
     getAllStaff, createStaffAccount, updateStaffInfo,
     updateStaffStatus, deleteStaff
 } from "../../../API/Staff";
-
 import "./Staff.css";
 
 const AdminStaff = () => {
@@ -58,14 +55,20 @@ const AdminStaff = () => {
     const handleSubmit = async (values) => {
         try {
             if (editingStaff) {
-                // Cập nhật thông tin nhân viên
-                const res = await updateStaffInfo({
-                    staffId: editingStaff.staffId,
-                    ...values,
-                });
+                // 🟢 Cập nhật nhân viên
+                const payload = {
+                    staffId: editingStaff.id, // id = profileId
+                    name: values.name,
+                    email: values.email,
+                    phoneNumber: values.phoneNumber,
+                    address: values.address,
+                    profilePictureUrl: values.profilePictureUrl || "",
+                    workingLocation: values.workingLocation || "",
+                };
+                const res = await updateStaffInfo(payload);
                 message.success(res.message || "Cập nhật nhân viên thành công");
             } else {
-                // Tạo mới tài khoản nhân viên
+                // 🟢 Thêm mới nhân viên
                 const payload = {
                     email: values.email,
                     password: values.password,
@@ -130,9 +133,8 @@ const AdminStaff = () => {
     /* ==================== UI HELPERS ==================== */
     const getStatusColor = (s) => {
         return s === "Active" ? "green"
-            : s === "Banned" ? "red"
-                : s === "Pending" ? "orange"
-                    : "default";
+            : s === "Inactive" ? "red"
+                : "default";
     };
 
     const columns = [
@@ -141,10 +143,9 @@ const AdminStaff = () => {
             key: "info",
             render: (_, r) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {r.id || "S"}
-                    </div>
                     <div>
+                        <div className="font-medium">ID: {r.id}</div>
+                        <div className="font-medium">AccID: {r.accountId}</div>
                         <div className="font-medium">{r.name}</div>
                         <div className="text-sm text-gray-500">{r.email}</div>
                     </div>
@@ -158,7 +159,7 @@ const AdminStaff = () => {
             dataIndex: "status",
             render: s => (
                 <Tag color={getStatusColor(s)}>
-                    {s === "Active" ? "Hoạt động" : s === "Banned" ? "Bị khóa" : "Chờ duyệt"}
+                    {s === "Active" ? "Hoạt động" : s === "Inactive" ? "Không hoạt động" : s}
                 </Tag>
             ),
         },
@@ -180,11 +181,10 @@ const AdminStaff = () => {
                             size="small"
                             value={r.status}
                             style={{ width: 110 }}
-                            onChange={v => handleChangeStatus(r.staffId, v)}
+                            onChange={v => handleChangeStatus(r.id, v)} // 🟢 id = profileId
                             options={[
                                 { value: "Active", label: "Hoạt động" },
-                                { value: "Banned", label: "Bị khóa" },
-                                { value: "Pending", label: "Chờ duyệt" },
+                                { value: "Inactive", label: "Không hoạt động" },
                             ]}
                         />
                     </Tooltip>
@@ -193,7 +193,7 @@ const AdminStaff = () => {
                             danger
                             size="small"
                             icon={<DeleteOutlined />}
-                            onClick={() => handleDelete(r.staffId)}
+                            onClick={() => handleDelete(r.id)} // 🟢 id = profileId
                         />
                     </Tooltip>
                 </Space>
@@ -201,74 +201,56 @@ const AdminStaff = () => {
         },
     ];
 
-    /* ==================== RENDER ==================== */
     return (
-        <div className="admin-staff p-6">
-            <div className="header mb-6">
-                <h1 className="text-2xl font-bold text-rose-600">Quản Lý Nhân Viên</h1>
-                <p className="text-gray-600">Quản lý thông tin, trạng thái và tài khoản nhân viên</p>
+        <div className="admin-staff">
+            <div className="header">
+                <h1>Quản lý nhân viên</h1>
+                <p>Quản lý thông tin, trạng thái và tài khoản nhân viên</p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                {["Tổng", "Hoạt động", "Bị khóa", "Chờ duyệt"].map((label, i) => {
-                    const count = i === 0 ? staffList.length
-                        : i === 1 ? staffList.filter(s => s.status === "Active").length
-                            : i === 2 ? staffList.filter(s => s.status === "Banned").length
-                                : staffList.filter(s => s.status === "Pending").length;
-                    return (
-                        <Card key={label} className="text-center shadow-sm">
-                            <div className="text-2xl font-bold text-rose-500">{count}</div>
-                            <div className="text-sm text-gray-500">{label}</div>
-                        </Card>
-                    );
-                })}
+            <div className="actions-card">
+                <div className="actions-container">
+                    <Input
+                        placeholder="Tìm tên, email, SĐT..."
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        allowClear
+                        style={{ width: '60%' }}
+                    />
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                            setEditingStaff(null);
+                            form.resetFields();
+                            setIsModalOpen(true);
+                        }}
+                        className="add-btn"
+                    >
+                        Thêm nhân viên
+                    </Button>
+                </div>
             </div>
 
-            {/* Search + Add */}
-            <div className="flex justify-between mb-4">
-                <Input
-                    placeholder="Tìm tên, email, SĐT..."
-                    prefix={<SearchOutlined />}
-                    value={searchText}
-                    onChange={e => setSearchText(e.target.value)}
-                    allowClear
-                    style={{ maxWidth: 350 }}
+            <div className="table-card">
+                <Table
+                    columns={columns}
+                    dataSource={filteredStaff}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true }}
                 />
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditingStaff(null);
-                        form.resetFields();
-                        setIsModalOpen(true);
-                    }}
-                >
-                    Thêm nhân viên
-                </Button>
             </div>
 
-            {/* Table */}
-            <Table
-                columns={columns}
-                dataSource={filteredStaff}
-                rowKey="staffId"
-                loading={loading}
-                pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true }}
-            />
-
-            {/* Modal */}
+            {/* Modal thêm/sửa */}
             <Modal
                 title={editingStaff ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}
                 open={isModalOpen}
                 onCancel={closeModal}
                 footer={null}
             >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSubmit}
-                >
+                <Form form={form} layout="vertical" onFinish={handleSubmit}>
                     <Form.Item
                         name="email"
                         label="Email"
@@ -285,10 +267,7 @@ const AdminStaff = () => {
                             <Form.Item
                                 name="password"
                                 label="Mật khẩu"
-                                rules={[
-                                    { required: true, message: "Vui lòng nhập mật khẩu" },
-                                    { min: 6, message: "Mật khẩu phải ít nhất 6 ký tự" },
-                                ]}
+                                rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
                                 hasFeedback
                             >
                                 <Input.Password prefix={<LockOutlined />} placeholder="Nhập mật khẩu" />
@@ -303,9 +282,7 @@ const AdminStaff = () => {
                                     { required: true, message: "Vui lòng xác nhận mật khẩu" },
                                     ({ getFieldValue }) => ({
                                         validator(_, value) {
-                                            if (!value || getFieldValue("password") === value) {
-                                                return Promise.resolve();
-                                            }
+                                            if (!value || getFieldValue("password") === value) return Promise.resolve();
                                             return Promise.reject(new Error("Mật khẩu không khớp!"));
                                         },
                                     }),
@@ -316,37 +293,23 @@ const AdminStaff = () => {
                         </>
                     )}
 
-                    <Form.Item
-                        name="name"
-                        label="Họ và tên"
-                        rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-                    >
+                    <Form.Item name="name" label="Họ và tên" rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
                         <Input prefix={<UserOutlined />} placeholder="VD: Nguyễn Văn A" />
                     </Form.Item>
 
                     <Form.Item
                         name="phoneNumber"
                         label="Số điện thoại"
-                        rules={[
-                            { required: true, message: "Vui lòng nhập số điện thoại" },
-                            { pattern: /^[0-9]{9,11}$/, message: "Số điện thoại không hợp lệ" },
-                        ]}
+                        rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
                     >
                         <Input prefix={<PhoneOutlined />} placeholder="VD: 0912345678" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="address"
-                        label="Địa chỉ"
-                        rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
-                    >
+                    <Form.Item name="address" label="Địa chỉ">
                         <Input prefix={<HomeOutlined />} placeholder="Nhập địa chỉ cư trú" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="profilePictureUrl"
-                        label="Ảnh đại diện (tuỳ chọn)"
-                    >
+                    <Form.Item name="profilePictureUrl" label="Ảnh đại diện (tuỳ chọn)">
                         <Input prefix={<UserOutlined />} placeholder="Nhập URL ảnh hoặc để trống" />
                     </Form.Item>
 

@@ -5,7 +5,7 @@ const BASE_URL = "/VehicleModel";
 export const GetVehicleModel = async () => {
     try {
         const response = await api.get(`${BASE_URL}`);
-        console.log('Danh Sách VehicleModel:', response.data);
+        // console.log('Danh Sách VehicleModel:', response.data);
         return response.data;
     } catch (error) {
         console.error('Lỗi khi lấy danh sách vehicleModel:', error);
@@ -60,15 +60,28 @@ export const GetVehicleModelById = async (vehicleModelId) => {
     }
 }
 
+// export const DeleteVehicleModel = async (vehicleModelId) => {
+//     try {
+//         const response = await api.delete(`${BASE_URL}/${vehicleModelId}`);
+//         return response.data;
+//     } catch (error) {
+//         console.error(`Lỗi khi xoá vehicleModel ${vehicleModelId}:`, error);
+//         throw error;
+//     }
+// }
+
 export const DeleteVehicleModel = async (vehicleModelId) => {
     try {
-        const response = await api.delete(`${BASE_URL}/${vehicleModelId}`);
+        console.log("Đang gửi yêu cầu xóa:", `${BASE_URL}?vehicleModelId=${vehicleModelId}`);
+        const response = await api.delete(`${BASE_URL}?vehicleModelId=${vehicleModelId}`);
+        console.log("Kết quả:", response.data);
         return response.data;
     } catch (error) {
-        console.error(`Lỗi khi xoá vehicleModel ${vehicleModelId}:`, error);
+        console.error("Chi tiết lỗi xoá vehicleModel:", error.response?.data || error.message);
         throw error;
     }
-}
+};
+
 
 // export const VehicleStatus = async (vehicleModelId) => {
 //     try {

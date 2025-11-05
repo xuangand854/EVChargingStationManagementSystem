@@ -97,7 +97,15 @@ export default function SystemConfigEditor() {
                             {/* Left: full read-only info */}
                             <div style={{ lineHeight: 1.5 }}>
                                 <div style={{ fontWeight: 700, fontSize: 16 }}>{it.name} <span style={{ color: "var(--muted)", fontSize: 13 }}>#{it.id}</span></div>
-                                <div style={{ color: "var(--muted)", marginBottom: 10 }}>{it.description}</div>
+                                <div style={{ color: "var(--muted)", marginBottom: 10 }}>
+                                    {it.description}
+                                    {it.unit ? (
+                                        <>
+                                            <br />
+                                            <span>Đơn vị: <span style={{ fontWeight: 600 }}>{it.unit}</span></span>
+                                        </>
+                                    ) : null}
+                                </div>
 
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
                                     <div><strong>Unit</strong><div className="muted-text">{it.unit ?? "-"}</div></div>
@@ -125,6 +133,7 @@ export default function SystemConfigEditor() {
                                         value={it.minValue ?? ""}
                                         onChange={(e) => handleChange(it.id, "minValue", e.target.value)}
                                     />
+
 
                                     {/* <label style={{ fontSize: 13, color: "var(--muted)" }}>maxValue</label>
                                     <input

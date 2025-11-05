@@ -13,7 +13,7 @@ const PaymentOption = ({ sessionId }) => {
         if (sessionId) {
             try {
                 sessionStorage.setItem('payment.sessionId', String(sessionId));
-            } catch {}
+            } catch { }
         }
     }, [sessionId]);
 
@@ -41,9 +41,10 @@ const PaymentOption = ({ sessionId }) => {
             const resp = await PostPaymentOffline(sessionId);
             message.success(resp?.message || "Ghi nhận thanh toán offline thành công");
             const id = resp?.data?.id ?? resp?.data;
+            console.log("Offline paymentId:", sessionId);
             if (id) {
                 setPaymentId(id);
-                try { sessionStorage.setItem('payment.paid', 'true'); } catch {}
+                try { sessionStorage.setItem('payment.paid', 'true'); } catch { }
             } else {
                 message.warning("Không tìm thấy paymentId");
             }

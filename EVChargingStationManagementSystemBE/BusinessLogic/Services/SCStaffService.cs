@@ -2,15 +2,11 @@
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileStaffDto;
-using Common.DTOs.VehicleModelDto;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
@@ -52,7 +48,7 @@ namespace BusinessLogic.Services
             {
                 var staffs = await _unitOfWork.UserAccountRepository.GetQueryable()
                     .AsNoTracking()
-                    .Where(s => !s.IsDeleted)
+                    .Where(s => !s.IsDeleted && s.SCStaffProfile != null)
                     .Include(Task => Task.SCStaffProfile)
                     .ProjectToType<StaffViewDto>()
                     .ToListAsync();

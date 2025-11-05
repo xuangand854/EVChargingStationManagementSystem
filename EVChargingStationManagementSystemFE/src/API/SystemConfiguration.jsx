@@ -35,3 +35,22 @@ export const GetByConfigName = async (configName) => {
     }
 }
 
+export const GetVAT = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/vat`);
+        return response.data;
+    } catch (error) {
+        console.error('Error GetVAT SystemConfiguration:', error);
+        throw error;
+    }
+}
+
+export const GetPrice = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/price-per-kwh`);
+        return response.data;
+    } catch (error) {
+        console.error('Error GetPrice SystemConfiguration:', error);
+        throw error;
+    }
+}

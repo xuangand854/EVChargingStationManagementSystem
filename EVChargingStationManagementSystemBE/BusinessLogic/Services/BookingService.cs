@@ -125,7 +125,9 @@ namespace BusinessLogic.Services
                     b => b.CheckInCode == request.CheckInCode &&
                    b.BookedBy == userId &&
                     !b.IsDeleted,
-                   include: b => b.Include(x => x.ConnectorNavigation)
+                   include: b => b.Include(x => x.ConnectorNavigation),
+                   asNoTracking: false 
+
    );
 
                 var booking = bookings.FirstOrDefault();
@@ -149,7 +151,7 @@ namespace BusinessLogic.Services
                 }
 
                 //  4. Kiểm tra thời gian check-in
-                var now = DateTime.UtcNow;
+                var now = DateTime.Now;
                 if (now < booking.StartTime.AddMinutes(-15) || now > booking.EndTime)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể check-in ngoài thời gian cho phép.");
 

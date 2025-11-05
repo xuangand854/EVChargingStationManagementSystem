@@ -19,7 +19,7 @@ namespace Infrastructure.Models
         public string Status { get; set; } = "Scheduled";
         // e.g., Scheduled, CheckedIn, Charging, Completed, Cancelled
 
-        public string? CheckInCode { get; set; } // Mã để EV driver nhập tại trạm
+        public string CheckInCode { get; set; } // Mã để EV driver nhập tại trạm
 
         public double? CurrentBattery { get; set; }
         public double? TargetBattery { get; set; }
@@ -34,7 +34,7 @@ namespace Infrastructure.Models
 
         //  Gắn với Connector (đầu sạc cụ thể)
         [ForeignKey("Connector")]
-        public Guid ConnectorId { get; set; }
+        public Guid? ConnectorId { get; set; }
         public Connector ConnectorNavigation { get; set; }
 
         //  Trạm sạc chứa connector

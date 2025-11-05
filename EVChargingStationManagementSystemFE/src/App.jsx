@@ -54,6 +54,7 @@ import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
 // import NoPage from "./pages/NoPage";
 // import ResetPassword from "./components/pages/ResetPassword";
 import ResetPassword from "./components/pages/ResetPassword";
+import ConfirmEmail from "./components/pages/ConfirmEmail";
 import SystemConfigEditor from "./components/pages/admin/SystemConfiguration";
 import StaffStation from "./components/pages/staff/StaffStation.jsx";
 import ConfirmPaymentOffline from "./components/pages/staff/ConfirmPaymentOffline.jsx";
@@ -109,6 +110,7 @@ export default function App() {
           <Route path="Pay" element={<Pay />} />
           {/* reset password*/}
           <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="confirm-email" element={<ConfirmEmail />} />
 
           {/* // */}
         </Route>

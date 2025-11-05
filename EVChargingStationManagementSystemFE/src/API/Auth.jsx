@@ -30,7 +30,7 @@ export const getAuthStatus = () => {
             decoded.user_role_raw ||
             decoded.Role ||
             decoded.UserRole ||
-            [],    
+            [],
           // Thêm các field khác có thể có trong JWT
           userId: decoded.userId || decoded.sub || decoded.id,
           phone: decoded.phone,
@@ -142,12 +142,22 @@ export const login = async (email, password) => { // đăng nhập
   }
 }
 
-export const confirmEmail = async (userId, code) => { // xác nhận email
+// export const confirmEmail = async (userId, code) => { // xác nhận email
+//   try {
+//     const response = await api.get(
+//       `/confirm-email`,
+//       { params: { userId, code } }
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error during email confirmation:', error);
+//     throw error;
+//   }
+// }
+
+export const confirmEmail = async (userId, token) => { // xác nhận email
   try {
-    const response = await api.get(
-      `/confirm-email`,
-      { params: { userId, code } }
-    );
+    const response = await api.patch(`${BASE_URL}/confirm-email`, { userId, token });
     return response.data;
   } catch (error) {
     console.error('Error during email confirmation:', error);
@@ -157,10 +167,7 @@ export const confirmEmail = async (userId, code) => { // xác nhận email
 
 export const resendConfirmationEmail = async (email) => { // gửi lại email xác nhận
   try {
-    const response = await api.post(
-      `/resend-confirmation-email`,
-      { email }
-    );
+    const response = await api.get(`${BASE_URL}/resend-confirm-email?email=${email}`);
     return response.data;
 
   } catch (error) {
@@ -238,14 +245,14 @@ export const resetPassword = async (userId, token, newPassword) => { // đặt l
     throw error;
   }
 }
-export const changePassword = async(oldPassword,newPassword,confirmPassword) => {
+export const changePassword = async (oldPassword, newPassword, confirmPassword) => {
   try {
-    const response = await api.post(`${BASE_URL}/change-password`,{
-      oldPassword,newPassword,confirmPassword
+    const response = await api.post(`${BASE_URL}/change-password`, {
+      oldPassword, newPassword, confirmPassword
     });
     return response.data
   } catch (error) {
-    console.error('ErrorChange-password',error);
+    console.error('ErrorChange-password', error);
     throw error;
   }
 }

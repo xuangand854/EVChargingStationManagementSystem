@@ -3,6 +3,7 @@ using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileEVDriverDto;
 using Infrastructure.IUnitOfWork;
+using Infrastructure.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -67,20 +68,22 @@ namespace BusinessLogic.Services
             }
         }
 
-        //  EVDriver tự cập nhật hồ sơ
         public async Task<IServiceResult> UpdateProfile(EVDriverUpdateSelfDto dto)
         {
             try
             {
                 var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
                     predicate: d => d.Id == dto.DriverId && !d.IsDeleted,
-                    include: q => q.Include(d => d.UserAccount),
+                    include: q => q
+                        .Include(d => d.UserAccount)
+                        .Include(d => d.UserVehicles),
                     asNoTracking: false
                 );
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
 
+                // ✅ Cập nhật thông tin cơ bản
                 dto.Adapt(driver);
                 driver.UpdatedAt = DateTime.UtcNow;
 
@@ -90,11 +93,46 @@ namespace BusinessLogic.Services
                     driver.UserAccount.UpdatedAt = DateTime.UtcNow;
                 }
 
+                // ✅ Nếu có danh sách xe mới từ client
+                if (dto.VehicleModelIds != null && dto.VehicleModelIds.Any())
+                {
+                    var existingVehicleIds = driver.UserVehicles
+                        .Select(uv => uv.VehicleModelId)
+                        .ToList();
+
+                    // Chỉ thêm những xe chưa có
+                    var newVehicleIds = dto.VehicleModelIds
+                        .Except(existingVehicleIds)
+                        .ToList();
+
+                    if (newVehicleIds.Any())
+                    {
+                        var newUserVehicles = newVehicleIds.Select(id => new UserVehicle
+                        {
+                            DriverId = driver.Id,
+                            VehicleModelId = id
+                        }).ToList();
+
+                        await _unitOfWork.UserVehicleRepository.BulkCreateAsync(newUserVehicles);
+                    }
+                }
+
+                //  Lưu toàn bộ thay đổi
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
 
-                var response = driver.Adapt<EVDriverViewDto>();
+                //  Lấy lại profile sau khi cập nhật
+                var updatedDriver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
+                    predicate: d => d.Id == dto.DriverId,
+                    include: q => q
+                        .Include(d => d.UserAccount)
+                        .Include(d => d.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel),
+                    asNoTracking: true
+                );
+
+                var response = updatedDriver.Adapt<EVDriverViewDto>();
                 return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
             }
             catch (Exception ex)

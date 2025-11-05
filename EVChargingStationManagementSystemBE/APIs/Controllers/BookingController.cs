@@ -19,7 +19,7 @@ namespace APIs.Controllers
             _service = service;
         }
 
-        // 1️⃣ Tạo booking mới
+        // 1️ Tạo booking mới
         [HttpPost]
         [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingCreatedDto dto)
@@ -42,7 +42,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 2️⃣ Lấy danh sách toàn bộ booking (Admin)
+        // 2️ Lấy danh sách toàn bộ booking (Admin)
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBookingList()
@@ -58,7 +58,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 3️⃣ Lấy chi tiết một booking
+        // 3️ Lấy chi tiết một booking
         [HttpGet("{bookingId}")]
         [Authorize(Roles = "EVDriver,Admin")]
         public async Task<IActionResult> GetBookingDetail(Guid bookingId)
@@ -74,7 +74,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 4️⃣ Check-in booking (EVDriver nhập mã check-in)
+        // 4️ Check-in booking (EVDriver nhập mã check-in)
         [HttpPatch("checkin")]
         [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CheckInBooking([FromBody] BookingCheckInDto dto)
@@ -94,7 +94,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 5️⃣ Hoàn tất booking
+        // 5️ Hoàn tất booking
         [HttpPatch("{bookingId}/complete")]
         [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CompleteBooking(Guid bookingId)
@@ -113,7 +113,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 6️⃣ Hủy booking
+        // 6️Hủy booking
         [HttpPatch("{bookingId}/cancel")]
         [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CancelBooking(Guid bookingId)
@@ -133,7 +133,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 7️⃣ Lấy danh sách booking của người dùng hiện tại
+        // 7️ Lấy danh sách booking của người dùng hiện tại
         [HttpGet("my-bookings")]
         [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> GetMyBookings()

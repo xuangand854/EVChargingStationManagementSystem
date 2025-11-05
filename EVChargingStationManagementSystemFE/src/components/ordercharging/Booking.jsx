@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { addBooking } from "../../API/Booking.js";
+import { addBooking ,MyBooking} from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
 import { getEVDriverProfile } from "../../API/EVDriver.js";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,7 +16,8 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [vehicleModels, setVehicleModels] = useState([]);
   const [profile, setProfile] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const navigate = useNavigate();
+  const [checkInCode,setcheckInCode]= useState(null);
+  // const navigate = useNavigate();
   
 
   const [bookingData, setBookingData] = useState({
@@ -26,6 +27,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     currentBattery: 0,
     targetBattery: 0,
   });
+ 
 
   // Lấy danh sách xe
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
           <h3> Hồ sơ chưa hoàn chỉnh</h3>
           <p>
-            Vui lòng cập nhật đủ <b>Họ tên</b>, <b>Số điện thoại</b> và <b>Xe</b> trước khi đặt booking.
+            Vui lòng cập nhật đủ <b>Họ tên</b>, <b>Số điện thoại</b>,<b>Xe</b> và hãy xác minh <b>email</b> của bạn thông qua hộp thư chúng tôi gửi trước khi đặt lịch sạc.
           </p>
           <button className="cancel-btn" onClick={onClose}>Đóng</button>
         </div>
@@ -142,7 +144,9 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
       return;
     }
 
-    const startTimeISO = new Date(bookingData.startTime).toISOString();
+    const localTime = new Date(bookingData.startTime);
+    const startTimeVN = new Date(localTime.getTime() - localTime.getTimezoneOffset() * 60000);
+    const startTimeISO = startTimeVN.toISOString();
 
     try {
       const res = await addBooking(
@@ -157,7 +161,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
       if (res?.data?.message) {
         toast.success(res.data.message);
       }
-
+      setcheckInCode(res?.data?.checkInCode || null);
       setShowSuccessPopup(true);
     } catch (error) {
       console.error("Booking error:", error);
@@ -172,7 +176,11 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         toast.warning(" Bạn đã có một đơn đặt lịch trước đó, vui lòng hoàn thành đơn hàng cũ!");
       } else if (msg.includes("Thời gian bắt đầu phải cách hiện tại")) {
         toast.warning(" Bạn cần đặt lịch sạc trước ít nhất 15 phút so với hiện tại!");
-      } else {
+      } 
+        else if (msg.includes("Tài khoản chưa được xác thực")){
+          toast.error("Tài khoản của bạn chưa được xác thực. Vui lòng xác thực trước khi đặt lịch!");
+        }
+       else {
         toast.error(" Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
       }
     }
@@ -276,11 +284,15 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
         <div className="popup-overlay">
           <div className="popup-container success-popup" onClick={(e) => e.stopPropagation()}>
             <h3>🎉 Đặt Booking Thành Công!</h3>
-            <p>Booking của bạn đã được lưu thành công.</p>
+            <p>---------------------------------------</p>
+            {checkInCode && (
+              <p>
+                <b>Mã check-in của bạn:</b> <span style={{ color: "#28a745" }}>{checkInCode}</span>
+              </p>
+            )}
+            <p>---------------------------------------</p> 
+
             
-            <button className="btn-pay" onClick={() => navigate("/payment")}>
-                Thanh Toán
-            </button>
 
             <button className="btn-close" onClick={closeSuccessPopup}>Đóng</button>
           </div>

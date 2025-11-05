@@ -29,5 +29,7 @@ namespace BusinessLogic.IServices
 
         //  Admin lấy toàn bộ danh sách Staff chưa bị xóa
         Task<IServiceResult> GetAll();
+
+        Task<IServiceResult> GetAllStaffAccount();
     }
 }

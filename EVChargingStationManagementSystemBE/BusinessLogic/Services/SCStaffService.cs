@@ -46,6 +46,27 @@ namespace BusinessLogic.Services
             }
         }
 
+        public async Task<IServiceResult> GetAllStaffAccount()
+        {
+            try
+            {
+                var staffs = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted)
+                    .Include(Task => Task.SCStaffProfile)
+                    .ProjectToType<StaffViewDto>()
+                    .ToListAsync();
+
+                if (staffs == null || staffs.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào");
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staffs);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
         //  Lấy chi tiết nhân viên theo Id
         public async Task<IServiceResult> GetById(Guid id)
         {

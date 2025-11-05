@@ -79,10 +79,11 @@ namespace Infrastructure.Data
             builder.Entity<IdentityUserRole<Guid>>().HasData(UserRolesSeed.GetUserRoles());
             builder.Entity<UserVehicle>().HasData(UserVehicleSeed.GetUserVehicles());
             builder.Entity<EVDriverProfile>().HasData(EVDriverSeed.GetEVDrivers());
-            builder.Entity<Booking>().HasData(BookingSeed.GetBookings());
             builder.Entity<ChargingStation>().HasData(ChargingStationSeed.GetChargingStations());
             builder.Entity<SCStaffProfile>().HasData(SCStaffSeed.GetSCStaffs());
-
+            builder.Entity<ChargingPost>().HasData(ChargingPostSeed.GetChargingPosts());
+            builder.Entity<Connector>().HasData(ConnectorSeed.GetConnectors());
+            //builder.Entity<Booking>().HasData(BookingSeed.GetBookings());
         }
     }
 }

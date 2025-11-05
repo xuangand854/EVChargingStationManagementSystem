@@ -5,6 +5,8 @@ namespace Common.DTOs.BookingDto
     public class BookingViewDto
     {
         public Guid Id { get; set; }
+        public string? CheckInCode { get; set; }
+
 
         // Thời gian dự kiến & thực tế
         public DateTime StartTime { get; set; }
@@ -35,8 +37,7 @@ namespace Common.DTOs.BookingDto
         public string? DriverName { get; set; }
         public string? DriverEmail { get; set; }
 
-        // Mã check-in
-        public string? CheckInCode { get; set; }
+
 
         // Audit
         public DateTime CreatedAt { get; set; }

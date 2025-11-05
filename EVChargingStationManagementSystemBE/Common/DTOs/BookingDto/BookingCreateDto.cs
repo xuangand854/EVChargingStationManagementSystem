@@ -14,7 +14,6 @@ namespace Common.DTOs.BookingDto
         [Required(ErrorMessage = "StartTime is required.")]
         public DateTime StartTime { get; set; }
 
-        // Có thể để client chọn duration hoặc mặc định 1.5 tiếng
-        public double? DurationHours { get; set; } = 1.5;
+
     }
 }

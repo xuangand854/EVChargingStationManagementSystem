@@ -9,12 +9,19 @@ namespace APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BookingController(IBookingService service) : ControllerBase
+    [Authorize]
+    public class BookingController : ControllerBase
     {
-        private readonly IBookingService _service = service;
+        private readonly IBookingService _service;
 
+        public BookingController(IBookingService service)
+        {
+            _service = service;
+        }
+
+        // 1️⃣ Tạo booking mới
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingCreatedDto dto)
         {
             if (!ModelState.IsValid)
@@ -35,15 +42,12 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
+        // 2️⃣ Lấy danh sách toàn bộ booking (Admin)
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBookingList()
         {
-            Guid userId;
-            try { userId = User.GetUserId(); }
-            catch { return Unauthorized(new { message = "Không xác định được userId từ token." }); }
-
-            var result = await _service.GetBookingList(userId);
+            var result = await _service.GetBookingList();
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -54,8 +58,9 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
+        // 3️⃣ Lấy chi tiết một booking
         [HttpGet("{bookingId}")]
-        [Authorize]
+        [Authorize(Roles = "EVDriver,Admin")]
         public async Task<IActionResult> GetBookingDetail(Guid bookingId)
         {
             var result = await _service.GetBookingDetail(bookingId);
@@ -69,8 +74,9 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
+        // 4️⃣ Check-in booking (EVDriver nhập mã check-in)
         [HttpPatch("checkin")]
-        [Authorize]
+        [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CheckInBooking([FromBody] BookingCheckInDto dto)
         {
             Guid userId;
@@ -88,8 +94,28 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        [HttpDelete("{bookingId}")]
-        [Authorize]
+        // 5️⃣ Hoàn tất booking
+        [HttpPatch("{bookingId}/complete")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> CompleteBooking(Guid bookingId)
+        {
+            var result = await _service.CompleteBookingAsync(bookingId);
+
+            if (result.Status == Const.SUCCESS_UPDATE_CODE)
+                return Ok(new { message = result.Message });
+
+            if (result.Status == Const.FAIL_UPDATE_CODE)
+                return Conflict(new { message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        // 6️⃣ Hủy booking
+        [HttpPatch("{bookingId}/cancel")]
+        [Authorize(Roles = "EVDriver")]
         public async Task<IActionResult> CancelBooking(Guid bookingId)
         {
             Guid userId;
@@ -107,37 +133,19 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        [HttpPost("auto-cancel-expired")]
-        [Authorize(Roles = "Admin,System")]
-        public async Task<IActionResult> AutoCancelExpiredBookings()
+        // 7️⃣ Lấy danh sách booking của người dùng hiện tại
+        [HttpGet("my-bookings")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> GetMyBookings()
         {
-            await _service.AutoCancelExpiredBookings();
-            return Ok(new { message = "Đã xử lý hủy các booking hết hạn." });
-        }
-
-        [HttpPost("auto-reassign-error-stations")]
-        [Authorize(Roles = "Admin,System")]
-        public async Task<IActionResult> AutoReassignBookingsForErrorStations()
-        {
-            await _service.AutoReassignBookingsForErrorStations();
-            return Ok(new { message = "Đã xử lý chuyển các booking khỏi trạm lỗi." });
-        }
-        [HttpPatch("{bookingId}/complete")]
-        [Authorize]
-        public async Task<IActionResult> CompleteBooking(Guid bookingId)
-        {
-            // Lấy userId từ token
             Guid userId;
             try { userId = User.GetUserId(); }
             catch { return Unauthorized(new { message = "Không xác định được userId từ token." }); }
 
-            var result = await _service.CompleteBookingAsync(bookingId);
+            var result = await _service.GetBookingList(userId);
 
-            if (result.Status == Const.SUCCESS_UPDATE_CODE)
-                return Ok(new { message = result.Message });
-
-            if (result.Status == Const.FAIL_UPDATE_CODE)
-                return Conflict(new { message = result.Message });
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
 
             if (result.Status == Const.WARNING_NO_DATA_CODE)
                 return NotFound(new { message = result.Message });
@@ -145,8 +153,53 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
+        // 8️ Dự đoán trụ sạc sắp bị khóa (trước X phút)
+        [HttpGet("predict-locked")]
+        [Authorize]
+        public async Task<IActionResult> PredictLockedConnectors([FromQuery] int minutes = 30)
+        {
+            var result = await _service.PredictUpcomingLockedConnectorsAsync(minutes);
+
+            if (result == null || !result.Any())
+                return NotFound(new { message = $"Không có trụ nào dự kiến bị khóa trong {minutes} phút tới." });
+
+            return Ok(new
+            {
+                message = $"Danh sách trụ dự kiến bị khóa trong {minutes} phút tới.",
+                data = result
+            });
+        }
+
+        // 9️ Auto Reserve - Tự động khóa trụ trước giờ sạc 5 phút
+        [HttpPost("auto-reserve-before-start")]
+        [Authorize]
+        public async Task<IActionResult> AutoReserveConnectorBeforeStart()
+        {
+            await _service.AutoReserveConnectorBeforeStart();
+            return Ok(new { message = "Đã tự động khóa các trụ có booking sắp bắt đầu trong 5 phút tới." });
+        }
+
+        // 10 Auto Cancel - Tự động hủy booking hết hạn
+        [HttpPost("auto-cancel-expired")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AutoCancelExpiredBookings()
+        {
+            await _service.AutoCancelExpiredBookings();
+            return Ok(new { message = "Đã xử lý hủy các booking hết hạn." });
+        }
+
+        // 11 Auto Reassign - Chuyển booking khỏi trạm lỗi
+        [HttpPost("auto-reassign-error-stations")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AutoReassignBookingsForErrorStations()
+        {
+            await _service.AutoReassignBookingsForErrorStations();
+            return Ok(new { message = "Đã xử lý chuyển các booking khỏi trạm lỗi." });
+        }
+
+        // 1️2 Auto Lock - Khóa tài khoản có nhiều no-show
         [HttpPost("lock-no-show-accounts")]
-        [Authorize(Roles = "Admin,System")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> LockAccountsWithTooManyNoShows()
         {
             await _service.LockAccountsWithTooManyNoShows();

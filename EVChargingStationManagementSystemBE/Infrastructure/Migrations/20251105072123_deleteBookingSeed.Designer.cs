@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(EVCSMSContext))]
-    [Migration("20251101160329_AddConnectorRelationToBooking")]
-    partial class AddConnectorRelationToBooking
+    [Migration("20251105072123_deleteBookingSeed")]
+    partial class deleteBookingSeed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,6 +43,13 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("BookedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CheckInCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("ConnectorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -66,7 +73,8 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<double?>("TargetBattery")
                         .HasColumnType("float");
@@ -78,23 +86,11 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BookedBy");
 
+                    b.HasIndex("ConnectorId");
+
                     b.HasIndex("StationId");
 
                     b.ToTable("Booking", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            BookedBy = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedAt = new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified),
-                            EndTime = new DateTime(2025, 10, 26, 11, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            StartTime = new DateTime(2025, 10, 26, 9, 0, 0, 0, DateTimeKind.Unspecified),
-                            StationId = new Guid("55555555-5555-5555-5555-555555555555"),
-                            Status = "Scheduled",
-                            UpdatedAt = new DateTime(2025, 10, 25, 12, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.ChargingPost", b =>
@@ -150,6 +146,23 @@ namespace Infrastructure.Migrations
                     b.HasIndex("StationId");
 
                     b.ToTable("ChargingPost", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
+                            AvailableConnectors = 2,
+                            ConnectorType = "Type2",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            MaxPowerKw = 50,
+                            PostName = "Post A1",
+                            StationId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Status = "Available",
+                            TotalConnectors = 2,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            VehicleTypeSupported = "Car"
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.ChargingSession", b =>
@@ -388,6 +401,20 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ChargingPostId");
 
                     b.ToTable("Connector");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            ChargingPostId = new Guid("99999999-9999-9999-9999-999999999999"),
+                            ConnectorName = "Connector A1",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            IsLocked = false,
+                            IsPluggedIn = false,
+                            Status = "Available",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Infrastructure.Models.EVDriverProfile", b =>
@@ -1581,6 +1608,10 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Infrastructure.Models.Connector", "ConnectorNavigation")
+                        .WithMany()
+                        .HasForeignKey("ConnectorId");
+
                     b.HasOne("Infrastructure.Models.ChargingStation", "ChargingStationNavigation")
                         .WithMany("Bookings")
                         .HasForeignKey("StationId")
@@ -1590,6 +1621,8 @@ namespace Infrastructure.Migrations
                     b.Navigation("BookedByNavigation");
 
                     b.Navigation("ChargingStationNavigation");
+
+                    b.Navigation("ConnectorNavigation");
                 });
 
             modelBuilder.Entity("Infrastructure.Models.ChargingPost", b =>

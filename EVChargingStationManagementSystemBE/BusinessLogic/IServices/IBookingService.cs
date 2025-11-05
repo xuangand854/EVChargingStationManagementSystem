@@ -1,5 +1,7 @@
 ﻿using BusinessLogic.Base;
 using Common.DTOs.BookingDto;
+using Infrastructure.Models;
+using System.Threading.Tasks;
 
 namespace BusinessLogic.IServices
 {
@@ -14,7 +16,10 @@ namespace BusinessLogic.IServices
         Task AutoCancelExpiredBookings();
         Task AutoReassignBookingsForErrorStations();
         Task LockAccountsWithTooManyNoShows();
+        Task AutoReserveConnectorBeforeStart();
+        Task<List<Connector>> PredictUpcomingLockedConnectorsAsync(int minutes = 30);
 
     }
 }
+
 

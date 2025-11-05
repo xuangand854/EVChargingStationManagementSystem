@@ -24,6 +24,7 @@ namespace BusinessLogic.Services
 
         public async Task<IServiceResult> CreateBooking(BookingCreatedDto dto, Guid userId)
         {
+
             try
             {
                 // --- BR12: Kiểm tra tài khoản EVDriver ---
@@ -31,6 +32,9 @@ namespace BusinessLogic.Services
                     u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản người dùng.");
+                if (!user.EmailConfirmed)
+
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Tài khoản chưa được xác thực .");
 
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Contains("EVDriver", StringComparer.OrdinalIgnoreCase))
@@ -56,7 +60,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Xe không tồn tại trong hệ thống.");
 
                 // --- BR06: StartTime >= Now + 15min ---
-                if (dto.StartTime < DateTime.Now.AddMinutes(15))
+                if (dto.StartTime < DateTime.Now.AddMinutes(5))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Thời gian bắt đầu phải cách hiện tại ≥ 15 phút.");
 
                 // --- BR05: Kiểm tra booking đang hoạt động ---
@@ -116,62 +120,57 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    b => b.Id == request.BookingId &&
-                         b.BookedBy == userId &&
-                         !b.IsDeleted,
-                    include: b => b.Include(x => x.ConnectorNavigation)
-                                   .ThenInclude(c => c.ChargingPost)
-                                   .ThenInclude(p => p.ChargingStationNavigation)
-                );
+                //  1. Tìm booking theo mã CheckInCode + userId
+                   var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => b.CheckInCode == request.CheckInCode &&
+                   b.BookedBy == userId &&
+                    !b.IsDeleted,
+                   include: b => b.Include(x => x.ConnectorNavigation)
+   );
+
+                var booking = bookings.FirstOrDefault();
+
 
                 if (booking == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking.");
 
-                // So sánh với enum
-                if (!booking.Status.Equals(BookingStatus.Scheduled.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Booking không ở trạng thái 'Scheduled'.");
+                //  2. Kiểm tra trạng thái
+                if (!booking.Status.Equals(BookingStatus.Scheduled.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                    !booking.Status.Equals(BookingStatus.Reserved.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Booking không ở trạng thái 'Scheduled' hoặc 'Reserved'.");
+                }
 
+                //  3. Kiểm tra mã check-in hợp lệ
                 if (string.IsNullOrWhiteSpace(request.CheckInCode) ||
-                    !string.Equals(booking.CheckInCode, request.CheckInCode))
+                    !string.Equals(booking.CheckInCode, request.CheckInCode, StringComparison.Ordinal))
+                {
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Mã check-in không hợp lệ.");
+                }
 
-                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-                    c => c.Id == request.ConnectorId && !c.IsDeleted,
-                    include: c => c.Include(x => x.ChargingPost)
-                                   .ThenInclude(p => p.ChargingStationNavigation)
-                );
-
-                if (connector == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc.");
-
-                if (connector.Status.Equals(ConnectorStatus.InUse.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc đang được sử dụng.");
-
-                var now = DateTime.Now;
+                //  4. Kiểm tra thời gian check-in
+                var now = DateTime.UtcNow;
                 if (now < booking.StartTime.AddMinutes(-15) || now > booking.EndTime)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể check-in ngoài thời gian cho phép.");
 
-                // Update booking
-                booking.ConnectorId = connector.Id;
-                booking.Status = BookingStatus.InProgress.ToString();
-                booking.CurrentBattery = request.CurrentBattery;
-                booking.TargetBattery = request.TargetBattery ?? 100;
-                booking.ActualStartTime = request.ActualStartTime == default ? DateTime.Now : request.ActualStartTime;
-                booking.UpdatedAt = DateTime.Now;
+                //  5. Mở khóa connector (nếu có gắn)
+                if (booking.ConnectorNavigation != null)
+                {
+                    booking.ConnectorNavigation.IsLocked = false;
+                    booking.ConnectorNavigation.Status = ConnectorStatus.Available.ToString(); // hoặc "Active"
+                }
 
-                // Update connector
-                connector.Status = ConnectorStatus.InUse.ToString();
-                connector.IsPluggedIn = true;
-                connector.IsLocked = true;
-                connector.UpdatedAt = DateTime.Now;
+                //  6. Cập nhật booking sang "InProgress"
+                booking.Status = BookingStatus.InProgress.ToString();
+                booking.ActualStartTime = now;
+                booking.UpdatedAt = now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
 
                 if (result > 0)
                 {
                     var response = booking.Adapt<BookingViewDto>();
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công.", response);
+                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công, trụ đã được mở khóa.", response);
                 }
 
                 return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hoàn tất check-in.");
@@ -181,6 +180,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         // Check-in cho booking (cập nhật trạng thái sang InProgress + tính thời gian sạc)
 
@@ -327,47 +327,40 @@ namespace BusinessLogic.Services
             }
         }
 
-        // Hủy booking nếu chưa tới thời gian bắt đầu
         public async Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId)
         {
             try
             {
-                // Lấy thông tin user đang thực hiện yêu cầu
                 var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy người dùng");
 
-                // Chỉ cho phép người có vai trò EVDriver được hủy booking
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Any(r => r.Equals("EVDriver", StringComparison.OrdinalIgnoreCase)))
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ EVDriver được hủy booking");
 
-                // Lấy booking cần hủy (kèm thông tin trạm và danh sách trụ sạc)
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
                     b => b.Id == bookingId && !b.IsDeleted,
                     include: b => b.Include(x => x.ChargingStationNavigation)
-                                  .ThenInclude(cs => cs.ChargingPosts)
+                                  .ThenInclude(cs => cs.ChargingPosts),
+                    asNoTracking: false
                 );
                 if (booking == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking");
 
-                // Kiểm tra quyền: chỉ người tạo booking mới được hủy
                 if (booking.BookedBy != userId)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không có quyền hủy booking này");
 
-                // Chỉ được hủy khi booking đang ở trạng thái Scheduled
                 if (!booking.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase))
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ được hủy khi booking đang Scheduled");
 
-                // Không cho hủy nếu đã tới hoặc quá thời gian bắt đầu
                 if (DateTime.Now >= booking.StartTime)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy sau thời điểm bắt đầu");
 
-                // Cập nhật trạng thái booking → Cancelled
+                // Cập nhật trạng thái booking
                 booking.Status = "Cancelled";
                 booking.UpdatedAt = DateTime.Now;
 
-                // Tìm trụ sạc đang ở trạng thái Reserved để giải phóng lại
                 var reservedPost = booking.ChargingStationNavigation.ChargingPosts
                     .FirstOrDefault(p => p.Status == "Reserved");
                 if (reservedPost != null)
@@ -376,42 +369,64 @@ namespace BusinessLogic.Services
                     reservedPost.UpdatedAt = DateTime.Now;
                 }
 
-                // Lưu thay đổi vào database
+                // Không cần gọi Update hay Entry — EF sẽ tự theo dõi
                 var result = await _unitOfWork.SaveChangesAsync();
 
-                // Nếu lưu thành công → trả về kết quả kèm dữ liệu booking vừa cập nhật
                 if (result > 0)
                 {
                     var response = booking.Adapt<BookingViewDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hủy booking thành công", response);
                 }
 
-                // Nếu không có thay đổi nào được lưu
                 return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy booking");
             }
             catch (Exception ex)
             {
-                // Bắt lỗi ngoại lệ hệ thống
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
 
+        // Lấy chi tiết 1 booking cụ thể
+        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
+        {
+            try
+            {
+                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
+                    b => b.Id == bookingId && !b.IsDeleted,
+                    include: b => b
+                        .Include(x => x.BookedByNavigation)
+                        .Include(x => x.ChargingStationNavigation)
+                        .Include(x => x.ChargingStationNavigation.ChargingPosts),
+                        asNoTracking: false
+                );
+
+                if (booking == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy thông tin booking");
+
+                var response = booking.Adapt<BookingViewDto>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
+        // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
         public async Task<IServiceResult> GetBookingList(Guid? userId = null)
         {
             try
             {
                 var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    predicate: b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
-                    include: q => q
-                        .Include(x => x.BookedByNavigation)
+                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
+                    include: b => b
                         .Include(x => x.ChargingStationNavigation)
-                        .OrderByDescending(x => x.CreatedAt)
+                        .Include(x => x.BookedByNavigation),
+                    orderBy: q => q.OrderByDescending(b => b.CreatedAt)
                 );
 
                 if (bookings == null || bookings.Count == 0)
-                {
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có lịch đặt nào.");
-                }
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
 
                 var response = bookings.Adapt<List<BookingViewDto>>();
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
@@ -422,30 +437,6 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> GetBookingDetail(Guid bookingId)
-        {
-            try
-            {
-                var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
-                    predicate: b => !b.IsDeleted && b.Id == bookingId,
-                    include: q => q
-                        .Include(x => x.BookedByNavigation)
-                        .Include(x => x.ChargingStationNavigation)
-                );
-
-                if (booking == null)
-                {
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy lịch đặt.");
-                }
-
-                var response = booking.Adapt<BookingViewDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
-            }
-        }
 
 
         // Tự động khóa tài khoản EVDriver nếu no-show >= 3 lần/tháng
@@ -609,6 +600,60 @@ namespace BusinessLogic.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task AutoReserveConnectorBeforeStart()
+        {
+            var now = DateTime.Now;
 
+            // Lấy danh sách booking Scheduled mà StartTime cách now <= 5 phút
+            var upcomingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
+            predicate: b => !b.IsDeleted &&
+                     b.Status == "Scheduled" &&
+                     b.StartTime <= now.AddMinutes(5) &&
+                     b.StartTime > now,
+                include: b => b.Include(x => x.ChargingStationNavigation)
+                               .ThenInclude(s => s.ChargingPosts)
+                                   .ThenInclude(p => p.Connectors),
+                                   asNoTracking :false
+            );
+
+            foreach (var booking in upcomingBookings)
+            {
+                var connector = booking.ChargingStationNavigation.ChargingPosts
+                    .SelectMany(p => p.Connectors)
+                    .FirstOrDefault(c => c.Status == "Available");
+
+                if (connector != null)
+                {
+                    connector.Status = "Reserved";
+                    connector.IsLocked = true;
+                    connector.UpdatedAt = now;
+                    booking.ConnectorId = connector.Id;
+
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+  public async Task<List<Connector>> PredictUpcomingLockedConnectorsAsync(int minutes = 30)
+        {
+            var now = DateTime.UtcNow;
+
+            var upcomingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                b => !b.IsDeleted
+                  && b.Status == BookingStatus.Scheduled.ToString()
+                  && b.StartTime <= now.AddMinutes(minutes)
+                  && b.StartTime > now,
+                include: b => b.Include(x => x.ConnectorNavigation)
+            );
+
+            var predictedConnectors = upcomingBookings
+                .Where(b => b.ConnectorNavigation != null)
+                .Select(b => b.ConnectorNavigation)
+                .Distinct()
+                .ToList();
+
+            return predictedConnectors;
+        }
     }
-}
+
+    }   

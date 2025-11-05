@@ -68,6 +68,28 @@ namespace BusinessLogic.Services
             }
         }
 
+        public async Task<IServiceResult> GetByAccountId(Guid accountId)
+        {
+            try
+            {
+                var driver = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(ua => ua.Id == accountId && !ua.IsDeleted && ua.EVDriverProfile != null)
+                    .Include(ua => ua.EVDriverProfile)
+                    .ProjectToType<EVDriverViewDto>()
+                    .FirstOrDefaultAsync();
+
+                if (driver == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, driver);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
         public async Task<IServiceResult> UpdateProfile(EVDriverUpdateSelfDto dto)
         {
             try

@@ -58,6 +58,20 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
+        [HttpGet("price-per-kwh")]
+        public async Task<IActionResult> GetPricePerKWH()
+        {
+            var result = await _service.GetByName("PRICE_PER_kWH");
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
         [HttpPut("Update/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] SystemConfigurationUpdateDto dto)

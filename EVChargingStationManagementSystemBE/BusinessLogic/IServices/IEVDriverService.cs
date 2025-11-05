@@ -26,5 +26,7 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> Delete(Guid driverId);
         // ng dùng dùng để xóa xe trong profile của bản thân mình 
         Task<IServiceResult> DeleteMyVehicle(Guid accountId, Guid userVehicleId);
+
+        Task<IServiceResult> GetByAccountId(Guid accountId);
     }
 }

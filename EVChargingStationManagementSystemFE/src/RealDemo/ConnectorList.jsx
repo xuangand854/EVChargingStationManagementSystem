@@ -87,7 +87,7 @@ const ConnectorList = () => {
                                         {connector.status}
                                     </Tag>
                                 </p>
-                                <p><strong>Công suất:</strong> {connector.powerKw} kW</p>
+                                <p><strong>Công suất:</strong> {postInfo.maxPowerKw} kW</p>
                             </Card>
                         </Col>
                     ))}

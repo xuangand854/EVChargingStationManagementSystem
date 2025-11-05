@@ -25,3 +25,13 @@ export const Update = async (id, payload) => {
     }
 }
 
+export const GetByConfigName = async (configName) => {
+    try {
+        const response = await api.get(`${BASE_URL}/${configName}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error GetByConfigName SystemConfiguration:', error);
+        throw error;
+    }
+}
+

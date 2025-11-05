@@ -1,45 +1,23 @@
 /* AdminVehicles.css */
 .admin-vehicles {
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #ffffff;
     min-height: 100vh;
-    position: relative;
-    overflow: hidden;
-}
-
-.admin-vehicles::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-    pointer-events: none;
 }
 
 .admin-vehicles .header {
     margin-bottom: 1.5rem;
-    position: relative;
-    z-index: 1;
 }
 
 .admin-vehicles .header h1 {
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #1f2937;
     margin-bottom: 0.5rem;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .admin-vehicles .header p {
-    color: rgba(255, 255, 255, 0.9);
+    color: #6b7280;
     font-size: 1.1rem;
     font-weight: 500;
 }
@@ -100,31 +78,11 @@
 /* Actions Card */
 .admin-vehicles .actions-card {
     margin-bottom: 1.5rem;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.admin-vehicles .actions-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-    border-radius: 20px 20px 0 0;
-}
-
-.admin-vehicles .actions-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    background: rgba(255, 255, 255, 0.25);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .admin-vehicles .actions-container {
@@ -159,31 +117,11 @@
 
 /* Table Card */
 .admin-vehicles .table-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.admin-vehicles .table-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-    border-radius: 20px 20px 0 0;
-}
-
-.admin-vehicles .table-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-    background: rgba(255, 255, 255, 0.25);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Vehicle Info Cell */

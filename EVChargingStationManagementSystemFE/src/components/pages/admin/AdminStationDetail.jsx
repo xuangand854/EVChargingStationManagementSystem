@@ -98,25 +98,40 @@ const AdminStationDetail = () => {
         }
     };
 
-    // 🔹 Xóa trụ sạc
-    const handleDeletePost = async (postId) => {
-        Modal.confirm({
-            title: "Xác nhận xóa",
-            content: "Bạn có chắc muốn xóa trụ sạc này?",
-            okText: "Xóa",
-            cancelText: "Hủy",
-            onOk: async () => {
-                try {
-                    await deleteChargingPost(postId);
-                    message.success("🗑️ Xóa trụ sạc thành công!");
-                    fetchStationAndPosts();
-                } catch (error) {
-                    console.error("deletePost error:", error);
-                    message.error("Không thể xóa trụ sạc!");
+    const handleDeletePost = async (postId, postName) => {
+        const confirmDelete = window.confirm(`Bạn có chắc muốn xóa trụ sạc "${postName}" không? Hành động này không thể hoàn tác!`);
+        if (!confirmDelete) return;
+
+        try {
+            console.log("Attempting to delete post:", postId);
+            await deleteChargingPost(postId);
+            message.success("🗑️ Xóa trụ sạc thành công!");
+            fetchStationAndPosts();
+        } catch (error) {
+            console.error("deletePost error:", error);
+            if (error.response) {
+                const status = error.response.status;
+                switch (status) {
+                    case 404:
+                        message.error("Không tìm thấy trụ sạc để xóa!");
+                        break;
+                    case 400:
+                        message.error("Yêu cầu không hợp lệ!");
+                        break;
+                    case 500:
+                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        break;
+                    default:
+                        message.error(`Lỗi ${status}: ${error.response.data?.message || "Không xác định"}`);
                 }
-            },
-        });
+            } else if (error.request) {
+                message.error("Không thể kết nối đến máy chủ!");
+            } else {
+                message.error("Có lỗi xảy ra khi xóa trụ sạc!");
+            }
+        }
     };
+
 
     // 🔹 Sửa trụ sạc
     const handleEditPost = (post) => {
@@ -140,7 +155,7 @@ const AdminStationDetail = () => {
                 vehicleTypeSupported: Number(values.vehicleTypeSupported),
                 totalConnectors: Number(values.totalConnectors),
                 status: values.status || "Available",
-                stationId: Number(stationId),
+                stationId: stationId,
             };
 
             if (editingPost) {
@@ -187,9 +202,10 @@ const AdminStationDetail = () => {
                     style={{ width: 150 }}
                 >
                     <Option value="Available">Available</Option>
-                    <Option value="Busy">Busy</Option>
+                    {/* <Option value="Busy">Busy</Option> */}
                     <Option value="Maintained">Maintained</Option>
-                    <Option value="Faulty">Faulty</Option>
+                    <Option value="Inactive">Inactive</Option>
+                    {/* <Option value="Faulty">Faulty</Option> */}
                 </Select>
             ),
         },
@@ -204,10 +220,11 @@ const AdminStationDetail = () => {
                     <Button
                         icon={<DeleteOutlined />}
                         danger
-                        onClick={() => handleDeletePost(record.id)}
+                        onClick={() => handleDeletePost(record.id, record.postName)}
                     >
                         Xóa
                     </Button>
+
                 </Space>
             ),
         },
@@ -237,7 +254,7 @@ const AdminStationDetail = () => {
                                 >
                                     <Option value="Active">Active</Option>
                                     <Option value="Inactive">Inactive</Option>
-                                    <Option value="Discontinued">Discontinued</Option>
+                                    {/* <Option value="Discontinued">Discontinued</Option> */}
                                     <Option value="Maintenance">Maintenance</Option>
                                 </Select>
                                 <Button
@@ -341,14 +358,7 @@ const AdminStationDetail = () => {
                                 <Input type="number" min={1} />
                             </Form.Item>
 
-                            <Form.Item name="status" label="Trạng thái trụ">
-                                <Select>
-                                    <Option value="Available">Available</Option>
-                                    <Option value="Busy">Busy</Option>
-                                    <Option value="Maintained">Maintained</Option>
-                                    <Option value="Faulty">Faulty</Option>
-                                </Select>
-                            </Form.Item>
+
 
                             <Form.Item>
                                 <Button type="primary" htmlType="submit">

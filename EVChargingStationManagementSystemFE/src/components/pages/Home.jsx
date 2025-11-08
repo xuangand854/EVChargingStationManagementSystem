@@ -7,6 +7,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import Orb from "../../effect/Orb";
+import { useNavigate } from "react-router-dom";
 
 // Thêm import cho Lottie animation
 import Lottie from "lottie-react";
@@ -21,25 +22,26 @@ L.Icon.Default.mergeOptions({
     shadowUrl: markerShadow,
 });
 // Component để zoom tới station khi chọn
-const FlyToStation = ({ station }) => {
-    const map = useMap();
-    if (station?.coords) {
-        map.flyTo(station.coords, 15); // CHỈNH Ở ĐÂY: bay tới vị trí station
-    }
-    return null;
-};
+// const FlyToStation = ({ station }) => {
+//     const map = useMap();
+//     if (station?.coords) {
+//         map.flyTo(station.coords, 15); // CHỈNH Ở ĐÂY: bay tới vị trí station
+//     }
+//     return null;
+// };
 
 
 const Home = () => {
 
-    const [stations] = useState([
-        { id: 1, name: "Station A", address: "123 Main St, HCM", slots: 5, coords: [10.78, 106.70] },
-        { id: 2, name: "Station B", address: "456 Elm St, HCM", slots: 3, coords: [10.775, 106.705] },
-        { id: 3, name: "Station C", address: "789 Oak St, HCM", slots: 0, coords: [10.77, 106.695] },
-    ]);
+    // const [stations] = useState([
+    //     { id: 1, name: "Station A", address: "123 Main St, HCM", slots: 5, coords: [10.78, 106.70] },
+    //     { id: 2, name: "Station B", address: "456 Elm St, HCM", slots: 3, coords: [10.775, 106.705] },
+    //     { id: 3, name: "Station C", address: "789 Oak St, HCM", slots: 0, coords: [10.77, 106.695] },
+    // ]);
     const [selectedStation, setSelectedStation] = useState(null);
     const [bookingTime, setBookingTime] = useState("");
     const [suggestions, setSuggestions] = useState([]);
+    const navigate = useNavigate();
 
     // Giả lập API tìm kiếm trạm sạc
     // const handleSearch = (value) => {
@@ -246,10 +248,10 @@ const Home = () => {
                     <div className="search-bar">
                         <button
                             className="btn btn-primary"
-                            onClick={() => setSuggestions(stations)} // mở danh sách trong popup
-                        >
+                            onClick={() => navigate("/order-charging")}
+                            >
                             Chọn trạm sạc
-                        </button>
+                            </button>
                     </div>
 
                     {/* Popup danh sách trạm */}
@@ -281,38 +283,7 @@ const Home = () => {
                     )}
 
                     {/* OpenStreetMap Integration */}
-                    <div className="map-container">
-                        <MapContainer
-                            center={[10.7769, 106.7009]} // Default Hồ Chí Minh
-                            zoom={13}
-                            style={{ height: "400px", width: "100%", marginTop: "20px", borderRadius: "12px" }}
-                        >
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-
-                            {/* Hiển thị tất cả marker */}
-                            {stations.map((station) => (
-                                <Marker
-                                    key={station.id}
-                                    position={station.coords}
-                                    eventHandlers={{
-                                        click: () => handleSelectStation(station), // Click vào marker -> chọn
-                                    }}
-                                >
-                                    <Popup>
-                                        <b>{station.name}</b><br />
-                                        {station.address}<br />
-                                        Slots: {station.slots}
-                                    </Popup>
-                                </Marker>
-                            ))}
-
-                            {/* Khi có station được chọn thì bay đến */}
-                            {selectedStation && <FlyToStation station={selectedStation} />}
-                        </MapContainer>
-                    </div>
+                    
                 </section>
             </section>
 

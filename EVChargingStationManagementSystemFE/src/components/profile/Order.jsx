@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Order.css";
-import { MyBooking } from "../../API/Booking"; //  API lấy lịch sử đặt trạm
+import { toast ,ToastContainer} from "react-toastify";
+import { MyBooking,AutoCancel } from "../../API/Booking"; //  API lấy lịch sử đặt trạm
 
 const Order = () => {
   const [orders, setOrders] = useState([]);
@@ -35,6 +36,34 @@ const Order = () => {
       o.startTime?.toLowerCase().includes(search.toLowerCase()) ||
       o.endTime?.toLowerCase().includes(search.toLowerCase())
   );
+const handleCancel = async (orderId) => {
+  try {
+    await AutoCancel(orderId); // gọi API PATCH cancel
+    toast.success("Hủy đơn hàng thành công!");
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: "Cancelled" } : o
+      )
+    );
+  } catch (err) {
+    console.error(err);
+
+    // Trích message từ response
+    const message =
+      err?.response?.data?.message || // thường có message từ BE
+      err?.message ||                  // fallback
+      "Hủy thất bại!";
+
+    // Nếu backend trả lỗi 409
+    if (err?.response?.status === 409) {
+      toast.warning(message);
+    } else {
+      toast.error(message);
+    }
+  }
+};
+
+
 
   const formatDateTime = (isoString) => {
     if (!isoString) return "-";
@@ -49,7 +78,9 @@ const Order = () => {
   };
 
   return (
+    
     <div className="order-history-container">
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="order-history-content">
         <div className="order-history-topbar">
           <h2>Lịch sử Đặt Hàng</h2>
@@ -70,17 +101,29 @@ const Order = () => {
                 <div className="order-history-id">{order.stationName}</div>
                 <div className="order-history-info">
                   <p>
-                    <strong>Bắt đầu:</strong> {formatDateTime(order.startTime)}
+                    <strong>Mã Check-in :</strong> {order.checkInCode}
                   </p>
                   <p>
-                    <strong>Kết thúc:</strong> {formatDateTime(order.endTime)}
+                    <strong>Thời Gian Bắt đầu:</strong> {formatDateTime(order.startTime)}
                   </p>
+                  <p>
+                    <strong>Thời Gian Kết thúc:</strong> {formatDateTime(order.endTime)}
+                  </p>
+                  
                   <p>
                     <strong>Trạng thái:</strong>{" "}
                     {order.status === "Scheduled" && <span className={"scheduled"}>Chờ Hoàn Thành </span>}
                     {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thành</span>}
                     {order.status === "Cancelled" && <span className={"cancelled"}>Giao Dịch Của Bạn Đã Bị Hủy </span>}
                   </p>
+                  {order.status === "Scheduled" && (
+                    <button
+                      className="link-btn"
+                      onClick={() => handleCancel(order.id)} // <-- dùng arrow function
+                    >
+                      Hủy đặt hàng
+                    </button>
+                  )}
                 </div>
               </div>
             ))

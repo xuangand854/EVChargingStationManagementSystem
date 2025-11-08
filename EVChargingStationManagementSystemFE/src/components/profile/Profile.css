@@ -272,7 +272,7 @@
   to { opacity: 1; }
 }
 
-.popup {
+.popup-img {
   background: #fff;
   padding: 25px 30px;
   border-radius: 16px;
@@ -386,3 +386,123 @@
   font-size: 17px;
 }
 
+
+/* ===========================
+   Popup Vehicle - full layout 2 cột
+=========================== */
+.popup.vehicle-popup {
+  width: 700px;          /* rộng hơn popup avatar */
+  max-width: 95vw;       /* responsive màn hình nhỏ */
+  min-height: 400px;     /* chiều cao tối thiểu */
+  padding: 25px 30px;    /* khoảng cách chữ không sát viền */
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  text-align: left;
+  display: flex;          /* dùng flex cho layout 2 cột */
+  flex-direction: column; /* nếu muốn theo cột */
+  gap: 20px;
+}
+
+
+.vehicle-popup h3 {
+  font-size: 16px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.vehicle-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Container 2 cột */
+.vehicle-popup-body {
+  display: flex;
+  gap: 20px; /* khoảng cách giữa 2 cột */
+}
+
+/* Cột Xe đã chọn */
+.selected-vehicles.scrollable {
+  flex: 1;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  
+}
+.selected-vehicles.scrollable h3{
+  text-align: left;    /* canh chữ sang trái */
+  margin: 0 0 8px 0;   /* khoảng cách trên dưới nếu cần */
+       /* giữ size phù hợp */
+  color: #111; 
+}
+
+/* Cột Xe hỗ trợ */
+.available-vehicles.scrollable {
+  flex: 1;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f9fafb;
+}
+.available-vehicles.scrollable h3{
+  text-align: left;    /* canh chữ sang trái */
+  margin: 0 0 8px 0;   /* khoảng cách trên dưới nếu cần */
+       /* giữ size phù hợp */
+  color: #111; 
+}
+
+/* Item trong danh sách */
+.vehicle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-size: 14px;
+}
+
+.vehicle-item.selected {
+  background: #e0f2fe;
+  font-weight: 500;
+}
+
+.vehicle-item .link-btn {
+  font-size: 13px;
+  padding: 2px 6px;
+}
+
+/* Scroll bar đẹp */
+.selected-vehicles.scrollable::-webkit-scrollbar,
+.available-vehicles.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selected-vehicles.scrollable::-webkit-scrollbar-thumb,
+.available-vehicles.scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.5);
+  border-radius: 3px;
+}
+
+.selected-vehicles.scrollable::-webkit-scrollbar-track,
+.available-vehicles.scrollable::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+/* Popup buttons */
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}

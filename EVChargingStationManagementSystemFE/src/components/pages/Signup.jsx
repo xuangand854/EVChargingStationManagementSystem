@@ -52,7 +52,7 @@ const Signup = () => {
       setSubmitting(true);
       await registerApi(formValues.email, formValues.password, formValues.name, formValues.phone);
       setSuccess("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
-      setTimeout(() => navigate("/login"), 1200);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       const msg = typeof err === "string" ? err : (err?.message || "Đăng ký thất bại");
       setError(msg);

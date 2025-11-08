@@ -63,6 +63,7 @@ import StaffConnector from "./components/pages/staff/StaffConnector.jsx";
 import AdminStationMap from "./components/pages/admin/AdminMapStation.jsx"
 import AdminSession from "./components/pages/admin/AdminSession.jsx";
 import AdminMapStation from "./components/pages/admin/AdminMapStation.jsx";
+import RoutingMachine from "./components/ordercharging/RouteMachine.jsx"
 
 
 export default function App() {
@@ -100,6 +101,7 @@ export default function App() {
           <Route path="order-charging" element={<OrderChargingST />} />
           <Route path="charging-post" element={<ChargingPost />} />
           <Route path="admin-pannel" element={<AdminStationPanel />} />
+          <Route path="" element={<RoutingMachine />} />
           <Route path="" element={<Booking />} />
           {/* // */}
           {/* IOTChargingSystem */}

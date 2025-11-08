@@ -48,6 +48,12 @@ const Layout = () => {
                             <Link to="/order-charging">Đặt Trạm Sạc</Link>
                         </li>
                     </>
+                    {isAuthenticated && (
+                        <li>
+                            <Link to="/profile-page">Thông Tin Tài Khoản</Link>
+                        </li>
+                    )}
+
                     {!isAuthenticated && (
                         <li>
                             <Link to="/login">Login</Link>

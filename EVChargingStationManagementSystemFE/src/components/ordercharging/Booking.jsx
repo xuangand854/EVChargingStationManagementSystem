@@ -5,6 +5,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { addBooking ,MyBooking} from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
 import { getEVDriverProfile } from "../../API/EVDriver.js";
+import { jwtDecode } from "jwt-decode";
+
 import "react-toastify/dist/ReactToastify.css";
 import "./Booking.css";
 import Login from "../pages/Login.jsx";
@@ -17,6 +19,8 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [profile, setProfile] = useState(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [checkInCode,setcheckInCode]= useState(null);
+  const [isStationLocked, setIsStationLocked] = useState(false);
+  
   // const navigate = useNavigate();
   
 
@@ -27,7 +31,18 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     currentBattery: 0,
     targetBattery: 0,
   });
- 
+  // Khi stationId được truyền từ bên ngoài (ví dụ: click từ bản đồ)
+  useEffect(() => {
+    if (stationId) {
+      const selected = stations.find(st => st.id === stationId);
+      if (selected) {
+        setTermStation(selected.stationName);
+        setBookingData(prev => ({ ...prev, stationId }));
+        setIsStationLocked(true); 
+      }
+    }
+  }, [stationId, stations]);
+  
 
   // Lấy danh sách xe
   useEffect(() => {
@@ -60,10 +75,24 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
     };
     fetchProfile();
   }, []);
+  
+  let role = null;
+
+  const token = localStorage.getItem("token");
+  if (token) {
+  try {
+    const decoded = jwtDecode(token);
+    role = decoded.role;
+  } catch (err) {
+    console.error("Không thể giải mã token:", err);
+  }
+}
+console.log("Lấy Role:", role);
 
   //  Kiểm tra quyền role
-  const role = localStorage.getItem("user_role");
+
   if (role !== "EVDriver") {
+    console.log('Lấy Role',role);
     return (
       <div className="popup-overlay" onClick={onClose}>
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
@@ -71,11 +100,12 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
           <p>
           
           </p>
-          <button className="btn-book" onClick={onclick}><Login/></button>
+          <div className="btn-book"><Login /></div>
           <button className="cancel-btn" onClick={onClose}>Đóng</button>
         </div>
       </div>
     );
+    
   }
 
   // Kiểm tra profile hoàn chỉnh
@@ -143,6 +173,23 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
       toast.warning("⚠️ Vui lòng nhập đủ thông tin!");
       return;
     }
+    // //kiểm tra trạm active  
+    // const station = stations.find(st => st.id === bookingData.stationId);
+
+    //  if (!station || station.status !== "active") {
+    // toast.warning("Trạm này hiện không hoạt động!");
+    // return;
+    // }
+    // //kiểm tra trụ active 
+    // const activePile = station.piles?.some(p => p.status === "active"); // hoặc station.stations tùy data
+    // if (!activePile) {
+    //   toast.warning("Trạm này không còn trụ sạc nào hoạt động!");
+    //   return;
+    // }
+    if (!bookingData.stationId || !bookingData.vehicleId || !bookingData.startTime) {
+    toast.warning("⚠️ Vui lòng nhập đủ thông tin!");
+    return;
+    }
 
     const localTime = new Date(bookingData.startTime);
     const startTimeVN = new Date(localTime.getTime() - localTime.getTimezoneOffset() * 60000);
@@ -208,6 +255,7 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
               setTermStation(e.target.value);
               setShowDropdownStation(true);
             }}
+            disabled={isStationLocked}
             className="autocomplete-input"
           />
           {showDropdownStation && filteredStations.length > 0 && (

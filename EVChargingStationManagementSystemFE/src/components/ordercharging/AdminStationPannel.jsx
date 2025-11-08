@@ -53,9 +53,29 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
       console.error("Lỗi khi lấy danh sách nhân viên:", err);
       toast.error("Không thể tải danh sách nhân viên!");
     }
-  };
-  fetchStaff();
-}, []);
+    };
+    fetchStaff();
+  }, []);
+  useEffect(() => {
+    if (!editingStation) return;
+    if (staff.length === 0) return;
+
+    const found = staff.find((s) => s.id === editingStation.operatorId);
+    if (found) {
+      setSearchTermStaff(found.name);
+      setFormData((prev) => ({ ...prev, operatorId: found.id }));
+    } else {
+      setSearchTermStaff("");
+    }
+  }, [editingStation, staff]);
+
+  useEffect(() => {
+  if (selectedAction === "update" && editingStation && staff.length > 0) {
+    const found = staff.find((s) => s.id === editingStation.operatorId);
+    if (found) setSearchTermStaff(found.name);
+  }
+  }, [selectedAction]);
+
 
 
   useEffect(() => {
@@ -88,58 +108,84 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
 
   
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.operatorId || formData.operatorId.trim() === "") {
-      toast.error("Vui lòng chọn hoặc nhập mã nhân viên Operator ID!");
-      return;
-    }
-    try {
-      if (editingStation) {
-        await updateChargingStation(editingStation.id, formData);
-        toast.success("Cập nhật trạm thành công!");
-      } else {
-        await addChargingStation(
-          formData.stationName,
-          formData.location,
-          formData.province,
-          formData.latitude,
-          formData.longitude,
-          formData.operatorId
-        );
-        toast.success("Thêm trạm mới thành công!");
-      }
-      setEditingStation(null);
-      setFormData({
-        stationName: "",
-        location: "",
-        province: "",
-        latitude: "",
-        longitude: "",
-        operatorId: "",
-      });
-      loadStations();
-      onUpdated?.();
-      onReloadAdminPanel?.();
-    } catch (err) {
-      console.error("Error addChargingStation:", err);
+  e.preventDefault();
 
-      // Lấy thông điệp lỗi từ server (nếu có)
-      const message = err.response?.data?.message || err.message || "";
+  try {
+    if (editingStation) {
+      // --- Chỉ cập nhật thông tin trạm, không gửi operatorId ---
+      const updatedData = {
+        stationName: formData.stationName,
+        location: formData.location,
+        province: formData.province,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      };
 
-      // Kiểm tra lỗi 500 và nội dung
-      if (err.response?.status === 500) {
-        if (message.includes("FOREIGN KEY") || message.includes("operator")) {
-          toast.error("Operator ID không tồn tại trong hệ thống!");
-        } else {
-          toast.error("Máy chủ gặp lỗi khi lưu dữ liệu. Vui lòng kiểm tra lại thông tin!");
-        }
-      } else if (err.response?.status === 400) {
-        toast.error("Dữ liệu gửi lên không hợp lệ!");
-      } else {
-        toast.error("Không thể thêm trạm. Vui lòng thử lại sau!");
+      await updateChargingStation(editingStation.id, updatedData);
+      toast.success("Cập nhật trạm thành công!");
+    } else {
+      // --- Khi thêm mới thì gửi đầy đủ thông tin ---
+      if (!formData.operatorId || formData.operatorId.trim() === "") {
+        toast.error("Vui lòng chọn nhân viên Operator!");
+        return;
       }
+
+      await addChargingStation(
+        formData.stationName,
+        formData.location,
+        formData.province,
+        formData.latitude,
+        formData.longitude,
+        formData.operatorId
+      );
+
+      toast.success("Thêm trạm mới thành công!");
     }
-  };
+
+    // Reset form + reload danh sách
+    setEditingStation(null);
+    setFormData({
+      stationName: "",
+      location: "",
+      province: "",
+      latitude: "",
+      longitude: "",
+      operatorId: "",
+    });
+    loadStations();
+    onUpdated?.();
+    onReloadAdminPanel?.();
+  } catch (err) {
+    console.error("Error update/add station:", err);
+    const message = err.response?.data?.message || err.message || "";
+
+    if (message.includes("đã được phân công")) {
+      toast.error("Nhân viên này đã được phân công ở trạm khác!");
+    } else if (err.response?.status === 500) {
+      toast.error("Lỗi máy chủ, vui lòng thử lại!");
+    } else {
+      toast.error("Không thể lưu dữ liệu trạm!");
+    }
+  }
+};
+// 🔹 Reset form khi đổi thao tác (ví dụ: từ update sang add)
+useEffect(() => {
+  if (selectedAction === "add") {
+    setEditingStation(null);
+    setFormData({
+      stationName: "",
+      location: "",
+      province: "",
+      latitude: "",
+      longitude: "",
+      status: "",
+      operatorId: "",
+    });
+    setSearchTermStaff("");
+  }
+}, [selectedAction]);
+
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Xác nhận xóa trạm này?")) {
@@ -154,18 +200,22 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
       }
     }
   };
+  
+  
 
   const handleEditClick = (st) => {
     setEditingStation(st);
-    setFormData({
-      stationName: st.stationName,
-      location: st.location,
-      province: st.province,
-      latitude: st.latitude,
-      longitude: st.longitude,
-      operatorId: st.operatorId,
-    });
     setSelectedAction("update");
+
+    // Prefill form luôn
+    setFormData({
+      stationName: st.stationName || "",
+      location: st.location || "",
+      province: st.province || "",
+      latitude: st.latitude || "",
+      longitude: st.longitude || "",
+      operatorId: st.operatorId // backend trả về
+    });
   };
 
   const handleChangeStatus = async (st,status) => {
@@ -195,7 +245,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     <div className="post-popup-overlay">
       <div className="post-popup-box">
         <div className="post-popup-sidebar">
-          <button onClick={() => setSelectedAction("add")}>Thêm trạm</button>
+          {/* <button onClick={() => setSelectedAction("add")}>Thêm trạm</button> */}
           <button onClick={() => setSelectedAction("status")}>Trạng thái</button>
           <button onClick={() => setSelectedAction("update")}>Cập nhật</button>
           <button onClick={() => setSelectedAction("delete")}>Xóa</button>
@@ -206,7 +256,7 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
         <div className="post-popup-content">
           {!selectedAction && <p> Hãy chọn thao tác bên trái.</p>}
 
-          {(selectedAction === "add" || (selectedAction === "update" && editingStation)) && (
+          {(selectedAction === "add" ) && (
             <form onSubmit={handleSubmit} className="post-popup-form">
               <label>Tên trạm:<input type="text" value={formData.stationName} onChange={(e) => setFormData({ ...formData, stationName: e.target.value })} required /></label>
               <label>Địa chỉ:<input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required /></label>
@@ -259,6 +309,83 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
                 <button type="submit">{editingStation ? "Lưu cập nhật" : "Thêm trạm"}</button>
             </form>
           )}
+          {selectedAction === "update" && editingStation && (
+  <form onSubmit={handleSubmit} className="post-popup-form">
+    <label>
+      Tên trạm:
+      <input
+        type="text"
+        value={formData.stationName}
+        onChange={(e) =>
+          setFormData({ ...formData, stationName: e.target.value })
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Địa chỉ:
+      <input
+        type="text"
+        value={formData.location}
+        onChange={(e) =>
+          setFormData({ ...formData, location: e.target.value })
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Tỉnh/Thành:
+      <input
+        type="text"
+        value={formData.province}
+        onChange={(e) =>
+          setFormData({ ...formData, province: e.target.value })
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Latitude:
+      <input
+        type="text"
+        value={formData.latitude}
+        onChange={(e) =>
+          setFormData({ ...formData, latitude: e.target.value })
+        }
+        required
+      />
+    </label>
+
+    <label>
+      Longitude:
+      <input
+        type="text"
+        value={formData.longitude}
+        onChange={(e) =>
+          setFormData({ ...formData, longitude: e.target.value })
+        }
+        required
+      />
+    </label>
+
+    {/* <label>Nhân viên Operator hiện tại:</label>
+    <input
+      type="text"
+      value={
+        staff.find((s) => s.accountId === editingStation.operatorId)?.name ||
+        `Nhân Viên: ${editingStation.operatorId}`
+      }
+      readOnly
+    /> */}
+
+    <button type="submit">Lưu cập nhật</button>
+  </form>
+)}
+
+
 
           
 

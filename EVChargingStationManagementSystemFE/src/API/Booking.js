@@ -83,13 +83,13 @@ export const BookCancel = async (bookingId) => {
 };
 
 // Tự động hủy
-export const AutoCancel = async () => {
+export const AutoCancel = async (bookingId) => {
   try {
-    const response = await api.post(`${BASE_URL}/autocancel`);
-    console.log('AutoCancel', response.data);
+    const response = await api.patch(`${BASE_URL}/${bookingId}/cancel`);
+    console.log('CancelBooking', response.data);
     return response.data;
   } catch (error) {
-    console.error('ErrorAutoCancel', error);
+    console.error('ErrorCancelBooking', error);
     throw error;
   }
 };

@@ -185,7 +185,7 @@ const handleDelete = async (id) => {
       <div className="post-popup-box">
         {/* Sidebar */}
         <div className="post-popup-sidebar">
-          <button onClick={() => setMode("add")}>Thêm trụ</button>
+          {/* <button onClick={() => setMode("add")}>Thêm trụ</button> */}
           <button onClick={() => setMode("status")}>Trạng thái</button>
           <button onClick={() => setMode("edit")}>Cập nhật</button>
           <button onClick={() => setMode("delete")}>Xóa</button>

@@ -271,28 +271,10 @@
 }
 
 /* ====== Popup marker ====== */
-.leaflet-popup-station .leaflet-popup-content-wrapper {
-  padding: 0;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
 
-.popup-station {
-  width: 280px;
-  max-height: 350px;
-  overflow-y: auto;
-  font-family: 'Segoe UI', sans-serif;
-  color: #333;
-  text-align: left;
-}
 
-.popup-image {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
+
+
 
 .station-info {
   padding: 10px 12px;
@@ -311,31 +293,195 @@
   color: #555;
 }
 
+.distance {
+  color: black;
+  font-weight: 500;
+  margin-top: 3px;
+}
 
-.charging-posts {
+/* .charging-posts {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
+} */
 
-.charging-post-card {
+/* .charging-post-card {
   background: #f9fafb;
   border-radius: 8px;
   padding: 6px 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: 0.2s;
-}
+} */
 
-.charging-post-card:hover {
+/* .charging-post-card:hover {
   background: #eef6ff;
   border-left: 4px solid #007bff;
+} */
+/* --- Popup wrapper --- */
+.leaflet-popup-content-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  padding: 0 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  max-width: none !important;
+  width: 420px !important;
+
+  transform: translate(-300px, 160px); /* đẩy popup sang trái khớp icon */
+  border: none;
 }
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  
+}
+
+.leaflet-popup-tip-container {
+  display: none !important;
+}
+
+/* --- Nội dung popup --- */
+.popup-station {
+  font-family: "Poppins", sans-serif;
+  text-align: left;
+  padding: 18px 22px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px; /* to hơn chút */
+  line-height: 1.5;
+}
+
+.popup-station h3 {
+  margin: 6px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #222;
+}
+
+.popup-station h4 {
+  font-size: 15px;
+  margin: 8px 0 4px;
+  font-weight: 600;
+}
+
+.station-info p {
+  margin: 3px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+/* --- Ảnh trạm --- */
+.popup-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px 14px 0 0;
+  display: block;
+}
+h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* đẩy nút sang phải */
+  font-size: 16px;
+  margin: 8px 0;
+}
+/* --- Địa chỉ & nút chỉ đường nằm cùng hàng --- */
+button.btn-popup-map {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  transition: color 0.2s;
+}
+
+button.btn-popup-map:hover {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+
+/* --- Dấu chấm đầu dòng cho loại cổng sạc --- */
+ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 4px 0 8px;
+}
+
+ul li::before {
+  content: "• ";
+  color: #4caf50;
+  font-weight: bold;
+}
+
+/* --- Khung “Thông tin thêm” --- */
+.popup-extra {
+  background: #f8f8f8;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* --- Nút đặt lịch --- */
+.btn-popup-book {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: #007bff;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.btn-popup-book:hover {
+  background: #0056b3;
+}
+
+/* --- Trạng thái --- */
+.active {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.inactive {
+  color: #999;
+  font-weight: 600;
+}
+
+.busy {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.maintenance {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+
+
+
+
+
+
+
 
 .post-header {
   display: flex;
   flex-direction: column;
 }
+
+
 
 .post-name {
   font-weight: bold;
@@ -409,11 +555,7 @@
 
 
 /* ====== Thông tin trạm & trụ sạc ====== */
-.station-info {
-  background: #f9fafb;
-  padding: 15px;
-  border-radius: 12px;
-}
+
 
 .station-info h3 {
   margin-bottom: 5px;

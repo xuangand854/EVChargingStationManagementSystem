@@ -3,6 +3,7 @@ import "./OrderChargingST.css";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin,User} from "lucide-react";
 import { getAuthStatus } from "../../API/Auth";
 import {getAllStaff} from "../../API/Staff"
 import { ToastContainer, toast } from "react-toastify";
@@ -109,6 +110,10 @@ const OrderChargingST = () => {
         Math.sin(dLon / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
+  const formatDistance = (km) => {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toFixed(1)} km`;
+  };
 
   //Xác định danh sách trạm hiển thị
   let displayedStations = [...stations];
@@ -124,7 +129,7 @@ const OrderChargingST = () => {
           parseFloat(st.longitude)
         ),
       }))
-      .filter((st) => st.distance <= 5) // chỉ hiện trạm trong bán kính 5km
+      .filter((st) => st.distance <= 15) // chỉ hiện trạm trong bán kính 5km
       .sort((a, b) => a.distance - b.distance);
 
     if (displayedStations.length === 0) {
@@ -410,28 +415,46 @@ const OrderChargingST = () => {
           {filteredStations.map((st) => (
             <div
               key={st.id}
+              
               className={`station-item ${
                 selectedStation?.id === st.id ? "active" : ""
               }`}
               onClick={() => handleSelectStation(st)}
             >
+              
+              
               <h4 className="station-header">
                 {st.stationName}
+                
                 {st.status === "Inactive" && (
                   <span className="inactive"> Inactive</span>
                 )}
                 {st.status === "Active" && (
-                  <span className="active"> Active</span>
+                  <span className="active"> Đang Hoạt Động</span>
                 )}
                 {st.status === "Maintenance" && (
                   <span className="maintenance"> Maintained</span>
                 )}
               </h4>
+              {userLocation && (
+                  <span className="distance">
+                    {formatDistance(
+                      getDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        parseFloat(st.latitude),
+                        parseFloat(st.longitude)
+                      )
+                    )}
+                  </span>
+                )}
               <p>
                 {st.location}, {st.province}
               </p>
+              
 
-              {selectedStation?.id === st.id && (
+
+              {/* {selectedStation?.id === st.id && (
                 <div className="station-posts">
                   {stationPosts[st.id]?.length > 0 ? (
                     stationPosts[st.id].map((post, index) => (
@@ -439,21 +462,7 @@ const OrderChargingST = () => {
                         key={post.id}
                         className={`post-item status-${post.status}`}
                       >
-                        <h5> Nhân viên phụ trách:</h5>
-                        {st.operatorId ? (
-                          (() => {
-                            const matchedStaff = staffs.find(stf => stf.accountId === st.operatorId);
-                            return matchedStaff ? (
-                              <p>
-                                <b>{matchedStaff.name}</b> – {matchedStaff.phoneNumber || "Không có số điện thoại"}
-                              </p>
-                            ) : (
-                              <p>Không tìm thấy nhân viên với mã {st.operatorId}</p>
-                            );
-                          })()
-                        ) : (
-                          <p>Chưa có nhân viên</p>
-                        )}
+
                         <h5>Trụ {index + 1}</h5>
                         <p>
                           <b>Tên trụ:</b> {post.postName}
@@ -489,7 +498,7 @@ const OrderChargingST = () => {
                   )}
                 </div>
                 
-              )}
+              )} */}
               {/* {selectedStation?.id === st.id && (
                 <div className="station-staffs">
                   <h5> Nhân viên phụ trách:</h5>
@@ -555,62 +564,108 @@ const OrderChargingST = () => {
                       <h3>{station.stationName}</h3>
                       <p>
                         {station.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
-                        {station.status=== "Active"&& <span className="active"> Active</span>}
+                        {station.status=== "Active"&& <span className="active"> Đang Hoạt Động</span>}
                         {station.status=== "Busy"&& <span className="busy"> Busy</span>}
                         {station.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
                       </p>
+                     <h4> Địa chỉ 
+                      <button
+                          className="btn-popup-map"
+                          onClick={() => window.open(
+                            `https://www.google.com/maps?q=${station.latitude},${station.longitude}`,
+                            "_blank"
+                          )}
+                        >
+                            <MapPin size={10}/> Chỉ đường
+                        </button></h4>
                       <p className="station-address">
                         {station.location}, {station.province}
+                        
                       </p>
-                      {selectedStation?.id === station.id && (
-                        <div className="station-staffs">
-                          <h5> Nhân viên phụ trách:</h5>
-                          {station.operatorId ? (
-                            (() => {
-                              const matchedStaff = staffs.find(stf => stf.accountId === station.operatorId);
-                              return matchedStaff ? (
-                                <p>
-                                  <b>{matchedStaff.name}</b> – {matchedStaff.phoneNumber || "Không có số điện thoại"}
-                                </p>
-                              ) : (
-                                <p>Không tìm thấy nhân viên với mã {station.operatorId}</p>
-                              );
-                            })()
-                          ) : (
-                            <p>Chưa có nhân viên</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                      <h4>Loại Cổng Sạc</h4>
+                        {stationPosts[station.id]?.length > 0 ? (
+                          <ul>
+                            {Array.from(
+                              new Set(
+                                stationPosts[station.id].map(p => `${p.connectorType} – ${p.maxPowerKw} kW`)
+                              )
+                            ).map((info, i) => (
+                              <li key={i}>{info}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>Chưa có trụ sạc</p>
+                        )}
 
-                    <div className="charging-posts">
-                      {stationPosts[station.id]?.length > 0 ? (
-                        stationPosts[station.id].map((post, index) => (
-                          <div key={post.id} className={`charging-post-card status-${post.status}`}>
-                            <div className="post-header">
-                              <span className="post-name">Trụ {index + 1}: {post.postName}</span>
-                              <span className="post-type">{post.connectorType} | {post.vehicleTypeSupported}</span>
-                            </div>
-                            <div className="post-status">
-                              {post.status === "InActive" && <span className="inactive"> Inactive</span>}
-                              {post.status === "Available" && <span className="active"> Active</span>}
-                              {post.status === "Busy" && <span className="busy"> Busy</span>}
-                              {post.status === "Maintained" && <span className="maintained">Maintained</span>}
-                            </div>
+                      <h4>Trụ Sạc</h4>
+                        {stationPosts[station.id]?.length > 0 ? (
+                          <div>
+                            <ul>
+                              <li>
+                                Trụ Sạc Xe Hơi Đang Hoạt Động:{" "}
+                                {stationPosts[station.id].filter(
+                                  p =>
+                                    p.status?.toLowerCase() === "available" &&
+                                    p.vehicleTypeSupported?.toLowerCase().includes("car")
+                                ).length}
+                              </li>
+                              <li>
+                                Trụ Sạc Xe Máy Đang Hoạt Động:{" "}
+                                {stationPosts[station.id].filter(
+                                  p =>
+                                    p.status?.toLowerCase() === "available" &&
+                                    p.vehicleTypeSupported?.toLowerCase().includes("bike")
+                                ).length}
+                              </li>
+                            </ul>
                           </div>
-                        ))
-                      ) : (
-                        <p>Chưa có trụ sạc</p>
-                      )}
+                        ) : (
+                          <p>Chưa có trụ sạc</p>
+                        )}
+
+                        <h4>Loại Xe Hổ Trợ:{""}</h4>
+                          <div><ul>
+                            <li>
+                            {Array.from(
+                              new Set(stationPosts[station.id]?.map(p => p.vehicleTypeSupported))
+                            ).join(", ")}
+                            </li>
+                            </ul>
+                          </div>
+                         <h4>Thông tin thêm</h4>
+                          <ul className="popup-extra">
+                            <li>Thời gian hoạt động: <b>24/7</b></li>
+                            <li>Trạm sạc: <b>Công cộng</b></li>
+                            <li>Có thể mất phí gửi xe</li>
+                          </ul>
+                      
                     </div>
 
                     {(!user || user.role === "EVDriver")&& (
-                    <button
-                      className="btn-popup-book"
-                      onClick={() => setShowBookingPopup(true)}
-                    >
-                      Đặt lịch sạc
-                    </button>
+                 <button
+                    className="btn-popup-book"
+                    onClick={() => {
+                      // Kiểm tra trạm active
+                      if (!station || station.status !== "Active") {
+                        toast.warning("Trạm này hiện không hoạt động!");
+                        return;
+                      }
+
+                      // Kiểm tra trụ active
+                      const activePile = stationPosts[station.id]?.some(p => p.status === "Available");
+                      if (!activePile) {
+                        toast.warning("Trạm này không còn trụ sạc nào hoạt động!");
+                        return;
+                      }
+
+                      setSelectedStation(station);
+                      setShowBookingPopup(true);
+                    }}
+                  >
+                    Đặt lịch sạc
+                  </button>
+
+
                     )}
                   </div>
                 </Popup>

@@ -1,41 +1,96 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin,User} from "lucide-react";
-import { getAuthStatus } from "../../API/Auth";
+import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin, User } from "lucide-react";
+import { getEVDriverProfile } from "../../API/EVDriver";
+import { MyBooking } from "../../API/Booking"; // API lấy lịch sử đặt trạm
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [accountStatus, setAccountStatus] = useState("Đang tải...");
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [totalBookingCount, setTotalBookingCount] = useState(0);
+  const [linkedVehicles, setLinkedVehicles] = useState(0);
 
+  // trong useEffect
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchProfile = async () => {
       try {
-        const authStatus = await getAuthStatus();
-        if (authStatus.isAuthenticated && authStatus.user) {
-          setUser({ 
-            name: authStatus.user.name || "Người dùng",
-            role: authStatus.user.role 
+        const profileRes = await getEVDriverProfile();
+        if (profileRes?.data) {
+          const data = profileRes.data;
+          setUser({
+            name: data.name || "Người dùng",
+            role: "EVDriver",
           });
-        } else setUser({ name: "Khách", role: null });
-      } catch {
+
+          setAccountStatus(
+            data.status === "Active" ? "Đã kích hoạt" :
+            data.status === "Inactive" ? "Chưa kích hoạt" :
+            "Không xác định"
+          );
+
+          // Số xe liên kết
+          setLinkedVehicles(data.vehicleModelIds?.length || 0);
+        } else {
+          setUser({ name: "Khách", role: null });
+          setAccountStatus("Chưa kích hoạt");
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy profile EVDriver:", err);
         setUser({ name: "Khách", role: null });
+        setAccountStatus("Không xác định");
+        setLinkedVehicles(0);
       }
     };
-    fetchUser();
-  }, []);
 
+  const fetchRecentOrders = async () => {
+      try {
+        const res = await MyBooking();
+        if (res?.data) {
+          const filtered = res.data
+            .filter(o => o.status !== "Cancelled")
+            .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+          setRecentOrders(filtered.slice(0, 3)); // 3 gần nhất
+
+          // Tổng số lần đặt (bỏ hủy)
+          setTotalBookingCount(filtered.length);
+        } else {
+          setRecentOrders([]);
+          setTotalBookingCount(0);
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy đơn hàng:", err);
+        setRecentOrders([]);
+        setTotalBookingCount(0);
+      }
+    };
+
+    fetchProfile();
+    fetchRecentOrders();
+  }, []);
 
   const quickActions = [
     { title: "Tìm trạm sạc", icon: <MapPin size={20} />, path: "/order-charging" },
     { title: "Lịch sử sạc", icon: <Calendar size={20} />, path: "/orders" },
-    { title: "Thanh toán", icon: <Wallet size={20} />, path: "/Payment" },
     { title: "Tài khoản", icon: <User size={20} />, path: "/profile" },
-    { title: "Liên kết xe", icon: <Car size={20} />, path: "/car" },
     { title: "Gói dịch vụ", icon: <BarChart2 size={20} />, path: "#" },
     { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/report-page" },
-    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page " },
+    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page" },
   ];
+
+  const formatDateTime = (isoString) => {
+    if (!isoString) return "-";
+    const date = new Date(isoString);
+    return date.toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="profile-page">
@@ -46,9 +101,11 @@ const ProfilePage = () => {
           <p>Chào mừng bạn đến với hệ thống quản lý trạm sạc pin xe điện</p>
         </div>
         <div className="status">
-            Tài khoản: <span className="status-badge active">Đã kích hoạt</span>
-            </div>
-
+          Tài khoản:{" "}
+          <span className={`status-badge ${accountStatus === "Đã kích hoạt" ? "Active" : "Inactive"}`}>
+            {accountStatus}
+          </span>
+        </div>
       </div>
 
       {/* Thao tác nhanh */}
@@ -56,48 +113,55 @@ const ProfilePage = () => {
         <div className="quick-actions">
           <h2>Thao tác nhanh</h2>
           <div className="actions-grid">
-            {quickActions.map((a, i) => {
-              // Ẩn "/profile" và "/Payment" nếu là admin/staff
-              if ((a.path === "/profile" || a.path === "/Payment" || a.path === "/orders"||a.path==="/car") && (user.role === "Admin" || user.role === "Staff")) {
-                return null;
-              }
-              return (
-                <div key={i} className="action-box" onClick={() => navigate(a.path)}>
-                  <div className="icon">{a.icon}</div>
-                  <p>{a.title}</p>
-                </div>
-              );
-            })}
+            {quickActions.map((a, i) => (
+              <div key={i} className="action-box" onClick={() => navigate(a.path)}>
+                <div className="icon">{a.icon}</div>
+                <p>{a.title}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Giao dịch & Trạng thái */}
+      {/* Giao dịch gần đây */}
       <div className="bottom-section">
-        <div className="recent-transactions">
-          <h3>Giao dịch gần đây</h3>
-          <div className="transaction-item">
-            <p>Đặc sạc tại Trạm Q1 <span className="positive">+1 lần</span></p>
-            <small>Hôm nay, 14:30</small>
-          </div>
-          <div className="transaction-item">
-            <p>Mua gói Premium <span className="price">500,000đ</span></p>
-            <small>Hôm qua, 09:15</small>
-          </div>
-          <button onClick={() => navigate("/orders")}>Xem tất cả giao dịch →</button>
-        </div>
-
-        <div className="account-status">
-          <h3>Trạng thái tài khoản</h3>
-          <p>Gói hiện tại: <strong>Premium</strong></p>
-          <p>Số lần đặc còn lại: <span className="green">15 lần</span></p>
-          <p>Phương tiện đã liên kết: 0 xe</p>
-          <p>Đánh giá trung bình: <span className="star">★ 4.8/5</span></p>
-          <button className="manage-btn" onClick={() => navigate("/Payment")}>
-            Quản lý gói dịch vụ
-          </button>
-        </div>
+      <div className="recent-transactions">
+        <h3>Hoạt Động Gần Đây</h3>
+        {recentOrders.length === 0 ? (
+          <p>Chưa có hoạt động nào cả.</p>
+        ) : (
+          (() => {
+            // Sort giảm dần theo startTime nếu chưa sort
+            const sortedOrders = [...recentOrders].sort(
+              (a, b) => new Date(b.startTime) - new Date(a.startTime)
+            );
+            const latestOrder = sortedOrders[0]; // chỉ lấy booking mới nhất
+            return (
+              <div className="transaction-item" key={latestOrder.id}>
+                <p>
+                  Đặc sạc tại {latestOrder.stationName} <span className="positive"></span>
+                </p>
+                <p><small>Mã CheckIn Của Bạn: {latestOrder.checkInCode}</small></p>
+                <small>Thời gian bắt đầu: {formatDateTime(latestOrder.startTime)}</small>
+              </div>
+            );
+          })()
+        )}
+        <button onClick={() => navigate("/orders")}>Xem tất cả giao dịch →</button>
       </div>
+
+
+      {/* Trạng thái tài khoản & thông tin */}
+      <div className="account-status">
+        <h3>Trạng thái tài khoản</h3>
+        <p>Số lần đặt : <span className="green">{totalBookingCount} lần</span></p>
+        <p>Phương tiện đã liên kết: {linkedVehicles} xe</p>
+        <p>Đánh giá trung bình: <span className="star">★ 4.8/5</span></p>
+        <button className="manage-btn" onClick={() => navigate("/Payment")}>
+          Quản lý gói dịch vụ
+        </button>
+      </div>
+    </div>
 
       {/* Hỗ trợ */}
       <div className="support-section">

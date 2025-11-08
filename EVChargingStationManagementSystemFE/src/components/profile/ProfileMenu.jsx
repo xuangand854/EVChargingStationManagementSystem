@@ -3,21 +3,31 @@ import { useNavigate } from "react-router-dom";
 import "./ProfileMenu.css";
 import { logout } from "../../API/Auth";
 import { getEVDriverProfile } from "../../API/EVDriver";
+import {jwtDecode} from "jwt-decode";
 
 const ProfileMenu = () => {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState("");
   const [driverProfile, setDriverProfile] = useState(null);
+
   const navigate = useNavigate();
   const menuRef = useRef();
 
-  //  Lấy role từ localStorage sau khi login
+  // Lấy role từ token khi component mount
   useEffect(() => {
-    const storedRole = localStorage.getItem("user_role") || "";
-    setRole(storedRole);
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setRole(decoded.role || "");
+      } catch (err) {
+        console.error("Không thể giải mã token:", err);
+        setRole("");
+      }
+    }
   }, []);
 
-  //  Nếu là EVDriver → gọi API để lấy avatar thực
+  // Nếu là EVDriver → gọi API lấy avatar
   useEffect(() => {
     if (role === "EVDriver") {
       (async () => {
@@ -26,20 +36,19 @@ const ProfileMenu = () => {
           const driver = res?.data?.data || res?.data;
           if (driver) setDriverProfile(driver);
         } catch (err) {
-          console.error(" Lỗi tải EVDriver profile:", err);
+          console.error("Lỗi tải EVDriver profile:", err);
         }
       })();
     }
   }, [role]);
 
-  //  Ảnh đại diện: EVDriver dùng ảnh API, còn lại ảnh mặc định
+  // Ảnh đại diện
   const avatarSrc =
     role === "EVDriver"
-      ? driverProfile?.profilePictureUrl ||
-        "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+      ? driverProfile?.profilePictureUrl || "https://cdn-icons-png.flaticon.com/512/847/847969.png"
       : "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
-  //  Đóng menu khi click ra ngoài
+  // Đóng menu khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -49,7 +58,7 @@ const ProfileMenu = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  // hàm hướng trang 
+
   const handleNavigate = (path) => {
     navigate(path);
     setOpen(false);
@@ -67,16 +76,18 @@ const ProfileMenu = () => {
             Thông tin tài khoản
           </button>
 
-          {/*  Chỉ EVDriver mới thấy */}
-          {role === "EVDriver" && (<button onClick={() => handleNavigate("/profile")}>Thông tin cá nhân</button>)}
+          {role === "EVDriver" && (
+            <button onClick={() => handleNavigate("/profile")}>Thông tin cá nhân</button>
+          )}
+
           <button onClick={() => handleNavigate("/order-charging")}>Đặt chỗ sạc</button>
-          {/* {role === "EVDriver" && ( */}
-            <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
-            {/* )} */}
-          <button onClick={() => handleNavigate("/Payment")}>Thanh Toán</button>
+          <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
+          {/* <button onClick={() => handleNavigate("/Payment")}>Thanh Toán</button> */}
           <button onClick={() => handleNavigate("/station-list")}>Mô Phỏng Sạc</button>
-          {/* <button onClick={() => handleNavigate("/car")}>Xe của tôi</button> */}
-          <button className="logout-btn" onClick={() => {logout();setOpen(false);}}>Đăng xuất</button>
+          
+          <button className="logout-btn" onClick={() => { logout(); setOpen(false); }}>
+            Đăng xuất
+          </button>
         </div>
       )}
     </div>

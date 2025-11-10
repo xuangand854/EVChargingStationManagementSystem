@@ -178,7 +178,7 @@ namespace APIs.Configs
                 .Ignore(dest => dest.ResolvedAt)
                 .Ignore(dest => dest.ReportedBy)
                 .Ignore(dest => dest.ChargingStation)
-                .Ignore(dest => dest.ChargingPostNavigation)
+                .Ignore(dest => dest.ChargingPost)
                 .IgnoreNullValues(true);
 
             // Update
@@ -187,7 +187,7 @@ namespace APIs.Configs
                 .Ignore(dest => dest.CreatedAt)
                 .Ignore(dest => dest.ReportedBy)
                 .Ignore(dest => dest.ChargingStation)
-                .Ignore(dest => dest.ChargingPostNavigation)
+                .Ignore(dest => dest.ChargingPost)
                 .Ignore(dest => dest.IsDeleted)
                 .IgnoreNullValues(true);
 
@@ -195,11 +195,15 @@ namespace APIs.Configs
             TypeAdapterConfig<Report, ViewReportDTO>.NewConfig()
                 .Map(dest => dest.ReportedByName, src => src.ReportedBy != null ? src.ReportedBy.Name : null)
                 .Map(dest => dest.StationName, src => src.ChargingStation != null ? src.ChargingStation.StationName : null)
-                .Map(dest => dest.PostName, src => src.ChargingPostNavigation != null ? src.ChargingPostNavigation.PostName : null)
+                .Map(dest => dest.PostName, src => src.ChargingPost != null ? src.ChargingPost.PostName : null)
                 .IgnoreNullValues(true);
 
             TypeAdapterConfig<ChargingStation, ChargingStationsViewDetailDto>.NewConfig()
                 .Map(dest => dest.OperatorName, src => src.OperatorNavigation != null ? src.OperatorNavigation.Name : "");
+
+            TypeAdapterConfig<ChargingStation, ChargingStationViewGeneralDto>.NewConfig()
+                .Map(dest => dest.OperatorName, src => src.OperatorNavigation != null ? src.OperatorNavigation.Name : "")
+                .Map(dest => dest.OperatorPhone, src => src.OperatorNavigation != null ? src.OperatorNavigation.PhoneNumber : "");
 
             return services;
         }

@@ -23,20 +23,21 @@ namespace BusinessLogic.Services
 
             try
             {
-                var chargingStation = await _unitOfWork.ChargingStationRepository.GetAllAsync(
-                    predicate: v => !v.IsDeleted,
-                    orderBy: q => q.OrderByDescending(v => v.CreatedAt)
-                    );
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted)
+                    .Include( c => c.OperatorNavigation)
+                    .OrderByDescending( c => c.CreatedAt)
+                    .ProjectToType<ChargingStationViewGeneralDto>()
+                    .ToListAsync();
+
                 if (chargingStation == null || chargingStation.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy trạm sạc nào");
 
                 else
-                {
-                    var response = chargingStation.Adapt<List<ChargingStationViewGeneralDto>>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingStation);
             }
             catch (Exception ex)
             {

@@ -30,6 +30,6 @@ namespace Infrastructure.Models
 
         [ForeignKey("ChargingPost")]
         public Guid? PostId { get; set; } // ID of the related charging post (if applicable)
-        public ChargingPost ChargingPostNavigation { get; set; }
+        public ChargingPost ChargingPost { get; set; }
     }
 }

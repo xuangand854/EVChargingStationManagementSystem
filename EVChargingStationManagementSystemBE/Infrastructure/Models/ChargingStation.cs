@@ -39,6 +39,7 @@ namespace Infrastructure.Models
         public ICollection<Booking> Bookings { get; set; } = [];
 
         public ICollection<UserVoucher> UserVouchers { get; set; } = [];
+        public ICollection<Report> Reports { get; set; } = [];
 
     }
 }

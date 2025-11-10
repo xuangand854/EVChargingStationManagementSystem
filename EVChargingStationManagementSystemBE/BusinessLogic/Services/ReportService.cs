@@ -27,7 +27,7 @@ namespace BusinessLogic.Services
                     include: q => q
                         .Include(r => r.ReportedBy)
                         .Include(r => r.ChargingStation)
-                        .Include(r => r.ChargingPostNavigation),
+                        .Include(r => r.ChargingPost),
                     orderBy: q => q.OrderByDescending(r => r.CreatedAt),
                     asNoTracking: true
                 );
@@ -56,7 +56,7 @@ namespace BusinessLogic.Services
                     include: q => q
                         .Include(r => r.ReportedBy)
                         .Include(r => r.ChargingStation)
-                        .Include(r => r.ChargingPostNavigation),
+                        .Include(r => r.ChargingPost),
                     asNoTracking: true
                 );
 
@@ -73,7 +73,7 @@ namespace BusinessLogic.Services
         }
 
         // TẠO MỚI REPORT 
-        public async Task<ServiceResult> CreateAsync(ReportCreateDTO dto)
+        public async Task<ServiceResult> CreateAsync(ReportCreateDTO dto, Guid userId)
         {
             try
             {
@@ -82,10 +82,10 @@ namespace BusinessLogic.Services
 
                 // Gán thêm các giá trị hệ thống
                 report.Id = Guid.NewGuid();
-                report.CreatedAt = DateTime.UtcNow;
-                report.UpdatedAt = DateTime.UtcNow;
+                report.CreatedAt = DateTime.Now;
+                report.UpdatedAt = DateTime.Now;
                 report.Status = "Open";       // Mặc định khi tạo là "Open"
-                report.IsDeleted = false;
+                report.ReportedById = userId; // Gán người báo cáo từ userId truyền vào
 
                 await _unitOfWork.ReportRepository.CreateAsync(report);
                 await _unitOfWork.SaveChangesAsync();

@@ -16,8 +16,8 @@ namespace Common.DTOs.ReportDto
 
         public string? Description { get; set; } //  nên cho nullable để tránh lỗi khi không nhập
 
-        [Required]
-        public Guid ReportedById { get; set; } // ID người báo cáo
+        //[Required]
+        //public Guid ReportedById { get; set; } // ID người báo cáo
 
         public Guid? StationId { get; set; } // Liên kết với trạm sạc
         public Guid? PostId { get; set; } // Liên kết với cột sạc

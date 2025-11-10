@@ -25,6 +25,7 @@ namespace Infrastructure.Models
 
         public ICollection<ChargingSession> ChargingSessions { get; set; } = [];
         public ICollection<Connector> Connectors { get; set; } = [];
+        public ICollection<Report> Reports { get; set; } = [];
         //public ICollection<PowerOutputKWPerPost> PowerOutputKWPerPosts { get; set; } = [];
     }
 }

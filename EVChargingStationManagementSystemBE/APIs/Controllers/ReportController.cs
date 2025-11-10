@@ -1,6 +1,7 @@
 ﻿using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ReportDto;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -54,13 +55,23 @@ namespace APIs.Controllers
         //  TẠO BÁO CÁO MỚI 
         // POST: api/report (EVDriver)
         [HttpPost]
-        [Authorize(Roles = "EVDriver")]
+        [Authorize(Roles = "Staff, Admin")]
         public async Task<IActionResult> CreateReport([FromBody] ReportCreateDTO dto)
         {
+            Guid userId;
+            try
+            {
+                userId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _reportService.CreateAsync(dto);
+            var result = await _reportService.CreateAsync(dto, userId);
 
             if (result.Status == Const.SUCCESS_CREATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

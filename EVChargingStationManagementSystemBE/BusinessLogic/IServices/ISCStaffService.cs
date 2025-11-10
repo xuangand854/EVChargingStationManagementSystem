@@ -13,7 +13,7 @@ namespace BusinessLogic.IServices
         //  Admin tạo tài khoản + hồ sơ Staff mới
         Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto);
 
-     
+        Task<IServiceResult> GetByAccountId(Guid accountId);
 
         //  Admin cập nhật thông tin hồ sơ Staff
         Task<IServiceResult> UpdateProfileByAdmin(StaffUpdateAdminDto dto);

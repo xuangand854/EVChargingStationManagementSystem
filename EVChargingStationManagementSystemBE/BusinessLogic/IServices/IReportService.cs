@@ -11,5 +11,6 @@ namespace BusinessLogic.IServices
         Task<ServiceResult> CreateAsync(ReportCreateDTO dto, Guid userId);
         Task<ServiceResult> UpdateAsync(Guid id, ReportUpdateDTO dto);
         Task<ServiceResult> DeleteAsync(Guid id);
+        Task<ServiceResult> CreateByEVDriverAsync(ReportCreateByUserDto dto,Guid userId);
     }
 }

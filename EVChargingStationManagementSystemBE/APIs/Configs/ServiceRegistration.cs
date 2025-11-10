@@ -180,6 +180,19 @@ namespace APIs.Configs
                 .Ignore(dest => dest.ChargingStation)
                 .Ignore(dest => dest.ChargingPost)
                 .IgnoreNullValues(true);
+            // Create by EV Driver
+            TypeAdapterConfig<ReportCreateByUserDto, Report>.NewConfig()
+              .Ignore(dest => dest.Id)
+                .Map(dest => dest.CreatedAt, _ => DateTime.UtcNow)
+                .Map(dest => dest.UpdatedAt, _ => DateTime.UtcNow)
+                .Map(dest => dest.Status, _ => "Open")
+                .Map(dest => dest.IsDeleted, _ => false)
+                .Ignore(dest => dest.ResolvedAt)
+                .Ignore(dest => dest.ReportedBy)
+                .Ignore(dest => dest.ChargingStation)
+                .Ignore(dest => dest.ChargingPost)
+                .IgnoreNullValues(true);
+
 
             // Update
             TypeAdapterConfig<ReportUpdateDTO, Report>.NewConfig()

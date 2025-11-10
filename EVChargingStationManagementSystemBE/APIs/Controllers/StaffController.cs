@@ -1,6 +1,7 @@
 ﻿using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.ProfileStaffDto;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -164,5 +165,28 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+        [HttpGet("profile")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            Guid accountId;
+
+            try
+            {
+                accountId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+
+            var result = await _service.GetByAccountId(accountId);
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return Ok(new { data = result.Data, message = result.Message });
+        }
+
     }
 }

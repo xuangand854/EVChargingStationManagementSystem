@@ -43,7 +43,6 @@ const AdminVehicles = () => {
 
                         // Nếu chưa có status thì gọi API để lấy
                         const statusRes = await VehicleStatus(m.vehicleModelId ?? m.id);
-                        // console.log(`Status for ${m.vehicleModelId ?? m.id}:`, statusRes);
                         return {
                             ...m,
                             status: statusRes?.status ?? statusRes?.data?.status ?? 2 // mặc định Inactive
@@ -55,7 +54,6 @@ const AdminVehicles = () => {
                 })
             );
 
-            // console.log("Models with status:", modelsWithStatus);
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
         } catch (error) {
@@ -495,13 +493,13 @@ const AdminVehicles = () => {
                         <Input type="number" />
                     </Form.Item>
 
-                    <Form.Item name="status" label="Tình trạng xe" rules={[{ required: true }]}>
+                    {/* <Form.Item name="status" label="Tình trạng xe" rules={[{ required: true }]}>
                         <Select>
                             <Select.Option value="Active">Active</Select.Option>
                             <Select.Option value="Discontinued">Discontinued</Select.Option>
                             <Select.Option value="Unknown">Unknown</Select.Option>
                         </Select>
-                    </Form.Item>
+                    </Form.Item> */}
 
                     <Form.Item name="imageUrl" label="Hình ảnh (URL)">
                         <Input placeholder="https://..." />

@@ -16,7 +16,8 @@ import {
     Clock,
     Zap,
     DollarSign,
-    Gauge
+    Gauge,
+    Banknote
 } from "lucide-react";
 
 const Session = () => {
@@ -445,7 +446,7 @@ const Session = () => {
                                         value={chargingData.cost}
                                         precision={0}
                                         suffix="VNĐ"
-                                        prefix={<DollarSign className="text-green-500" size={16} />}
+                                        prefix={<Banknote className="text-green-500" size={16} />}
                                         formatter={(value) => `${Number(value).toLocaleString()}`}
                                     />
                                 </Col>

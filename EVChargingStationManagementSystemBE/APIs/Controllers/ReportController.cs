@@ -104,6 +104,35 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+        [HttpPost("evdriver/report")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> CreateReportByEVDriver([FromBody] ReportCreateByUserDto dto)
+        {
+            Guid userId;
+            try
+            {
+                userId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _reportService.CreateByEVDriverAsync(dto, userId); // ✅ Use the correct method
+
+            if (result.Status == Const.SUCCESS_CREATE_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.FAIL_CREATE_CODE)
+                return Conflict(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+
 
         // XÓA (SOFT DELETE) BÁO CÁO 
         // DELETE: api/report/{id} (Admin)

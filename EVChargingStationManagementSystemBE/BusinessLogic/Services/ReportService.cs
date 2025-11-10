@@ -6,6 +6,7 @@ using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -114,7 +115,7 @@ namespace BusinessLogic.Services
 
                 // Map giá trị mới từ DTO sang entity hiện tại (chỉ map field khác null)
                 dto.Adapt(report);
-                report.UpdatedAt = DateTime.UtcNow;
+                report.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
@@ -128,6 +129,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         // XÓA MỀM REPORT 
         public async Task<ServiceResult> DeleteAsync(Guid id)
@@ -145,7 +147,7 @@ namespace BusinessLogic.Services
                 // Đánh dấu là đã xóa và đóng report
                 report.IsDeleted = true;
                 report.Status = "Closed";
-                report.UpdatedAt = DateTime.UtcNow;
+                report.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
@@ -158,5 +160,35 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+        public async Task<ServiceResult> CreateByEVDriverAsync(ReportCreateByUserDto dto, Guid userId)
+        {
+            try
+            {
+                // Map từ DTO sang entity (theo cấu hình Mapster)
+                var report = dto.Adapt<Report>();
+
+                // Gán thêm các giá trị hệ thống
+                report.Id = Guid.NewGuid();
+                report.CreatedAt = DateTime.Now;
+                report.UpdatedAt = DateTime.Now;
+                report.Status = "Open";
+                report.IsDeleted = false;
+
+                // Gán userId từ token vào ReportedById
+                report.ReportedById = userId;
+
+                await _unitOfWork.ReportRepository.CreateAsync(report);
+                await _unitOfWork.SaveChangesAsync();
+
+                var response = report.Adapt<ViewReportDTO>();
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE, Const.SUCCESS_CREATE_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
     }
-}
+    }
+
+      

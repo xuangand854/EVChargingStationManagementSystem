@@ -259,5 +259,27 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+             public async Task<IServiceResult> GetByAccountId(Guid accountId)
+        {
+            try
+            {
+                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
+                    predicate: s => s.AccountId == accountId && !s.IsDeleted,
+                    include: q => q.Include(x => x.UserAccountNavigation),
+                    asNoTracking: true
+                );
+
+                if (staff == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE,
+                        "Không tìm thấy hồ sơ nhân viên tương ứng với tài khoản này.");
+
+                var response = staff.Adapt<StaffViewDto>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
     }
 }

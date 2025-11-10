@@ -327,7 +327,7 @@
   max-width: none !important;
   width: 420px !important;
 
-  transform: translate(-300px, 160px); /* đẩy popup sang trái khớp icon */
+  transform: translate(-300px, 300px); /* đẩy popup sang trái khớp icon */
   border: none;
 }
 

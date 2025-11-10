@@ -6,22 +6,19 @@ import {
   deleteChargingStation,
   updateChargingStationStatus,
 } from "../../API/Station";
-import {getMyAccountStaff} from "../../API/Staff"
+import { getMyAccountStaff } from "../../API/Staff";
 import { toast } from "react-toastify";
-import "./ChargingPost.css"; 
-import onReloadAdminPanel from "./OrderChargingST";
+import "./ChargingPost.css";
 
-const AdminStationPanel = ({ onClose, onUpdated }) => {
+const AdminStationPanel = ({ onClose, onUpdated, onReloadAdminPannel }) => {
   const [stations, setStations] = useState([]);
-  const [selectedAction, setSelectedAction] = useState("");
+  const [selectedAction, setSelectedAction] = useState(""); // "add" | "update" | "delete" | "status"
   const [editingStation, setEditingStation] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [staff,setstaff] = useState([]);
-  const [searchTermStaff,setSearchTermStaff] = useState ();
+  const [staff, setStaff] = useState([]);
+  const [searchTermStaff, setSearchTermStaff] = useState("");
   const [showDropdownStaff, setShowDropdownStaff] = useState(false);
 
-
-  
   const [formData, setFormData] = useState({
     stationName: "",
     location: "",
@@ -32,34 +29,38 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     operatorId: "",
   });
 
+  // Load stations
   const loadStations = async () => {
     try {
       const res = await getChargingStation();
-      setStations(res.data || []);
+      const data = Array.isArray(res) ? res : res.data || [];
+      setStations(data);
     } catch (err) {
       console.error("Lỗi load trạm:", err);
+      toast.error("Không thể tải danh sách trạm!");
     }
   };
-  useEffect(() => {
-  const fetchStaff = async () => {
+
+  // Load staff
+  const loadStaff = async () => {
     try {
       const res = await getMyAccountStaff();
-      const allStaff = res.data || [];
-
-      // Chỉ lấy những nhân viên Active
-      const activeStaff = allStaff.filter((s) => s.status === "Active");
-      setstaff(activeStaff);
+      const activeStaff = (res.data || []).filter((s) => s.status === "Active");
+      setStaff(activeStaff);
     } catch (err) {
-      console.error("Lỗi khi lấy danh sách nhân viên:", err);
+      console.error("Lỗi load staff:", err);
       toast.error("Không thể tải danh sách nhân viên!");
     }
-    };
-    fetchStaff();
-  }, []);
-  useEffect(() => {
-    if (!editingStation) return;
-    if (staff.length === 0) return;
+  };
 
+  useEffect(() => {
+    loadStations();
+    loadStaff();
+  }, []);
+
+  // Prefill operator khi edit
+  useEffect(() => {
+    if (!editingStation || staff.length === 0) return;
     const found = staff.find((s) => s.id === editingStation.operatorId);
     if (found) {
       setSearchTermStaff(found.name);
@@ -69,23 +70,28 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
     }
   }, [editingStation, staff]);
 
+  // Reset form khi đổi action
   useEffect(() => {
-  if (selectedAction === "update" && editingStation && staff.length > 0) {
-    const found = staff.find((s) => s.id === editingStation.operatorId);
-    if (found) setSearchTermStaff(found.name);
-  }
+    if (selectedAction === "add") {
+      setEditingStation(null);
+      setFormData({
+        stationName: "",
+        location: "",
+        province: "",
+        latitude: "",
+        longitude: "",
+        status: "",
+        operatorId: "",
+      });
+      setSearchTermStaff("");
+    }
   }, [selectedAction]);
 
-
-
-  useEffect(() => {
-    loadStations();
-  }, []);
-
+  // Normalize for search
   const normalize = (str = "") =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const escapeRegex = (s) => {
-  if (typeof s !== "string") return "";
+    if (typeof s !== "string") return "";
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   };
 
@@ -97,22 +103,15 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
           normalize(st.province).includes(normalize(searchTerm))
       )
     : stations;
+
   const filteredStaff = searchTermStaff
-    ? staff.filter(
-        (s) =>
-          normalize(s.name).includes(normalize(searchTerm)) 
-          
-      )
+    ? staff.filter((s) => normalize(s.name).includes(normalize(searchTermStaff)))
     : staff;
-  
 
-  
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
-
   try {
     if (editingStation) {
-      // --- Chỉ cập nhật thông tin trạm, không gửi operatorId ---
       const updatedData = {
         stationName: formData.stationName,
         location: formData.location,
@@ -120,16 +119,13 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
         latitude: formData.latitude,
         longitude: formData.longitude,
       };
-
       await updateChargingStation(editingStation.id, updatedData);
       toast.success("Cập nhật trạm thành công!");
     } else {
-      // --- Khi thêm mới thì gửi đầy đủ thông tin ---
-      if (!formData.operatorId || formData.operatorId.trim() === "") {
+      if (!formData.operatorId) {
         toast.error("Vui lòng chọn nhân viên Operator!");
         return;
       }
-
       await addChargingStation(
         formData.stationName,
         formData.location,
@@ -138,344 +134,188 @@ const AdminStationPanel = ({ onClose, onUpdated }) => {
         formData.longitude,
         formData.operatorId
       );
-
       toast.success("Thêm trạm mới thành công!");
     }
 
-    // Reset form + reload danh sách
-    setEditingStation(null);
-    setFormData({
-      stationName: "",
-      location: "",
-      province: "",
-      latitude: "",
-      longitude: "",
-      operatorId: "",
-    });
-    loadStations();
-    onUpdated?.();
-    onReloadAdminPanel?.();
-  } catch (err) {
-    console.error("Error update/add station:", err);
-    const message = err.response?.data?.message || err.message || "";
+    // Reload danh sách trạm sau submit
+    await loadStations();
 
-    if (message.includes("đã được phân công")) {
-      toast.error("Nhân viên này đã được phân công ở trạm khác!");
-    } else if (err.response?.status === 500) {
-      toast.error("Lỗi máy chủ, vui lòng thử lại!");
-    } else {
-      toast.error("Không thể lưu dữ liệu trạm!");
+    // Reset form chỉ khi thêm mới, không reset khi edit
+    if (!editingStation) {
+      setFormData({
+        stationName: "",
+        location: "",
+        province: "",
+        latitude: "",
+        longitude: "",
+        status: "",
+        operatorId: "",
+      });
+      setSearchTermStaff("");
     }
+
+    // Nếu muốn đóng form sau submit
+    // setSelectedAction("");
+    onUpdated?.();
+    onReloadAdminPannel?.();
+  } catch (err) {
+    console.error(err);
+    const msg = err.response?.data?.message || err.message;
+    toast.error(
+      msg.includes("đã được phân công")
+        ? "Nhân viên đã được phân công ở trạm khác!"
+        : "Lỗi lưu dữ liệu trạm!"
+    );
   }
 };
-// 🔹 Reset form khi đổi thao tác (ví dụ: từ update sang add)
-useEffect(() => {
-  if (selectedAction === "add") {
-    setEditingStation(null);
-    setFormData({
-      stationName: "",
-      location: "",
-      province: "",
-      latitude: "",
-      longitude: "",
-      status: "",
-      operatorId: "",
-    });
-    setSearchTermStaff("");
-  }
-}, [selectedAction]);
 
-
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Xác nhận xóa trạm này?")) {
-      try {
-        await deleteChargingStation(id);
-        toast.success("Xóa trạm thành công!");
-        loadStations();
-        onUpdated?.();
-        onReloadAdminPanel?.();
-      } catch (err) {
-        console.error("Lỗi xóa:", err);
-      }
-    }
-  };
-  
-  
 
   const handleEditClick = (st) => {
     setEditingStation(st);
     setSelectedAction("update");
-
-    // Prefill form luôn
     setFormData({
       stationName: st.stationName || "",
       location: st.location || "",
       province: st.province || "",
       latitude: st.latitude || "",
       longitude: st.longitude || "",
-      operatorId: st.operatorId // backend trả về
+      operatorId: st.operatorId,
     });
   };
 
-  const handleChangeStatus = async (st,status) => {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Xác nhận xóa trạm này?")) return;
+    try {
+      await deleteChargingStation(id);
+      toast.success("Xóa trạm thành công!");
+      await loadStations();
+      onUpdated?.();
+      onReloadAdminPannel?.();
+    } catch (err) {
+      console.error(err);
+      toast.error("Xóa trạm thất bại!");
+    }
+  };
+
+  const handleChangeStatus = async (st, status) => {
     try {
       await updateChargingStationStatus(st.id, status);
-      toast.success(" Cập nhật trạng thái thành công!");
-      loadStations();
+      toast.success("Cập nhật trạng thái thành công!");
+      await loadStations();
       onUpdated?.();
-      onReloadAdminPanel?.();
+      onReloadAdminPannel?.();
     } catch (err) {
-         console.error("Lỗi submit:", err);
-        // Nếu BE có phản hồi lỗi rõ ràng
-        const beMessage =
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          err.message ||
-          "Đã xảy ra lỗi không xác định!";
-
-        toast.error(beMessage);
-      
-    
-      
+      console.error(err);
+      toast.error("Lỗi cập nhật trạng thái trạm!");
     }
   };
 
   return (
     <div className="post-popup-overlay">
       <div className="post-popup-box">
+        {/* Sidebar */}
         <div className="post-popup-sidebar">
-          {/* <button onClick={() => setSelectedAction("add")}>Thêm trạm</button> */}
           <button onClick={() => setSelectedAction("status")}>Trạng thái</button>
           <button onClick={() => setSelectedAction("update")}>Cập nhật</button>
           <button onClick={() => setSelectedAction("delete")}>Xóa</button>
-          
-          <button className="close-btn" onClick={onClose}>Đóng</button>
+          <button onClick={onClose} className="close-btn">Đóng</button>
         </div>
 
+        {/* Content */}
         <div className="post-popup-content">
-          {!selectedAction && <p> Hãy chọn thao tác bên trái.</p>}
+          <h3>Quản lý trạm sạc</h3>
 
-          {(selectedAction === "add" ) && (
+          {/* Form thêm/cập nhật */}
+          {(selectedAction === "add" || (selectedAction === "update" && editingStation)) && (
             <form onSubmit={handleSubmit} className="post-popup-form">
-              <label>Tên trạm:<input type="text" value={formData.stationName} onChange={(e) => setFormData({ ...formData, stationName: e.target.value })} required /></label>
-              <label>Địa chỉ:<input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required /></label>
-              <label>Tỉnh/Thành:<input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} required /></label>
-              <label>Latitude:<input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} required /></label>
-              <label>Longitude:<input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} required /></label>
-              <label>Chọn nhân viên Operator:</label>
-              <div className="autocomplete-container">
-                <input
-                  type="text"
-                  placeholder="Nhập tên nhân viên"
-                  value={searchTermStaff || ""}
-                  onFocus={() => setShowDropdownStaff(true)}
-                  onChange={(e) => {
-                    setSearchTermStaff(e.target.value);
-                    setShowDropdownStaff(true);
-                  }}
-                  className="autocomplete-input"
-                />
+              <label>
+                Tên trạm:
+                <input type="text" value={formData.stationName} onChange={(e) => setFormData({ ...formData, stationName: e.target.value })} required />
+              </label>
+              <label>
+                Địa chỉ:
+                <input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required />
+              </label>
+              <label>
+                Tỉnh/Thành:
+                <input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} required />
+              </label>
+              <label>
+                Latitude:
+                <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} required />
+              </label>
+              <label>
+                Longitude:
+                <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} required />
+              </label>
 
-                {showDropdownStaff && filteredStaff.length > 0 && (
-                  <div className="autocomplete-list">
-                    {filteredStaff.map((s) => {
-                      const regex = new RegExp(`(${escapeRegex(searchTermStaff)})`, "i");
-                      const parts = s.name.split(regex);
-                      return (
-                        <div
-                          key={s.id}
-                          className="autocomplete-item"
-                          onClick={() => {
-                            setSearchTermStaff(s.name);
-                            setFormData({ ...formData, operatorId: s.id });
-                            setShowDropdownStaff(false);
-                          }}
-                        >
-                          {parts.map((part, i) =>
-                            regex.test(part) ? (
-                              <span key={i} className="highlight">{part}</span>
-                            ) : (
-                              part
-                            )
-                          )}{" "}
-                          ({s.status})
-                        </div>
-                      );
-                    })}
+              {!editingStation && (
+                <>
+                  <label>Chọn nhân viên Operator:</label>
+                  <div className="autocomplete-container">
+                    <input
+                      type="text"
+                      placeholder="Nhập tên nhân viên"
+                      value={searchTermStaff}
+                      onFocus={() => setShowDropdownStaff(true)}
+                      onChange={(e) => {
+                        setSearchTermStaff(e.target.value);
+                        setShowDropdownStaff(true);
+                      }}
+                      className="autocomplete-input"
+                    />
+                    {showDropdownStaff && filteredStaff.length > 0 && (
+                      <div className="autocomplete-list">
+                        {filteredStaff.map((s) => {
+                          const regex = new RegExp(`(${escapeRegex(searchTermStaff)})`, "i");
+                          const parts = s.name.split(regex);
+                          return (
+                            <div key={s.id} className="autocomplete-item" onClick={() => { setSearchTermStaff(s.name); setFormData({ ...formData, operatorId: s.id }); setShowDropdownStaff(false); }}>
+                              {parts.map((part, i) => regex.test(part) ? <span key={i} className="highlight">{part}</span> : part)} ({s.status})
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-                <button type="submit">{editingStation ? "Lưu cập nhật" : "Thêm trạm"}</button>
+                </>
+              )}
+
+              <button type="submit">{editingStation ? "Lưu cập nhật" : "Thêm trạm"}</button>
             </form>
           )}
-          {selectedAction === "update" && editingStation && (
-  <form onSubmit={handleSubmit} className="post-popup-form">
-    <label>
-      Tên trạm:
-      <input
-        type="text"
-        value={formData.stationName}
-        onChange={(e) =>
-          setFormData({ ...formData, stationName: e.target.value })
-        }
-        required
-      />
-    </label>
 
-    <label>
-      Địa chỉ:
-      <input
-        type="text"
-        value={formData.location}
-        onChange={(e) =>
-          setFormData({ ...formData, location: e.target.value })
-        }
-        required
-      />
-    </label>
-
-    <label>
-      Tỉnh/Thành:
-      <input
-        type="text"
-        value={formData.province}
-        onChange={(e) =>
-          setFormData({ ...formData, province: e.target.value })
-        }
-        required
-      />
-    </label>
-
-    <label>
-      Latitude:
-      <input
-        type="text"
-        value={formData.latitude}
-        onChange={(e) =>
-          setFormData({ ...formData, latitude: e.target.value })
-        }
-        required
-      />
-    </label>
-
-    <label>
-      Longitude:
-      <input
-        type="text"
-        value={formData.longitude}
-        onChange={(e) =>
-          setFormData({ ...formData, longitude: e.target.value })
-        }
-        required
-      />
-    </label>
-
-    {/* <label>Nhân viên Operator hiện tại:</label>
-    <input
-      type="text"
-      value={
-        staff.find((s) => s.accountId === editingStation.operatorId)?.name ||
-        `Nhân Viên: ${editingStation.operatorId}`
-      }
-      readOnly
-    /> */}
-
-    <button type="submit">Lưu cập nhật</button>
-  </form>
-)}
-
-
-
-          
-
-          {selectedAction === "update" && (
-            <div className="post-popup-list">
-              <h4>Danh sách trạm</h4>
-
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  
-                }}
-                className="search-input"
-              />
-
-              <div className="dropdown-list">
-                {filteredStations.map((st) => (
-                  <div key={st.id} className="post-popup-item">
-                    <span>{st.stationName} ({st.location})</span>
-                    <button onClick={() => handleEditClick(st)}> Sửa</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-
-          {selectedAction === "delete" && (
-            <div className="post-popup-list">
-              <h4>Danh sách trạm</h4>
-
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  
-                }}
-                className="search-input"
-              />
-
-              <div className="dropdown-list">
-                {filteredStations.map((st) => (
-                  <div key={st.id} className="post-popup-item">
-                    <span>{st.stationName} ({st.location})</span>
-                    <button onClick={() => handleDelete(st.id)}> Xóa</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-
-          {selectedAction === "status" && (
-            <div className="post-popup-list">
-              <h4>Trạng thái trạm</h4>
-
-              <input
-                type="text"
-                placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  
-                }}
-                className="search-input"
-              />
-
-              <div className="dropdown-list">
-                {filteredStations.map((st) => (
-                  <div key={st.id} className="post-popup-item">
-                    <span>{st.stationName}</span>
-                    <select
-                      onChange={(e) => handleChangeStatus(st, e.target.value)}
-                      defaultValue={st.status || "Inactive"}
-                    >
+          {/* Danh sách trạm luôn hiển thị */}
+          <div className="post-popup-list">
+            <h4>Danh sách trạm</h4>
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên, địa chỉ, tỉnh..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            {filteredStations.length === 0 ? (
+              <p>Không có trạm nào.</p>
+            ) : (
+              filteredStations.map((st) => (
+                <div key={st.id} className="post-popup-item">
+                  <span>
+                    {st.stationName} - {st.location}, {st.province} | Trạng thái: {st.status || "Chưa xác định"}
+                  </span>
+                  {selectedAction === "update" && <button onClick={() => handleEditClick(st)}>Sửa</button>}
+                  {selectedAction === "delete" && <button onClick={() => handleDelete(st.id)}>Xóa</button>}
+                  {selectedAction === "status" && (
+                    <select defaultValue={st.status || "Inactive"} onChange={(e) => handleChangeStatus(st, e.target.value)}>
                       <option value="Inactive">Inactive</option>
                       <option value="Active">Active</option>
                       <option value="Maintenance">Maintenance</option>
                     </select>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

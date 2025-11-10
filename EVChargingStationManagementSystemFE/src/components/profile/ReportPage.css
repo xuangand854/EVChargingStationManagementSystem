@@ -151,3 +151,35 @@
   color: white;
   box-shadow: 0 6px 12px rgba(0, 176, 155, 0.3);
 }
+.dropdown-list {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  list-style: none;
+  margin-top: 4px;
+  padding: 0;
+}
+
+.dropdown-list li {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-list li:hover {
+  background: #f0f0f0;
+}
+
+.no-result {
+  padding: 8px 12px;
+  color: #888;
+  font-style: italic;
+}
+

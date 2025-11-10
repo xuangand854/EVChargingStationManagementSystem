@@ -14,10 +14,11 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
-  width: 90%;
-  max-width: 900px;
-  min-height: 500px;
+  width: 95%;
+  max-width: 900px; /* rộng hơn trước */
+  height: 50vh; /* cao gần full màn hình */
   overflow: hidden;
+  flex-direction: row;
 }
 
 /* ====== Sidebar ====== */
@@ -29,6 +30,7 @@
   gap: 14px;
   padding: 20px;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+  overflow-y: auto; /* scroll nếu sidebar dài */
 }
 
 .post-popup-sidebar button {
@@ -51,6 +53,7 @@
 .post-popup-sidebar .close-btn {
   background-color: #dc3545;
 }
+
 .post-popup-sidebar .close-btn:hover {
   background-color: #b52a37;
 }
@@ -60,13 +63,8 @@
   flex: 1;
   padding: 25px 30px;
   background: #fff;
-  overflow-y: auto;
-}
-
-.post-popup-content h4 {
-  color: #2c3e50;
-  font-size: 20px;
-  margin-bottom: 10px;
+  overflow-y: auto; /* scroll khi nội dung dài */
+  max-height: 100vh; /* giới hạn chiều cao */
 }
 
 /* ====== Form ====== */
@@ -82,7 +80,8 @@
   color: #333;
 }
 
-.post-popup-form input {
+.post-popup-form input,
+.post-popup-form select {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #ccc;
@@ -110,10 +109,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 30px;
+  max-height: 700px; /* giới hạn danh sách */
+  overflow-y: auto;  /* scroll khi danh sách dài */
 }
 
-
+/* ====== Item ====== */
 .post-popup-item {
   display: flex;
   justify-content: space-between;
@@ -160,6 +161,8 @@
     gap: 10px;
   }
 }
+
+/* ====== Dropdown trạm ====== */
 .station-search-box {
   position: relative;
   width: 100%;
@@ -179,7 +182,7 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   width: 100%;
-  max-height: 200px;
+  max-height: 200px; /* giới hạn dropdown */
   overflow-y: auto;
   z-index: 10;
   margin-top: 2px;
@@ -199,4 +202,3 @@
   padding: 8px 10px;
   color: #888;
 }
-

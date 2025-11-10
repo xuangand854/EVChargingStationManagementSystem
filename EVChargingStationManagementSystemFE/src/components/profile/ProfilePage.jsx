@@ -74,7 +74,7 @@ const ProfilePage = () => {
   const quickActions = [
     { title: "Tìm trạm sạc", icon: <MapPin size={20} />, path: "/order-charging" },
     { title: "Lịch sử sạc", icon: <Calendar size={20} />, path: "/orders" },
-    { title: "Tài khoản", icon: <User size={20} />, path: "/profile" },
+     { title: "Tài khoản", icon: <User size={20} />, path: "/profile", rolesAllowed: ["EVDriver", "user"] }, // chỉ user/EVDriver
     { title: "Gói dịch vụ", icon: <BarChart2 size={20} />, path: "#" },
     { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/report-page" },
     { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page" },
@@ -113,12 +113,14 @@ const ProfilePage = () => {
         <div className="quick-actions">
           <h2>Thao tác nhanh</h2>
           <div className="actions-grid">
-            {quickActions.map((a, i) => (
-              <div key={i} className="action-box" onClick={() => navigate(a.path)}>
-                <div className="icon">{a.icon}</div>
-                <p>{a.title}</p>
-              </div>
-            ))}
+            {quickActions
+              .filter(a => !a.rolesAllowed || a.rolesAllowed.includes(user?.role))
+              .map((a, i) => (
+                <div key={i} className="action-box" onClick={() => navigate(a.path)}>
+                  <div className="icon">{a.icon}</div>
+                  <p>{a.title}</p>
+                </div>
+              ))}
           </div>
         </div>
       )}

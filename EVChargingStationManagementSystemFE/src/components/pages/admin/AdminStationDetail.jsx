@@ -73,7 +73,7 @@ const AdminStationDetail = () => {
     const handleChangeStationStatus = async (status) => {
         try {
             await updateChargingStationStatus(stationId, status);
-            message.success("✅ Cập nhật trạng thái trạm thành công!");
+            message.success(" Cập nhật trạng thái trạm thành công!");
             fetchStationAndPosts();
         } catch (error) {
             console.error("updateStationStatus error:", error);

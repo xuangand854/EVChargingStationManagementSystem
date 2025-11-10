@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin,User} from "lucide-react";
 import { getAuthStatus } from "../../API/Auth";
-import {getAllStaff} from "../../API/Staff"
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BookingPopup from "../ordercharging/Booking";
@@ -59,7 +58,6 @@ const OrderChargingST = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [filterMode, setFilterMode] = useState("all");
   const [stationPosts, setStationPosts] = useState({});
-  const [staffs, setStaffs] = useState([]);
   const [showUserLocation, setShowUserLocation] = useState(false);
   
  
@@ -306,17 +304,7 @@ const OrderChargingST = () => {
   }, []);
 
   //lấy danh sách nhân viên
-  useEffect(() => {
-  const fetchStaffs = async () => {
-    try {
-      const res = await getAllStaff();
-      setStaffs(res.data || []);
-    } catch (err) {
-      console.error("Lỗi khi lấy danh sách nhân viên:", err);
-    }
-  };
-  fetchStaffs();
-}, []);
+
 
 
   //  Lọc tên theo từ khóa
@@ -590,7 +578,7 @@ const OrderChargingST = () => {
                                 stationPosts[station.id].map(p => `${p.connectorType} – ${p.maxPowerKw} kW`)
                               )
                             ).map((info, i) => (
-                              <li key={i}>{info}</li>
+                              <liv key={i}>{info}</liv>
                             ))}
                           </ul>
                         ) : (
@@ -601,22 +589,22 @@ const OrderChargingST = () => {
                         {stationPosts[station.id]?.length > 0 ? (
                           <div>
                             <ul>
-                              <li>
+                              <liv>
                                 Trụ Sạc Xe Hơi Đang Hoạt Động:{" "}
                                 {stationPosts[station.id].filter(
                                   p =>
                                     p.status?.toLowerCase() === "available" &&
                                     p.vehicleTypeSupported?.toLowerCase().includes("car")
                                 ).length}
-                              </li>
-                              <li>
+                              </liv>
+                              <liv>
                                 Trụ Sạc Xe Máy Đang Hoạt Động:{" "}
                                 {stationPosts[station.id].filter(
                                   p =>
                                     p.status?.toLowerCase() === "available" &&
                                     p.vehicleTypeSupported?.toLowerCase().includes("bike")
                                 ).length}
-                              </li>
+                              </liv>
                             </ul>
                           </div>
                         ) : (
@@ -625,18 +613,18 @@ const OrderChargingST = () => {
 
                         <h4>Loại Xe Hổ Trợ:{""}</h4>
                           <div><ul>
-                            <li>
+                            <liv>
                             {Array.from(
                               new Set(stationPosts[station.id]?.map(p => p.vehicleTypeSupported))
                             ).join(", ")}
-                            </li>
+                            </liv>
                             </ul>
                           </div>
                          <h4>Thông tin thêm</h4>
                           <ul className="popup-extra">
-                            <li>Thời gian hoạt động: <b>24/7</b></li>
-                            <li>Trạm sạc: <b>Công cộng</b></li>
-                            <li>Có thể mất phí gửi xe</li>
+                            <liv>Thời gian hoạt động: <b>24/7</b></liv>
+                            <liv>Trạm sạc: <b>Công cộng</b></liv>
+                            <liv>Có thể mất phí gửi xe</liv>
                           </ul>
                       
                     </div>

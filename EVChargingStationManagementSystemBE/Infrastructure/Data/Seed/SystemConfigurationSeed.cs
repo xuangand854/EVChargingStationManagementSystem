@@ -72,7 +72,21 @@ namespace Infrastructure.Data.Seed
                     CreatedBy = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                     UpdatedBy = Guid.Parse("11111111-1111-1111-1111-111111111111")
                 },
+                 new(){
+                 Id = 6,
+                    Name = "CONNECTOR_LIMIT",
+                    MinValue = 2,
+                    Description = "Giới hạn tổng lượng cổng trên 1  trụ ",
+                    VersionNo = 1,
+                    EffectedDateFrom = new DateTime(2025, 1, 1),
+                    Unit = "port",
+                    CreatedAt = new DateTime(2024, 11, 6),
+                    UpdatedAt = new DateTime(2024, 11, 6),
+                    CreatedBy = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    UpdatedBy = Guid.Parse("11111111-1111-1111-1111-111111111111")
+                }
             ];
+
         }
     }
 }

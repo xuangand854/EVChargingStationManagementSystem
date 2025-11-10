@@ -10,7 +10,7 @@ namespace Infrastructure.Data.Seed
             new UserAccount
             {
                 Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Name = "System Admin",
+                Name = "Tran Thanh Tung ",
                 Email = "admin@gmail.com",
                 UserName = "admin@gmail.com",
                 NormalizedEmail = "ADMIN@GMAIL.COM",
@@ -34,7 +34,7 @@ namespace Infrastructure.Data.Seed
             new UserAccount
             {
                 Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                Name = "Station Staff",
+                Name = "Nguyen Le Phuc Du",
                 Email = "staff1@gmail.com",
                 UserName = "staff1@gmail.com",
                 NormalizedEmail = "STAFF1@GMAIL.COM",
@@ -44,7 +44,7 @@ namespace Infrastructure.Data.Seed
                 ConcurrencyStamp = "c7e31c5c-f68e-4364-912e-f0e443f8243d",
                 PhoneNumber = "0999999999",
                 LockoutEnabled = false,
-                Status = "Active",
+                Status = "Assigned",
                 RegistrationDate = new DateTime(2025, 1, 1),
                 CreatedAt = new DateTime(2025, 1, 1),
                 UpdatedAt = new DateTime(2025, 1, 1),
@@ -58,7 +58,7 @@ namespace Infrastructure.Data.Seed
             new UserAccount
             {
                 Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-                Name = "Station Staff",
+                Name = "Dao Duy Le",
                 Email = "staff2@gmail.com",
                 UserName = "staff2@gmail.com",
                 NormalizedEmail = "STAFF2@GMAIL.COM",
@@ -82,7 +82,7 @@ namespace Infrastructure.Data.Seed
             new UserAccount
             {
                 Id = Guid.Parse("77777777-7777-7777-7777-777777777777"),
-                Name = "Station Operator 2",
+                Name = "Tran Minh Tu",
                 Email = "operator2@gmail.com",
                 UserName = "operator2@gmail.com",
                 NormalizedEmail = "OPERATOR2@GMAIL.COM",
@@ -92,7 +92,7 @@ namespace Infrastructure.Data.Seed
                 ConcurrencyStamp = "f1e2d3c4-b5a6-7890-cdef-0987654321ab",
                 PhoneNumber = "0888888888",
                 LockoutEnabled = false,
-                Status = "Active",
+                Status = "Assigned",
                 RegistrationDate = new DateTime(2025, 1, 1),
                 CreatedAt = new DateTime(2025, 1, 1),
                 UpdatedAt = new DateTime(2025, 1, 1),
@@ -106,7 +106,7 @@ namespace Infrastructure.Data.Seed
             new UserAccount
             {
                 Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                Name = "EV Driver",
+                Name = "Pham Le Xuan Bac",
                 Email = "evdriver@gmail.com",
                 UserName = "evdriver@gmail.com",
                 NormalizedEmail = "EVDRIVER@GMAIL.COM",

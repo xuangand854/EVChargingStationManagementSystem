@@ -66,3 +66,16 @@ export const getMyAccountStaff = async () => {
         throw error
     }
 }
+// Lấy thông tin nhân viên theo staffId
+export const getMyAccountStaffById = async (id) => {
+  try {
+    if (!id) throw new Error("Staff ID is required");
+
+    const response = await api.get(`${BASE_URL}/${id}`);
+    return response.data; // backend có thể trả về { data: {...} } hoặc trực tiếp
+  } catch (error) {
+    console.error(`Lỗi khi lấy thông tin staff ${id}:`, error);
+    throw error;
+  }
+};
+

@@ -48,6 +48,8 @@ import Fail from "./PaymentStatus/Fail.jsx";
 import Error from "./PaymentStatus/Error.jsx";
 import Invalid from "./PaymentStatus/Invalid.jsx";
 import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
+import BookingOrder from "./components/ordercharging/BookingOrder.jsx"
+import StaffBookingOrder from "./components/pages/staff/StaffBookingOrder.jsx";
 
 
 
@@ -103,6 +105,7 @@ export default function App() {
           <Route path="admin-pannel" element={<AdminStationPanel />} />
           <Route path="" element={<RoutingMachine />} />
           <Route path="" element={<Booking />} />
+          <Route path="booking-order" element={<BookingOrder/>} />
           {/* // */}
           {/* IOTChargingSystem */}
           <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
@@ -162,7 +165,7 @@ export default function App() {
           <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
           <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
           <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
-
+          <Route path="/staff/booking-order" element={<StaffBookingOrder/>} />
         </Route>
 
       </Routes>

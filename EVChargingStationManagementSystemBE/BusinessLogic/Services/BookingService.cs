@@ -116,14 +116,13 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> CheckInBooking(BookingCheckInDto request, Guid userId)
+        public async Task<IServiceResult> CheckInBooking(BookingCheckInDto request)
         {
             try
             {
                 //  1. Tìm booking theo mã CheckInCode + userId
                    var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
                     b => b.CheckInCode == request.CheckInCode &&
-                   b.BookedBy == userId &&
                     !b.IsDeleted,
                    include: b => b.Include(x => x.ConnectorNavigation),
                    asNoTracking: false 

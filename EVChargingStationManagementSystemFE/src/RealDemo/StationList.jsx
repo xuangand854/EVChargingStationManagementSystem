@@ -53,14 +53,6 @@ const StationList = () => {
                         const stationKey = station.id;
                         return (
                             <Col key={stationKey} xs={24} sm={12} md={8} lg={6}>
-                                {/* <LiquidGlass
-                                    displacementScale={64}
-                                    blurAmount={0.1}
-                                    saturation={130}
-                                    aberrationIntensity={2}
-                                    elasticity={0.35}
-                                    cornerRadius={100}
-                                    padding="8px 16px"> */}
                                 <Card
                                     hoverable
                                     title={station.stationName || "Trạm không tên"}
@@ -72,7 +64,6 @@ const StationList = () => {
                                     <p><strong>Tỉnh/TP:</strong> {station.province || "Chưa có"}</p>
                                     <p><strong>Trạng thái:</strong> {station.status || "Chưa có"}</p>
                                 </Card>
-                                {/* </LiquidGlass> */}
                             </Col>
                         );
                     })}

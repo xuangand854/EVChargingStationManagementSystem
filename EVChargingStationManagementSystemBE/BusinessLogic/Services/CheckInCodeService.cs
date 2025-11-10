@@ -23,7 +23,7 @@ namespace BusinessLogic.Services
                 code = _random.Next(1000, 10000).ToString();
 
                 exists = (await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => b.CheckInCode == code && !b.IsDeleted
+                    b => b.CheckInCode == code
                 )).Any();
 
             } while (exists);

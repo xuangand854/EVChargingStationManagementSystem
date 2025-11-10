@@ -9,7 +9,6 @@ namespace APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _service;
@@ -76,14 +75,12 @@ namespace APIs.Controllers
 
         // 4️ Check-in booking (EVDriver nhập mã check-in)
         [HttpPatch("checkin")]
-        [Authorize(Roles = "EVDriver")]
+
         public async Task<IActionResult> CheckInBooking([FromBody] BookingCheckInDto dto)
         {
-            Guid userId;
-            try { userId = User.GetUserId(); }
-            catch { return Unauthorized(new { message = "Không xác định được userId từ token." }); }
+           
 
-            var result = await _service.CheckInBooking(dto, userId);
+            var result = await _service.CheckInBooking(dto);
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

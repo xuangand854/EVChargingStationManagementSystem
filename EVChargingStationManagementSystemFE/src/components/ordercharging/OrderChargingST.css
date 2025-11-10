@@ -415,7 +415,7 @@ ul {
   margin: 4px 0 8px;
 }
 
-ul li::before {
+ul liv::before {
   content: "• ";
   color: #4caf50;
   font-weight: bold;

@@ -97,11 +97,8 @@ console.log("Lấy Role:", role);
       <div className="popup-overlay" onClick={onClose}>
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
           <h3> Xin hãy đăng nhập để có thể sử dụng dịch vụ.</h3>
-          <p>
+          <div className="btn-buttonlogin"><Login /></div>
           
-          </p>
-          <div className="btn-book"><Login /></div>
-          <button className="cancel-btn" onClick={onClose}>Đóng</button>
         </div>
       </div>
     );

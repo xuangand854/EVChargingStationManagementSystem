@@ -21,5 +21,8 @@ namespace Infrastructure.IUnitOfWork
         INotificationRecipientRepository NotificationRecipientRepository { get; }
         INotificationRepository NotificationRepository { get; }
         IUserVehicleRepository UserVehicleRepository { get; }
-    }
+        IFeedBackRepository FeedBackRepository { get; }
+        IUserVoucherRepository UserVoucherRepository { get; }
+            IVoucherRepository VoucherRepository { get; }
+        }
 }

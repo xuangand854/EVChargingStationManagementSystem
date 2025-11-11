@@ -25,6 +25,9 @@ namespace Infrastructure.IUnitOfWork
         private INotificationRecipientRepository? notificationRecipientRepository;
         private INotificationRepository? notificationRepository;
         private IUserVehicleRepository? userVehicleRepository;
+        private IFeedBackRepository? feedBackRepository;
+        private IUserVoucherRepository? userVoucherRepository;
+        private IVoucherRepository? voucherRepository;
         public UnitOfWork()
             => context ??= new EVCSMSContext();
 
@@ -78,6 +81,13 @@ namespace Infrastructure.IUnitOfWork
             get
             {
                 return chargingStationRepository ??= new ChargingStationRepository(context);
+            }
+        }
+        public IFeedBackRepository FeedBackRepository
+        {
+            get
+            {
+                return feedBackRepository ??= new FeedBackRepository(context);
             }
         }
 
@@ -170,8 +180,22 @@ namespace Infrastructure.IUnitOfWork
                 return userVehicleRepository ??= new UserVehicleRepository(context);
             }
         }
+        public IUserVoucherRepository UserVoucherRepository
+        {
+            get
+            {
+                return userVoucherRepository ??= new UserVoucherRepository(context);
+            }
+        }
+        public IVoucherRepository VoucherRepository
+        {
+            get
+            {
+                return voucherRepository ??= new VoucherRepository(context);
+            }
+        }
     }
-}
+    }
 
 
 

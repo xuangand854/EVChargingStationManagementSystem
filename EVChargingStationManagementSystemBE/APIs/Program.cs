@@ -9,6 +9,7 @@ using Infrastructure.Models;
 using System.Text;
 using BusinessLogic.IServices;
 using BusinessLogic.Services;
+using BusinessLogic.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,11 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<INotificationRecipientService, NotificationRecipientService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICheckInCodeService, CheckInCodeService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddHostedService<VoucherExpiryJob>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddHostedService<BookingBackgroundJob>();
+
 
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(options =>

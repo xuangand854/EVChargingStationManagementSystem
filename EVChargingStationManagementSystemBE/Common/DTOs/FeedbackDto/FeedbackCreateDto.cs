@@ -5,8 +5,6 @@ namespace Common.DTOs.FeedbackDto
 {
     public class FeedbackCreateDto
     {
-        [Required(ErrorMessage = "AccountId không được để trống")]
-        public Guid AccountId { get; set; }
 
         [Required(ErrorMessage = "Subject không được để trống")]
         [StringLength(200, ErrorMessage = "Subject tối đa 200 ký tự")]

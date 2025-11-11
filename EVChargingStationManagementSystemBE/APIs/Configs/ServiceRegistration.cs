@@ -4,6 +4,7 @@ using Common.DTOs.ChargingPostDto;
 using Common.DTOs.ChargingSessionDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ConnectorDto;
+using Common.DTOs.FeedbackDto;
 using Common.DTOs.ProfileEVDriverDto;
 using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.ReportDto;
@@ -217,6 +218,31 @@ namespace APIs.Configs
             TypeAdapterConfig<ChargingStation, ChargingStationViewGeneralDto>.NewConfig()
                 .Map(dest => dest.OperatorName, src => src.OperatorNavigation != null ? src.OperatorNavigation.Name : "")
                 .Map(dest => dest.OperatorPhone, src => src.OperatorNavigation != null ? src.OperatorNavigation.PhoneNumber : "");
+            //  Mapping FeedbackCreateDto → Feedback (khi tạo mới)
+            TypeAdapterConfig<FeedbackCreateDto, Feedback>.NewConfig()
+                .Ignore(dest => dest.UserAccount)                  // Không map navigation
+                .Map(dest => dest.CreatedAt, _ => DateTime.UtcNow)
+                .Map(dest => dest.IsResolved, _ => false);
+
+            //  Mapping Feedback → FeedbackReadDto
+            TypeAdapterConfig<Feedback, FeedbackReadDto>.NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.AccountId, src => src.AccountId)
+                .Map(dest => dest.Subject, src => src.Subject)
+                .Map(dest => dest.Stars, src => src.Stars)
+                .Map(dest => dest.Message, src => src.Message)
+                .Map(dest => dest.CreatedAt, src => src.CreatedAt)
+                .Map(dest => dest.IsResolved, src => src.IsResolved)
+                .IgnoreNullValues(true);
+
+            //  Mapping Feedback → FeedbackListDto
+            TypeAdapterConfig<Feedback, FeedbackListDto>.NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.Subject, src => src.Subject)
+                .Map(dest => dest.Stars, src => src.Stars)
+                .Map(dest => dest.CreatedAt, src => src.CreatedAt)
+                .Map(dest => dest.IsResolved, src => src.IsResolved)
+                .IgnoreNullValues(true);
 
             return services;
         }

@@ -58,6 +58,12 @@ namespace Infrastructure.Models
 
         public ChargingStation? Station { get; set; }
         // Liên kết ngược tới ChargingStation nếu voucher được áp dụng
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        // Thời điểm bản ghi được tạo
+
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        // Thời điểm bản ghi được cập nhật gần nhất
+
 
     }
 }

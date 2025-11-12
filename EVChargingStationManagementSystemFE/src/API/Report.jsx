@@ -19,7 +19,6 @@ export const addReport = async (
     reportType,
     severity,
     description,
-    reportedById,
     stationId,
     postId
 ) => {
@@ -29,7 +28,6 @@ export const addReport = async (
             reportType,
             severity,
             description,
-            reportedById,
             stationId,
             postId 
         });
@@ -40,10 +38,32 @@ export const addReport = async (
         throw error;
     }
 }
+export const addReportByEVDriver = async(
+    title,
+    reportType,
+    severity,
+    description
+
+) =>{
+    try {
+        const response = await api.post(`${BASE_URL}/evdriver/report`,{
+            title,
+            reportType,
+            severity,
+            description
+        })
+        console.log("ReportByUserSucces",response)
+        return response.data
+    } catch (error) {
+        console.error("ErrorSendReport",error)
+        throw error
+    }
+}
 
 
 
 export default {
     addReport,
-    getReport
+    getReport,
+    addReportByEVDriver
 }

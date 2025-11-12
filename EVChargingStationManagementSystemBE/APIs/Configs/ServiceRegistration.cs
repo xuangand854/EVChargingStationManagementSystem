@@ -207,10 +207,10 @@ namespace APIs.Configs
 
             // View
             TypeAdapterConfig<Report, ViewReportDTO>.NewConfig()
-                .Map(dest => dest.ReportedByName, src => src.ReportedBy != null ? src.ReportedBy.Name : null)
-                .Map(dest => dest.StationName, src => src.ChargingStation != null ? src.ChargingStation.StationName : null)
-                .Map(dest => dest.PostName, src => src.ChargingPost != null ? src.ChargingPost.PostName : null)
-                .IgnoreNullValues(true);
+         .Map(dest => dest.ReportedByName, src => src.ReportedBy != null ? src.ReportedBy.Name : null)
+         .Map(dest => dest.StationName, src => src.ChargingStation != null ? src.ChargingStation.StationName : null)
+         .Map(dest => dest.PostName, src => src.ChargingPost != null ? src.ChargingPost.PostName : null)
+         .IgnoreNullValues(true);
 
             TypeAdapterConfig<ChargingStation, ChargingStationsViewDetailDto>.NewConfig()
                 .Map(dest => dest.OperatorName, src => src.OperatorNavigation != null ? src.OperatorNavigation.Name : "");

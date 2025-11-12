@@ -14,9 +14,9 @@ namespace BusinessLogic.IServices
 
         Task<IServiceResult> CreateVoucher(VoucherCreateDto dto);
 
-        /// <summary>
+
         /// Cập nhật voucher đã tồn tại.
-        /// </summary>
+        Task<IServiceResult> DeleteVoucher(Guid voucherId);
         Task<IServiceResult> UpdateVoucher(VoucherUpdateDto dto, Guid voucherId);
 
         Task<IServiceResult> RedeemVoucher(Guid evDriverId, Guid voucherId);

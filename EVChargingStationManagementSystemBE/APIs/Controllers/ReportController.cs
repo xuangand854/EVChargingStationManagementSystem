@@ -20,7 +20,7 @@ namespace APIs.Controllers
 
         //  LẤY DANH SÁCH BÁO CÁO 
         // GET: api/report (Admin, Staff)
-        [HttpGet]
+        [HttpGet("getall")]
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> GetAllReports()
         {
@@ -53,7 +53,7 @@ namespace APIs.Controllers
         }
 
         //  TẠO BÁO CÁO MỚI 
-        // POST: api/report (EVDriver)
+        // POST: api/report 
         [HttpPost]
         [Authorize(Roles = "Staff, Admin")]
         public async Task<IActionResult> CreateReport([FromBody] ReportCreateDTO dto)

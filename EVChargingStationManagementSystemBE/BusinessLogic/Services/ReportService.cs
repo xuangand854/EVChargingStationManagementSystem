@@ -5,6 +5,7 @@ using Common.DTOs.ReportDto;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System;
@@ -13,16 +14,18 @@ using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
-    public class ReportService(IUnitOfWork unitOfWork) : IReportService
+    public class ReportService(
+         IUnitOfWork unitOfWork,
+         UserManager<UserAccount> userManager
+     ) : IReportService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-
+        private readonly UserManager<UserAccount> _userManager = userManager;
         //  LẤY TOÀN BỘ REPORT 
         public async Task<ServiceResult> GetAllAsync()
         {
             try
             {
-                // Lấy tất cả report chưa bị xóa, kèm navigation để hiển thị thông tin đầy đủ
                 var reports = await _unitOfWork.ReportRepository.GetAllAsync(
                     predicate: r => !r.IsDeleted,
                     include: q => q
@@ -36,16 +39,31 @@ namespace BusinessLogic.Services
                 if (reports == null || reports.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy báo cáo nào.");
 
-                // Map sang ViewReportDTO để trả về client
-                var response = reports.Adapt<List<ViewReportDTO>>();
+                var response = new List<ViewReportDTO>();
+
+                foreach (var report in reports)
+                {
+                    var dto = report.Adapt<ViewReportDTO>();
+
+                    // Lấy role bằng UserManager
+                    var user = report.ReportedBy;
+                    if (user != null)
+                    {
+                        var roles = await _userManager.GetRolesAsync(user);
+                        dto.RoleName = roles.FirstOrDefault(); // nếu chỉ có 1 role
+                    }
+
+                    response.Add(dto);
+                }
+
                 return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
             catch (Exception ex)
             {
-                // Xử lý lỗi và log nếu cần
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         //  LẤY CHI TIẾT REPORT THEO ID 
         public async Task<ServiceResult> GetByIdAsync(Guid id)

@@ -48,7 +48,7 @@ const Layout = () => {
                             <Link to="/order-charging">Đặt Trạm Sạc</Link>
                         </li>
                     </>
-                    {isAuthenticated && (
+                    {userRole === "EVDriver" && (
                         <li>
                             <Link to="/profile-page">Thông Tin Tài Khoản</Link>
                         </li>

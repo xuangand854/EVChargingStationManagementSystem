@@ -47,7 +47,7 @@ import Success from "./PaymentStatus/Success.jsx";
 import Fail from "./PaymentStatus/Fail.jsx";
 import Error from "./PaymentStatus/Error.jsx";
 import Invalid from "./PaymentStatus/Invalid.jsx";
-import AdminCheckLogin from "./components/pages/admin/Adminchecklogin"
+import AdminCheckLogin from "./components/pages/admin/Adminchecklogin.jsx"
 import BookingOrder from "./components/ordercharging/BookingOrder.jsx"
 import StaffBookingOrder from "./components/pages/staff/StaffBookingOrder.jsx";
 

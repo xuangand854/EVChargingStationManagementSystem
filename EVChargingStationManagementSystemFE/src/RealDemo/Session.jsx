@@ -22,7 +22,7 @@ import {
 
 const Session = () => {
     const [sessionId, setSessionId] = useState(null);
-    const [isPlugged, setIsPlugged] = useState(true);
+    const [connectorStatus, setConnectorStatus] = useState("Available"); // Available, InUse, Charging, Faulted
     const [isCharging, setIsCharging] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isPaid, setIsPaid] = useState(false);
@@ -73,11 +73,16 @@ const Session = () => {
             try {
                 setPricingData(prev => ({ ...prev, loading: true }));
 
-                // Bước 1: Lấy thông tin connector để có chargingPostId
+                // Bước 1: Lấy thông tin connector để có chargingPostId và status
                 const connectorResponse = await GetConnectorId(connectorID);
                 console.log("🔌 Thông tin connector:", connectorResponse);
 
                 const chargingPostId = connectorResponse?.data?.chargingPostId || connectorResponse?.chargingPostId;
+                const status = connectorResponse?.data?.status || connectorResponse?.status || "Available";
+
+                // Cập nhật trạng thái connector
+                setConnectorStatus(status);
+                console.log("📊 Trạng thái connector:", status);
 
                 // Bước 2: Lấy giá điện, VAT và thông tin trạm sạc song song
                 const [priceResponse, vatResponse, chargingPostResponse] = await Promise.all([
@@ -157,55 +162,26 @@ const Session = () => {
     }, [isCharging, pricingData]);
 
     const handlePlugToCar = async () => {
+        // Kiểm tra status trước khi cắm
+        if (connectorStatus !== "Available") {
+            message.warning("⚠️ Connector không ở trạng thái Available!");
+            return;
+        }
+
+        setLoading(true);
         try {
-            console.log("🔄 Đang gửi toggle connector sang false (rút khỏi trụ, cắm vào xe):", connectorID);
-            await PatchConnectorToggle(false, connectorID); // false = đang sử dụng
-            setIsPlugged(false);
+            console.log("🔄 Cắm sạc vào xe - Toggle false (đang sử dụng):", connectorID);
+            // toggle = false nghĩa là đang sử dụng (cắm vào xe)
+            await PatchConnectorToggle(false, connectorID);
+            setConnectorStatus("InUse");
             message.success("🔌 Đã cắm sạc vào xe!");
         } catch (error) {
             console.error("❌ Lỗi khi cắm sạc:", error);
             message.error("Không thể cắm sạc!");
+        } finally {
+            setLoading(false);
         }
     };
-
-    // const handleStartSession = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const response = await StartSession(
-    //             80,  // batteryCapacityKWh
-    //             20,  // initialBatteryLevelPercent
-    //             100, // expectedEnergiesKWh
-    //             connectorID
-    //         );
-
-    //         console.log("📦 Dữ liệu trả về khi bắt đầu phiên sạc:", response);
-
-    //         const id = response?.data?.id || response?.id;
-    //         if (id) {
-    //             setSessionId(id);
-    //             console.log("Session ID:", id);
-    //         } else {
-    //             console.warn("Không tìm thấy sessionId trong response:", response);
-    //         }
-
-    //         setIsCharging(true);
-    //         setTimer(0);
-    //         setChargingData(prev => ({
-    //             ...prev,
-    //             startTime: new Date(),
-    //             estimatedTime: 3600, // 1 giờ ước tính
-    //             chargingPower: pricingData.maxPowerKw || 22,
-    //             energyDelivered: 0, // Reset năng lượng
-    //             cost: 0 // Reset chi phí
-    //         }));
-    //         message.success("Phiên sạc đã bắt đầu!");
-    //     } catch (error) {
-    //         console.error("Lỗi khi bắt đầu phiên sạc:", error.response?.data || error);
-    //         message.error("Không thể bắt đầu phiên sạc!");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     const handleStartSession = async () => {
 
@@ -225,6 +201,9 @@ const Session = () => {
 
             const id = response?.data?.id || response?.id;
             if (id) setSessionId(id);
+
+            // Cập nhật status sang Charging
+            setConnectorStatus("Charging");
 
             setIsCharging(true);
             setTimer(0);
@@ -265,6 +244,9 @@ const Session = () => {
             const id = response?.data?.id || response?.id;
             if (id) setSessionId(id);
 
+            // Cập nhật status sang Charging (chỉ local state vì API không hỗ trợ)
+            setConnectorStatus("Charging");
+
             setIsCharging(true);
             setTimer(0);
             setChargingData(prev => ({
@@ -287,8 +269,9 @@ const Session = () => {
 
 
 
-    // Dừng phiên sạc (không toggle connector)
+    // Dừng phiên sạc
     const handleStopSession = async () => {
+        setLoading(true);
         try {
             if (!sessionId) {
                 message.warning("⚠️ Chưa có session để dừng!");
@@ -296,11 +279,17 @@ const Session = () => {
             }
 
             await Stop(sessionId, chargingData.energyDelivered);
+
+            // Chuyển status về InUse (đã cắm nhưng không sạc) - chỉ local state
+            setConnectorStatus("InUse");
+
             setIsCharging(false);
             message.success("🛑 Phiên sạc đã dừng! Vui lòng thanh toán trước khi rút sạc khỏi xe.");
         } catch (error) {
             console.error("❌ Lỗi khi dừng phiên sạc:", error);
             message.error("Lỗi khi dừng phiên sạc!");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -325,19 +314,28 @@ const Session = () => {
 
     // Rút sạc khỏi xe (sau khi thanh toán hoặc chưa sạc)
     const handleUnplugFromCar = async () => {
+        // Kiểm tra status trước khi rút - chỉ cho phép rút khi InUse
+        if (connectorStatus !== "InUse") {
+            message.warning("⚠️ Connector không ở trạng thái InUse!");
+            return;
+        }
+
+        setLoading(true);
         try {
-            console.log("🔄 Toggle connector sang TRUE (rút khỏi xe, cắm lại trụ):", connectorID);
+            console.log("🔄 Rút sạc khỏi xe - Toggle true (có sẵn):", connectorID);
+            // toggle = true nghĩa là có sẵn (rút khỏi xe, cắm lại trụ)
             await PatchConnectorToggle(true, connectorID);
-            setIsPlugged(true);
+            setConnectorStatus("Available");
             setIsPaid(false);
-            message.success("🔋 Đã rút sạc khỏi xe và cắm lại trụ!");
+            setSessionId(null);
+            message.success("🔋 Đã rút sạc khỏi xe!");
         } catch (error) {
             console.error("❌ Lỗi khi rút sạc:", error);
             message.error("Không thể rút sạc!");
+        } finally {
+            setLoading(false);
         }
     };
-
-
 
     // Hàm format thời gian
     const formatTime = (seconds) => {
@@ -348,12 +346,31 @@ const Session = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 md:p-8">
+            <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">⚡ Trạm Sạc Xe Điện</h1>
-                    <p className="text-gray-600">Connector ID: <Tag color="blue">{connectorID}</Tag></p>
+                <div className="text-center mb-8">
+                    <div
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                        style={{ backgroundColor: '#e6f7f5' }}
+                    >
+                        <Zap style={{ color: '#00b09b' }} size={32} />
+                    </div>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                        Trạm Sạc Xe Điện
+                    </h1>
+                    <div className="flex items-center justify-center gap-2 text-gray-600">
+                        <span>Connector</span>
+                        <span
+                            className="px-3 py-1 rounded-full font-semibold"
+                            style={{
+                                background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                color: 'white'
+                            }}
+                        >
+                            #{connectorID}
+                        </span>
+                    </div>
                 </div>
 
                 <Modal
@@ -373,226 +390,259 @@ const Session = () => {
                     />
                 </Modal>
 
-                <Row gutter={[16, 16]}>
-                    {/* Cột trái - Thông tin sạc */}
-                    <Col xs={24} lg={14}>
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <Battery className="text-green-600" size={20} />
-                                    <span>Thông Tin Sạc</span>
-                                </div>
-                            }
-                            className="h-full"
-                        >
-                            {/* Trạng thái pin */}
-                            <div className="mb-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-gray-600">Mức pin</span>
-                                    <span className="font-semibold text-lg">{chargingData.batteryLevel.toFixed(1)}%</span>
-                                </div>
-                                <Progress
-                                    percent={chargingData.batteryLevel}
-                                    strokeColor={{
-                                        '0%': '#ff4d4f',
-                                        '30%': '#faad14',
-                                        '70%': '#52c41a',
-                                        '100%': '#1890ff'
-                                    }}
-                                    size="large"
-                                />
-                            </div>
-
-                            {/* Thống kê sạc */}
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Statistic
-                                        title="Năng lượng đã sạc"
-                                        value={chargingData.energyDelivered}
-                                        precision={2}
-                                        suffix="kWh"
-                                        prefix={<Zap className="text-yellow-500" size={16} />}
-                                    />
-                                </Col>
-                                <Col span={12}>
-                                    <Statistic
-                                        title="Công suất sạc"
-                                        value={isCharging ? chargingData.chargingPower : 0}
-                                        precision={1}
-                                        suffix="kW"
-                                        prefix={<Gauge className="text-blue-500" size={16} />}
-                                    />
-                                </Col>
-                            </Row>
-
-                            <Divider />
-
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Statistic
-                                        title="Thời gian sạc"
-                                        value={formatTime(timer)}
-                                        prefix={<Clock className="text-purple-500" size={16} />}
-                                    />
-                                    {isCharging && chargingData.estimatedTime > 0 && (
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            Còn lại: {formatTime(Math.floor(chargingData.estimatedTime))}
-                                        </div>
-                                    )}
-                                </Col>
-                                <Col span={12}>
-                                    <Statistic
-                                        title="Chi phí"
-                                        value={chargingData.cost}
-                                        precision={0}
-                                        suffix="VNĐ"
-                                        prefix={<Banknote className="text-green-500" size={16} />}
-                                        formatter={(value) => `${Number(value).toLocaleString()}`}
-                                    />
-                                </Col>
-                            </Row>
-
-                            {/* Thông tin giá cả chi tiết */}
-                            {!pricingData.loading && (
-                                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2">📋 Bảng giá</h4>
-                                    <div className="grid grid-cols-2 gap-2 text-xs">
-                                        <div>
-                                            <span className="text-gray-600">Giá điện:</span>
-                                            <span className="font-medium ml-1">
-                                                {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600">VAT:</span>
-                                            <span className="font-medium ml-1">{pricingData.vatRate}%</span>
-                                        </div>
-                                        <div className="col-span-2">
-                                            <span className="text-gray-600">Công suất tối đa:</span>
-                                            <span className="font-medium ml-1 text-blue-600">
-                                                {pricingData.maxPowerKw} kW
-                                            </span>
-                                        </div>
-                                        {chargingData.energyDelivered > 0 && (
-                                            <>
-                                                <div>
-                                                    <span className="text-gray-600">Tiền điện:</span>
-                                                    <span className="font-medium ml-1">
-                                                        {(chargingData.energyDelivered * pricingData.pricePerKWh).toLocaleString()} VNĐ
-                                                    </span>
-                                                </div>
-                                                {/* <div>
-                                                    <span className="text-gray-600">Thuế VAT:</span>
-                                                    <span className="font-medium ml-1">
-                                                        {((chargingData.energyDelivered * pricingData.pricePerKWh) * (pricingData.vatRate / 100)).toLocaleString()} VNĐ
-                                                    </span>
-                                                </div> */}
-                                            </>
-                                        )}
+                {/* Trạng thái hiện tại - Nổi bật */}
+                <div className="mb-6">
+                    <Card className="shadow-lg" style={{ borderWidth: '2px', borderColor: '#00b09b' }}>
+                        <div className="flex items-center justify-center gap-3 py-2">
+                            {connectorStatus === "Charging" ? (
+                                <>
+                                    <div className="w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: '#00b09b' }}></div>
+                                    <span className="text-2xl font-bold" style={{ color: '#00b09b' }}>⚡ Đang sạc</span>
+                                    <div className="ml-4 px-4 py-1 rounded-full" style={{ backgroundColor: '#e6f7f5' }}>
+                                        <span className="font-semibold" style={{ color: '#00b09b' }}>{formatTime(timer)}</span>
                                     </div>
-                                </div>
+                                </>
+                            ) : connectorStatus === "InUse" ? (
+                                <>
+                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00b09b' }}></div>
+                                    <span className="text-2xl font-bold" style={{ color: '#00b09b' }}>🔌 Đã cắm - Sẵn sàng sạc</span>
+                                </>
+                            ) : connectorStatus === "Available" ? (
+                                <>
+                                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                                    <span className="text-2xl font-bold text-gray-600">⏸️ Chưa kết nối</span>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                                    <span className="text-2xl font-bold text-red-600">⚠️ {connectorStatus}</span>
+                                </>
                             )}
+                        </div>
+                    </Card>
+                </div>
 
-                            {/* Trạng thái hiện tại */}
-                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                                <div className="flex items-center justify-center gap-2">
-                                    {isCharging ? (
-                                        <>
-                                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                                            <Tag color="green" className="text-lg px-4 py-1">Đang sạc</Tag>
-                                        </>
-                                    ) : !isPlugged ? (
-                                        <>
-                                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                            <Tag color="blue" className="text-lg px-4 py-1">Đã cắm sạc - Sẵn sàng</Tag>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                                            <Tag color="default" className="text-lg px-4 py-1">Chưa kết nối</Tag>
-                                        </>
+                <Row gutter={[24, 24]}>
+                    {/* Cột trái - Thông tin sạc */}
+                    <Col xs={24} lg={16}>
+                        {/* Mức pin - Card lớn */}
+                        <Card className="mb-6 shadow-lg border border-gray-200">
+                            <div className="text-center mb-4">
+                                <Battery
+                                    className="mx-auto mb-2"
+                                    size={40}
+                                    style={{ color: '#00b09b' }}
+                                />
+                                <h3 className="text-lg font-semibold text-gray-700">Mức Pin</h3>
+                            </div>
+                            <div className="text-center mb-4">
+                                <span
+                                    className="text-6xl font-bold"
+                                    style={{
+                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text'
+                                    }}
+                                >
+                                    {chargingData.batteryLevel.toFixed(1)}
+                                </span>
+                                <span className="text-3xl text-gray-500">%</span>
+                            </div>
+                            <Progress
+                                percent={chargingData.batteryLevel}
+                                strokeColor={{
+                                    '0%': '#ef4444',
+                                    '30%': '#f59e0b',
+                                    '50%': '#00b09b',
+                                    '100%': '#96c93d'
+                                }}
+                                strokeWidth={12}
+                                status={isCharging ? 'active' : 'normal'}
+                            />
+                        </Card>
+
+                        {/* Thống kê - Grid 2x2 */}
+                        <Row gutter={[16, 16]} className="mb-6">
+                            <Col xs={12}>
+                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div className="text-center">
+                                        <Zap className="text-yellow-500 mx-auto mb-2" size={28} />
+                                        <div className="text-2xl font-bold text-gray-800">
+                                            {chargingData.energyDelivered.toFixed(2)}
+                                        </div>
+                                        <div className="text-sm text-gray-500">kWh đã sạc</div>
+                                    </div>
+                                </Card>
+                            </Col>
+                            <Col xs={12}>
+                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div className="text-center">
+                                        <Gauge className="text-blue-500 mx-auto mb-2" size={28} />
+                                        <div className="text-2xl font-bold text-gray-800">
+                                            {isCharging ? chargingData.chargingPower.toFixed(1) : '0.0'}
+                                        </div>
+                                        <div className="text-sm text-gray-500">kW công suất</div>
+                                    </div>
+                                </Card>
+                            </Col>
+                            <Col xs={12}>
+                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div className="text-center">
+                                        <Clock className="text-purple-500 mx-auto mb-2" size={28} />
+                                        <div className="text-2xl font-bold text-gray-800">
+                                            {formatTime(timer)}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {isCharging && chargingData.estimatedTime > 0
+                                                ? `Còn ${formatTime(Math.floor(chargingData.estimatedTime))}`
+                                                : 'Thời gian sạc'}
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Col>
+                            <Col xs={12}>
+                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div className="text-center">
+                                        <Banknote style={{ color: '#00b09b' }} className="mx-auto mb-2" size={28} />
+                                        <div className="text-2xl font-bold text-gray-800">
+                                            {chargingData.cost.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
+                                        </div>
+                                        <div className="text-sm text-gray-500">VNĐ</div>
+                                    </div>
+                                </Card>
+                            </Col>
+                        </Row>
+
+                        {/* Bảng giá */}
+                        <Card className="shadow-md border border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                <span>📋</span> Thông tin chi tiết
+                            </h3>
+
+                            {!pricingData.loading ? (
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Giá điện</span>
+                                        <span className="font-semibold text-gray-800">
+                                            {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-gray-600">Thuế VAT</span>
+                                        <span className="font-semibold text-gray-800">{pricingData.vatRate}%</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <span className="text-gray-700 font-medium">Công suất tối đa</span>
+                                        <span className="font-bold text-green-600 text-lg">
+                                            {pricingData.maxPowerKw} kW
+                                        </span>
+                                    </div>
+                                    {chargingData.energyDelivered > 0 && (
+                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                            <span className="text-gray-600">Tiền điện</span>
+                                            <span className="font-semibold text-gray-800">
+                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toLocaleString()} VNĐ
+                                            </span>
+                                        </div>
+                                    )}
+                                    {sessionId && (
+                                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200 mt-4">
+                                            <span className="text-gray-700 font-medium">Mã phiên</span>
+                                            <span className="font-mono text-green-700 font-semibold">{sessionId}</span>
+                                        </div>
                                     )}
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="text-center py-4 text-gray-500">Đang tải thông tin...</div>
+                            )}
                         </Card>
                     </Col>
 
                     {/* Cột phải - Điều khiển */}
-                    <Col xs={24} lg={10}>
-                        <Card
-                            title={
-                                <div className="flex items-center gap-2">
-                                    <Power className="text-blue-600" size={20} />
-                                    <span>Điều Khiển</span>
-                                </div>
-                            }
-                            className="h-full"
-                        >
-                            <Space direction="vertical" className="w-full" size="large">
+                    <Col xs={24} lg={8}>
+                        <Card className="shadow-lg border border-gray-200 sticky top-4">
+                            <div className="text-center mb-6">
+                                <Power
+                                    className="mx-auto mb-2"
+                                    size={32}
+                                    style={{ color: '#00b09b' }}
+                                />
+                                <h3 className="text-xl font-bold text-gray-800">Điều Khiển</h3>
+                            </div>
+                            <Space direction="vertical" className="w-full" size="middle">
                                 {/* Nút cắm sạc */}
                                 <Button
                                     type="primary"
                                     onClick={handlePlugToCar}
-                                    disabled={!isPlugged || loading}
-                                    className="w-full h-12 text-lg font-medium"
-                                    icon={<PlugZap size={20} />}
-                                    style={{ backgroundColor: '#1890ff' }}
+                                    disabled={connectorStatus !== "Available" || loading}
+                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+                                    icon={<PlugZap size={22} />}
+                                    style={{
+                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                        border: 'none'
+                                    }}
                                 >
-                                    Cắm sạc vào xe
+                                    🔌 Cắm sạc vào xe
                                 </Button>
 
                                 {/* Nút bắt đầu phiên sạc */}
                                 <Button
                                     type="primary"
                                     onClick={handleStartSession}
-                                    disabled={isPlugged || isCharging || loading || pricingData.loading}
-                                    className="w-full h-12 text-lg font-medium"
-                                    icon={<Power size={20} />}
-                                    style={{ backgroundColor: '#52c41a' }}
+                                    disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading}
+                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+                                    icon={<Power size={22} />}
+                                    style={{
+                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                        border: 'none'
+                                    }}
                                 >
-                                    {pricingData.loading ? 'Đang tải giá...' : 'Bắt đầu sạc'}
+                                    {pricingData.loading ? '⏳ Đang tải...' : '⚡ Bắt đầu sạc'}
                                 </Button>
 
                                 {/* Nút dừng phiên sạc */}
                                 <Button
                                     danger
                                     onClick={handleStopSession}
-                                    disabled={!isCharging || loading}
-                                    className="w-full h-12 text-lg font-medium"
-                                    icon={<StopCircle size={20} />}
+                                    disabled={connectorStatus !== "Charging" || loading}
+                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+                                    icon={<StopCircle size={22} />}
+                                    style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}
                                 >
-                                    Dừng sạc
+                                    🛑 Dừng sạc
                                 </Button>
+
+                                <Divider className="my-2" />
 
                                 {/* Nút thanh toán */}
                                 <Button
                                     type="primary"
                                     onClick={handlePayment}
-                                    disabled={isCharging || loading || !sessionId}
-                                    className="w-full h-12 text-lg font-medium"
-                                    icon={<CreditCard size={20} />}
-                                    style={{ backgroundColor: '#faad14' }}
+                                    disabled={connectorStatus === "Charging" || loading || !sessionId}
+                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+                                    icon={<CreditCard size={22} />}
+                                    style={{
+                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                        border: 'none'
+                                    }}
                                 >
-                                    Thanh toán
+                                    💳 Thanh toán
                                 </Button>
 
-                                {/* Nút rút sạc */}
+                                {/* Nút rút sạc - chỉ cho phép khi InUse và đã thanh toán */}
                                 <Button
                                     onClick={handleUnplugFromCar}
-                                    disabled={isPlugged || isCharging || (!isPaid && sessionId)}
-                                    className="w-full h-12 text-lg font-medium"
-                                    icon={<Plug size={20} />}
+                                    disabled={connectorStatus !== "InUse" || (!isPaid && sessionId)}
+                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+                                    icon={<Plug size={22} />}
+                                    style={{
+                                        borderColor: '#00b09b',
+                                        color: (connectorStatus !== "InUse" || (!isPaid && sessionId)) ? undefined : '#00b09b'
+                                    }}
                                 >
-                                    Rút sạc khỏi xe
+                                    🔋 Rút sạc khỏi xe
                                 </Button>
-
-                                {sessionId && (
-                                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                        <p className="text-sm text-gray-600 text-center">
-                                            <strong>Mã phiên:</strong> {sessionId}
-                                        </p>
-                                    </div>
-                                )}
                             </Space>
                         </Card>
                     </Col>

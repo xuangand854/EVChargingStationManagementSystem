@@ -1,12 +1,12 @@
-﻿using BusinessLogic.IServices;
-using Common;
-using Common.DTOs.VoucherDto;
-using Common.Helper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿    using BusinessLogic.IServices;
+    using Common;
+    using Common.DTOs.VoucherDto;
+    using Common.Helper;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
 
-namespace APIs.Controllers
-{
+    namespace APIs.Controllers
+    {
     [Route("api/[controller]")]
     [ApiController]
     public class VoucherController : ControllerBase
@@ -144,5 +144,25 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+        
+            // XOÁ VOUCHER (soft delete)
+        // DELETE: api/voucher/{id} (Admin, Staff)
+        [HttpDelete("{id}")]
+                [Authorize(Roles = "Admin,Staff")]
+                public async Task<IActionResult> DeleteVoucher([FromRoute] Guid id)
+                {
+                    var result = await _voucherService.DeleteVoucher(id);
+
+                    if (result.Status == Const.SUCCESS_DELETE_CODE)
+                        return Ok(new { message = result.Message });
+
+                    if (result.Status == Const.FAIL_DELETE_CODE)
+                        return Conflict(new { message = result.Message });
+
+                    if (result.Status == Const.WARNING_NO_DATA_CODE)
+                        return NotFound(new { message = result.Message });
+
+                    return StatusCode(500, new { message = result.Message });
+                }
     }
-}
+    }

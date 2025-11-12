@@ -20,7 +20,7 @@ namespace Common.DTOs.ReportDto
         // Reporter info
         public Guid ReportedById { get; set; }
         public string? ReportedByName { get; set; }
-
+        public string? RoleName { get; set; }
         // Related station/post
         public Guid? StationId { get; set; }
         public string? StationName { get; set; }

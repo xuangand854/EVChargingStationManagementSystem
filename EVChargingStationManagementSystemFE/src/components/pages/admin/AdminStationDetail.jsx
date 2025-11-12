@@ -89,7 +89,7 @@ const AdminStationDetail = () => {
         }
         try {
             await updateChargingStation(stationId, { operatorId: selectedOperatorId });
-            message.success("✅ Cập nhật nhân viên phụ trách thành công!");
+            message.success(" Cập nhật nhân viên phụ trách thành công!");
             setStaffModalVisible(false);
             fetchStationAndPosts();
         } catch (error) {
@@ -105,7 +105,7 @@ const AdminStationDetail = () => {
         try {
             console.log("Attempting to delete post:", postId);
             await deleteChargingPost(postId);
-            message.success("🗑️ Xóa trụ sạc thành công!");
+            message.success(" Xóa trụ sạc thành công!");
             fetchStationAndPosts();
         } catch (error) {
             console.error("deletePost error:", error);
@@ -160,10 +160,10 @@ const AdminStationDetail = () => {
 
             if (editingPost) {
                 await updateChargingPost(editingPost.id, payload);
-                message.success("✅ Cập nhật trụ sạc thành công!");
+                message.success(" Cập nhật trụ sạc thành công!");
             } else {
                 await addChargingPost(payload);
-                message.success("✅ Thêm trụ sạc thành công!");
+                message.success(" Thêm trụ sạc thành công!");
             }
 
             setModalVisible(false);

@@ -1,29 +1,29 @@
-/* ReportAdmin.css */
-
 /* ===== Container ===== */
 .report-container {
-  max-width: 1000px;
+  max-width: 1100px; /* rộng hơn một chút */
   margin: 40px auto;
-  padding: 20px;
+  padding: 25px 20px;
   background-color: #f8f9fa; /* nền nhẹ */
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
 }
 
 .report-container h1 {
   text-align: center;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 25px;
+  color: #1e293b;
+  font-size: 28px;
+  font-weight: 700;
 }
 
-/* ===== Filter Container ===== */
+/* ===== Filter & Search Container ===== */
 .filter-container {
   display: flex;
   align-items: center;
-  gap: 12px; /* Khoảng cách giữa label và select */
+  gap: 16px;
   margin-bottom: 20px;
-  flex-wrap: wrap; /* Responsive trên màn hình nhỏ */
+  flex-wrap: wrap; /* responsive trên màn hình nhỏ */
 }
 
 .filter-container label {
@@ -32,15 +32,18 @@
   color: #1e293b;
 }
 
+/* Select filter */
 .filter-container select {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 15px;
   background-color: #fff;
   color: #1e293b;
   cursor: pointer;
+  outline: none;
   transition: all 0.2s ease-in-out;
+  min-width: 150px;
 }
 
 .filter-container select:hover {
@@ -48,7 +51,27 @@
 }
 
 .filter-container select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+/* Input search */
+.filter-container input[type="text"] {
+  flex: 2; /* chiếm nhiều hơn so với select */
+  min-width: 50vh; /* khởi điểm rộng hơn */
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
   outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-container input[type="text"]:hover {
+  border-color: #64748b;
+}
+
+.filter-container input[type="text"]:focus {
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
@@ -57,12 +80,14 @@
 .report-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* tránh cell quá dài */
+  word-wrap: break-word;
 }
 
 .report-table th,
 .report-table td {
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 12px 10px;
   text-align: left;
   vertical-align: top;
 }
@@ -85,18 +110,22 @@
   text-align: center;
   color: #64748b;
   font-style: italic;
-  padding: 10px;
+  padding: 12px;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .filter-container {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .filter-container input[type="text"] {
+    width: 100%;
   }
 
   .report-table th,
   .report-table td {
-    padding: 8px 6px;
+    padding: 10px 6px;
   }
 }

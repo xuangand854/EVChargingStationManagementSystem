@@ -62,8 +62,8 @@ export const StartSession = async (
 export const Stop = async (sessionId, energyDeliveredKWh) => {
     try {
         const response = await api.patch(
-            `${BASE_URL}/Stop?sessionId=${sessionId}`, // 👈 đưa sessionId lên query
-            { energyDeliveredKWh } // 👈 body chỉ còn field này
+            `${BASE_URL}/Stop?sessionId=${sessionId}`, // đưa sessionId lên query
+            { energyDeliveredKWh } // body chỉ còn field này
         );
         return response.data;
     } catch (error) {

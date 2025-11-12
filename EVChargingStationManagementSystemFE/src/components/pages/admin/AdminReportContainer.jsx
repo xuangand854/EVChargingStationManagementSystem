@@ -32,13 +32,15 @@ const ReportAdmin = () => {
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setFilter(value);
+
     if (value === "all") {
       setFilteredReports(reports);
     } else {
-      const filtered = reports.filter(r => r.reportBy === value);
+      const filtered = reports.filter(r => r.roleName.toLowerCase() === value);
       setFilteredReports(filtered);
     }
   };
+
 
   if (loading) return <p>Đang tải danh sách...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -52,8 +54,10 @@ const ReportAdmin = () => {
         <select value={filter} onChange={handleFilterChange}>
           <option value="all">Tất cả</option>
           <option value="staff">Staff</option>
-          <option value="evdriver">EV Driver</option>
+          <option value="evdriver">EVDriver</option>
+          <option value="admin">Admin</option>
         </select>
+
       </div>
 
       <div className="booking-card">
@@ -63,9 +67,11 @@ const ReportAdmin = () => {
               <th>Title</th>
               <th>Type</th>
               <th>Severity</th>
-              <th>Description</th>
+
+              <th>Role Name</th>
               <th>Station</th>
               <th>Post Name/ID</th>
+              <th>Description</th>
             </tr>
           </thead>
           <tbody>
@@ -75,13 +81,15 @@ const ReportAdmin = () => {
                   <td>{report.title || "-"}</td>
                   <td>{report.reportType || "-"}</td>
                   <td>{report.severity || "-"}</td>
-                  <td>{report.description || "-"}</td>
+                  <td>{report.roleName || "-"}</td>
                   <td>{report.stationName || "-"}</td>
                   <td>
                     {report.postName || report.postId
                       ? `${report.postName || "-"} (${report.postId || "-"})`
                       : "-"}
                   </td>
+                  <td>{report.description || "-"}</td>
+                  
                 </tr>
               ))
             ) : (

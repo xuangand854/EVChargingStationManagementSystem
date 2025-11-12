@@ -4,16 +4,17 @@ import api from './axios'
 const BASE_URL = "/Report";
 
 
-export const getReport = async ()=> {
-    try {
-        const response = await api.get(`${BASE_URL}`);
-        console.log('Lấy Danh Sách Thành Công',response);
-        return response;
-    } catch (error) {
-        console.log('Lỗi lấy danh sách',error);
-        throw error
-    }
-}
+export const getReport = async () => {
+  try {
+    const response = await api.get(`${BASE_URL}/getall`); // GET thay vì POST
+    console.log('Lấy danh sách thành công', response);
+    return response;
+  } catch (error) {
+    console.log('Lỗi lấy danh sách', error);
+    throw error;
+  }
+};
+
 export const addReport = async (
     title,
     reportType,
@@ -23,7 +24,7 @@ export const addReport = async (
     postId
 ) => {
     try {
-        const response = await api.post(`${BASE_URL}`,{
+        const response = await api.post(`${BASE_URL}/getall`,{
             title,
             reportType,
             severity,

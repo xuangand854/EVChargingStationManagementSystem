@@ -207,5 +207,33 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+            public async Task<IServiceResult> DeleteVoucher(Guid voucherId)
+        {
+            try
+            {
+                var voucher = await _unitOfWork.VoucherRepository.GetByIdAsync(
+                    predicate: v => v.Id == voucherId,
+                    asNoTracking: false
+                );
+
+                if (voucher == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Voucher không tồn tại");
+
+                // Soft delete
+                voucher.IsActive = false;
+
+                var result = await _unitOfWork.SaveChangesAsync();
+                if (result > 0)
+                    return new ServiceResult(Const.SUCCESS_DELETE_CODE, "Xoá voucher thành công");
+                else
+                    return new ServiceResult(Const.FAIL_DELETE_CODE, Const.FAIL_DELETE_MSG);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
     }
 }
+

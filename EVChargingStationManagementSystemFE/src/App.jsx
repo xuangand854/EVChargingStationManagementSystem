@@ -67,7 +67,8 @@ import AdminSession from "./components/pages/admin/AdminSession.jsx";
 import AdminMapStation from "./components/pages/admin/AdminMapStation.jsx";
 import RoutingMachine from "./components/ordercharging/RouteMachine.jsx"
 import StaffReport from "./components/pages/staff/StaffReport.jsx";
-import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx"
+import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx";
+import UserReport from "./components/profile/UserReport.jsx"
 
 
 export default function App() {
@@ -100,6 +101,8 @@ export default function App() {
           <Route path="car" element={<Car />} />
           <Route path="report-page" element={<ReportPage />} />
           <Route path="rating-page" element={<RatingPage />} />
+          <Route path="user-report" element={<UserReport/>} />
+
           {/* // */}
           {/* Trạm Sạc */}
           <Route path="order-charging" element={<OrderChargingST />} />

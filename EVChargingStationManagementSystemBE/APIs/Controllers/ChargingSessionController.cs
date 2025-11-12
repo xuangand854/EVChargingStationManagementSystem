@@ -39,17 +39,7 @@ namespace APIs.Controllers
         [HttpGet("{sessionId}")]
         public async Task<IActionResult> GetById([FromRoute] Guid sessionId)
         {
-            Guid userId;
-            try
-            {
-                userId = User.GetUserId();
-            }
-            catch
-            {
-                return Unauthorized(new { message = "Không xác định được userId từ token." });
-            }
-
-            var result = await _service.GetById(sessionId, userId);
+            var result = await _service.GetById(sessionId);
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

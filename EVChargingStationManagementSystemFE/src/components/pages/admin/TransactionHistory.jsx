@@ -1,0 +1,420 @@
+import { useEffect, useState } from "react";
+import {
+    Card,
+    Table,
+    Input,
+    Select,
+    DatePicker,
+    Button,
+    Tag,
+    Space,
+    Row,
+    Col,
+    Statistic,
+    Modal
+} from "antd";
+import {
+    Search,
+    Download,
+    Eye,
+    DollarSign,
+    TrendingUp,
+    Calendar
+} from "lucide-react";
+import { GetTransaction } from "../../../API/Transaction";
+import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
+const { Option } = Select;
+
+const TransactionHistory = () => {
+    const [transactions, setTransactions] = useState([]);
+    const [filteredTransactions, setFilteredTransactions] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [typeFilter, setTypeFilter] = useState("all");
+    const [dateRange, setDateRange] = useState(null);
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [detailModalVisible, setDetailModalVisible] = useState(false);
+    const [statistics, setStatistics] = useState({
+        total: 0,
+        completed: 0,
+        pending: 0,
+        totalAmount: 0
+    });
+
+    useEffect(() => {
+        fetchTransactions();
+    }, []);
+
+    useEffect(() => {
+        filterTransactions();
+    }, [transactions, searchText, statusFilter, typeFilter, dateRange]);
+
+    const fetchTransactions = async () => {
+        setLoading(true);
+        try {
+            const response = await GetTransaction();
+            const data = Array.isArray(response.data) ? response.data :
+                Array.isArray(response) ? response : [];
+
+            setTransactions(data);
+            calculateStatistics(data);
+        } catch (error) {
+            console.error("Lỗi khi lấy giao dịch:", error);
+            setTransactions([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const calculateStatistics = (data) => {
+        const completed = data.filter(t => t.status === 'Completed').length;
+        const pending = data.filter(t => t.status === 'Pending').length;
+        const totalAmount = data
+            .filter(t => t.status === 'Completed')
+            .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        setStatistics({
+            total: data.length,
+            completed,
+            pending,
+            totalAmount
+        });
+    };
+
+    const filterTransactions = () => {
+        let filtered = [...transactions];
+
+        // Filter by search text
+        if (searchText) {
+            filtered = filtered.filter(t =>
+                t.referenceCode?.toLowerCase().includes(searchText.toLowerCase()) ||
+                t.id?.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
+
+        // Filter by status
+        if (statusFilter !== "all") {
+            filtered = filtered.filter(t => t.status === statusFilter);
+        }
+
+        // Filter by type
+        if (typeFilter !== "all") {
+            filtered = filtered.filter(t => t.transactionType === typeFilter);
+        }
+
+        // Filter by date range
+        if (dateRange && dateRange[0] && dateRange[1]) {
+            filtered = filtered.filter(t => {
+                if (!t.referenceCode) return false;
+                try {
+                    const dateStr = t.referenceCode.split('-')[1];
+                    const transDate = dayjs(dateStr, 'YYYYMMDD');
+                    return transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
+                } catch {
+                    return false;
+                }
+            });
+        }
+
+        setFilteredTransactions(filtered);
+    };
+
+    const handleViewDetail = (record) => {
+        setSelectedTransaction(record);
+        setDetailModalVisible(true);
+    };
+
+    const handleExport = () => {
+        // Export to CSV
+        const headers = ['Mã tham chiếu', 'Ngày', 'Loại', 'Số tiền', 'Trạng thái'];
+        const csvData = filteredTransactions.map(t => {
+            const dateStr = t.referenceCode?.split('-')[1] || '';
+            const date = dateStr ? dayjs(dateStr, 'YYYYMMDD').format('DD/MM/YYYY') : '';
+            return [
+                t.referenceCode || '',
+                date,
+                t.transactionType || '',
+                t.amount || 0,
+                t.status || ''
+            ];
+        });
+
+        const csv = [
+            headers.join(','),
+            ...csvData.map(row => row.join(','))
+        ].join('\n');
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `transactions_${dayjs().format('YYYYMMDD')}.csv`;
+        link.click();
+    };
+
+    const columns = [
+        {
+            title: 'Mã tham chiếu',
+            dataIndex: 'referenceCode',
+            key: 'referenceCode',
+            width: 180,
+            render: (code) => <span className="font-mono text-xs">{code}</span>,
+            fixed: 'left'
+        },
+        {
+            title: 'Ngày giao dịch',
+            dataIndex: 'referenceCode',
+            key: 'date',
+            width: 120,
+            render: (code) => {
+                if (!code) return '-';
+                try {
+                    const dateStr = code.split('-')[1];
+                    return dayjs(dateStr, 'YYYYMMDD').format('DD/MM/YYYY');
+                } catch {
+                    return '-';
+                }
+            }
+        },
+        {
+            title: 'Loại giao dịch',
+            dataIndex: 'transactionType',
+            key: 'transactionType',
+            width: 150,
+            render: (type) => {
+                const typeMap = {
+                    'OnlinePayment': { text: 'Thanh toán online', color: 'blue' },
+                    'OfflinePayment': { text: 'Thanh toán offline', color: 'orange' },
+                    'Refund': { text: 'Hoàn tiền', color: 'purple' }
+                };
+                const config = typeMap[type] || { text: type, color: 'default' };
+                return <Tag color={config.color}>{config.text}</Tag>;
+            }
+        },
+        {
+            title: 'Số tiền (VNĐ)',
+            dataIndex: 'amount',
+            key: 'amount',
+            width: 130,
+            align: 'right',
+            render: (value) => (
+                <span className="font-semibold text-green-600">
+                    {value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 0 }) : '0'}
+                </span>
+            ),
+            sorter: (a, b) => (a.amount || 0) - (b.amount || 0)
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            width: 120,
+            render: (status) => {
+                const statusMap = {
+                    'Completed': { text: 'Hoàn thành', color: 'success' },
+                    'Pending': { text: 'Đang xử lý', color: 'processing' },
+                    'Failed': { text: 'Thất bại', color: 'error' },
+                    'Cancelled': { text: 'Đã hủy', color: 'default' }
+                };
+                const config = statusMap[status] || { text: status, color: 'default' };
+                return <Tag color={config.color}>{config.text}</Tag>;
+            }
+        },
+        {
+            title: 'Thao tác',
+            key: 'action',
+            width: 100,
+            fixed: 'right',
+            render: (_, record) => (
+                <Button
+                    type="link"
+                    icon={<Eye size={16} />}
+                    onClick={() => handleViewDetail(record)}
+                >
+                    Chi tiết
+                </Button>
+            )
+        }
+    ];
+
+    return (
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                        📜 Lịch Sử Giao Dịch
+                    </h1>
+                    <p className="text-gray-600">
+                        Quản lý và theo dõi tất cả giao dịch trong hệ thống
+                    </p>
+                </div>
+
+                {/* Statistics */}
+                <Row gutter={[16, 16]} className="mb-6">
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Tổng giao dịch"
+                                value={statistics.total}
+                                prefix={<Calendar className="text-blue-500" size={20} />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Hoàn thành"
+                                value={statistics.completed}
+                                prefix={<TrendingUp className="text-green-500" size={20} />}
+                                valueStyle={{ color: '#10b981' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Đang xử lý"
+                                value={statistics.pending}
+                                valueStyle={{ color: '#f59e0b' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card>
+                            <Statistic
+                                title="Tổng tiền"
+                                value={statistics.totalAmount}
+                                prefix={<DollarSign className="text-green-600" size={20} />}
+                                suffix="VNĐ"
+                                valueStyle={{ color: '#059669' }}
+                                formatter={(value) => `${Number(value).toLocaleString('vi-VN', { maximumFractionDigits: 0 })}`}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Filters */}
+                <Card className="mb-6">
+                    <Row gutter={[16, 16]}>
+                        <Col xs={24} md={8}>
+                            <Input
+                                placeholder="Tìm kiếm theo mã giao dịch..."
+                                prefix={<Search size={16} />}
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                                allowClear
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={5}>
+                            <Select
+                                value={statusFilter}
+                                onChange={setStatusFilter}
+                                className="w-full"
+                            >
+                                <Option value="all">Tất cả trạng thái</Option>
+                                <Option value="Completed">Hoàn thành</Option>
+                                <Option value="Pending">Đang xử lý</Option>
+                                <Option value="Failed">Thất bại</Option>
+                                <Option value="Cancelled">Đã hủy</Option>
+                            </Select>
+                        </Col>
+                        <Col xs={24} sm={12} md={5}>
+                            <Select
+                                value={typeFilter}
+                                onChange={setTypeFilter}
+                                className="w-full"
+                            >
+                                <Option value="all">Tất cả loại</Option>
+                                <Option value="OnlinePayment">Online</Option>
+                                <Option value="OfflinePayment">Offline</Option>
+                                <Option value="Refund">Hoàn tiền</Option>
+                            </Select>
+                        </Col>
+                        <Col xs={24} md={6}>
+                            <Space>
+                                <RangePicker
+                                    value={dateRange}
+                                    onChange={setDateRange}
+                                    format="DD/MM/YYYY"
+                                />
+                                <Button
+                                    type="primary"
+                                    icon={<Download size={16} />}
+                                    onClick={handleExport}
+                                >
+                                    Xuất Excel
+                                </Button>
+                            </Space>
+                        </Col>
+                    </Row>
+                </Card>
+
+                {/* Table */}
+                <Card>
+                    <Table
+                        columns={columns}
+                        dataSource={filteredTransactions}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={{
+                            pageSize: 20,
+                            showSizeChanger: true,
+                            showTotal: (total) => `Tổng ${total} giao dịch`,
+                            pageSizeOptions: ['10', '20', '50', '100']
+                        }}
+                        scroll={{ x: 1000 }}
+                    />
+                </Card>
+
+                {/* Detail Modal */}
+                <Modal
+                    title="Chi tiết giao dịch"
+                    open={detailModalVisible}
+                    onCancel={() => setDetailModalVisible(false)}
+                    footer={[
+                        <Button key="close" onClick={() => setDetailModalVisible(false)}>
+                            Đóng
+                        </Button>
+                    ]}
+                    width={600}
+                >
+                    {selectedTransaction && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-gray-600 text-sm">Mã giao dịch</p>
+                                    <p className="font-semibold">{selectedTransaction.id}</p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-600 text-sm">Mã tham chiếu</p>
+                                    <p className="font-mono text-sm">{selectedTransaction.referenceCode}</p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-600 text-sm">Loại giao dịch</p>
+                                    <p className="font-semibold">{selectedTransaction.transactionType}</p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-600 text-sm">Trạng thái</p>
+                                    <Tag color={selectedTransaction.status === 'Completed' ? 'success' : 'processing'}>
+                                        {selectedTransaction.status}
+                                    </Tag>
+                                </div>
+                                <div className="col-span-2">
+                                    <p className="text-gray-600 text-sm">Số tiền</p>
+                                    <p className="text-2xl font-bold text-green-600">
+                                        {selectedTransaction.amount?.toLocaleString('vi-VN')} VNĐ
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Modal>
+            </div>
+        </div>
+    );
+};
+
+export default TransactionHistory;

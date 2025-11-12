@@ -1,6 +1,6 @@
-import React from "react";
+
 import { NavLink } from "react-router-dom";
-import { Zap, Users, Car, LogOut, BarChart3, Settings, House } from "lucide-react";
+import { Zap, Users, Car, LogOut, BarChart3, Settings, House, Receipt } from "lucide-react";
 import "./AdminSidebar.css";
 
 const AdminSidebar = () => {
@@ -13,8 +13,8 @@ const AdminSidebar = () => {
         { name: "Xe điện", path: "/admin/vehicles", icon: <Car size={20} /> },
         { name: "Quản Lý Report", path: "/admin/admin-reportcontainer", icon: <Users size={20} /> },
         { name: "Cấu hình hệ thống", path: "/admin/system-configuration", icon: <Settings size={20} /> },
-
-        // { name: "Cài đặt", path: "/admin/settings", icon: <Settings size={20} /> },
+        { name: "Thống kê doanh thu", path: "/admin/revenue-statistics", icon: <BarChart3 size={20} /> },
+        { name: "Lịch sử giao dịch", path: "/admin/transaction-history", icon: <Receipt size={20} /> }
     ];
 
     return (

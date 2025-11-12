@@ -1,5 +1,6 @@
 /* ReportAdmin.css */
 
+/* ===== Container ===== */
 .report-container {
   max-width: 1000px;
   margin: 40px auto;
@@ -16,6 +17,43 @@
   color: #333;
 }
 
+/* ===== Filter Container ===== */
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Khoảng cách giữa label và select */
+  margin-bottom: 20px;
+  flex-wrap: wrap; /* Responsive trên màn hình nhỏ */
+}
+
+.filter-container label {
+  font-weight: 500;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.filter-container select {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #fff;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.filter-container select:hover {
+  border-color: #64748b;
+}
+
+.filter-container select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+/* ===== Table Styling ===== */
 .report-table {
   width: 100%;
   border-collapse: collapse;
@@ -26,6 +64,7 @@
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
+  vertical-align: top;
 }
 
 .report-table th {
@@ -42,6 +81,22 @@
   background-color: #d0ebff;
 }
 
-.report-table td {
-  vertical-align: top;
+.no-report {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 10px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .filter-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 8px 6px;
+  }
 }

@@ -66,6 +66,8 @@ import AdminStationMap from "./components/pages/admin/AdminMapStation.jsx"
 import AdminSession from "./components/pages/admin/AdminSession.jsx";
 import AdminMapStation from "./components/pages/admin/AdminMapStation.jsx";
 import RoutingMachine from "./components/ordercharging/RouteMachine.jsx"
+import StaffReport from "./components/pages/staff/StaffReport.jsx";
+import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx"
 
 
 export default function App() {
@@ -144,6 +146,8 @@ export default function App() {
           <Route path="station" element={<AdminStations />} />
 
           <Route path="staff" element={<AdminStaff />} />
+          <Route path="admin-reportcontainer" element={<AdminReportContainer />} />
+          
           <Route path="map-station" element={<AdminMapStation />} />
           <Route path="admin-session" element={<AdminSession />}>
             <Route path=":stationID/posts" element={<ChargingPostList />} />
@@ -156,12 +160,14 @@ export default function App() {
           <Route path="settings" element={<AdminSettings />} />
           <Route path="/admin/station/:stationId" element={<AdminStationDetail />} />
           <Route path="/admin/stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
+          
 
         </Route>
         {/* Staff Routes */}
         <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
           <Route index element={<StaffLayout />} />
           <Route path="stations" element={<StaffStation />} />
+           <Route path="staff-report" element={<StaffReport />} />
           <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
           <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
           <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />

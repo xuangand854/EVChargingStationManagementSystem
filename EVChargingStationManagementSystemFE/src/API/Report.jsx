@@ -19,7 +19,6 @@ export const addReport = async (
     reportType,
     severity,
     description,
-    reportedById,
     stationId,
     postId
 ) => {
@@ -29,7 +28,6 @@ export const addReport = async (
             reportType,
             severity,
             description,
-            reportedById,
             stationId,
             postId 
         });

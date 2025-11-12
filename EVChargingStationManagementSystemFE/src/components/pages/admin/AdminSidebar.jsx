@@ -11,7 +11,9 @@ const AdminSidebar = () => {
         { name: "Trạm sạc", path: "/admin/station", icon: <Zap size={20} /> },
         { name: "Nhân viên", path: "/admin/staff", icon: <Users size={20} /> },
         { name: "Xe điện", path: "/admin/vehicles", icon: <Car size={20} /> },
+        { name: "Quản Lý Report", path: "/admin/admin-reportcontainer", icon: <Users size={20} /> },
         { name: "Cấu hình hệ thống", path: "/admin/system-configuration", icon: <Settings size={20} /> },
+
         // { name: "Cài đặt", path: "/admin/settings", icon: <Settings size={20} /> },
     ];
 

@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import InputField from "../account/InputField";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../../API/Auth";
-import "./ForgotPassword.css";
-
+import "./Forgotpassword.css";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

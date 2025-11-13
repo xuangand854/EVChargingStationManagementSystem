@@ -41,12 +41,12 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IServiceResult> GetById(Guid SessionId, Guid userId)
+        public async Task<IServiceResult> GetById(Guid SessionId)
         {
             try
             {
                 var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == SessionId && v.UserId == userId
+                    predicate: v => !v.IsDeleted && v.Id == SessionId 
                     );
                 if (chargingSession == null)
                     return new ServiceResult(

@@ -66,6 +66,8 @@ import AdminStationMap from "./components/pages/admin/AdminMapStation.jsx"
 import AdminSession from "./components/pages/admin/AdminSession.jsx";
 import AdminMapStation from "./components/pages/admin/AdminMapStation.jsx";
 import RoutingMachine from "./components/ordercharging/RouteMachine.jsx"
+import RevenueStatistics from "./components/pages/admin/RevenueStatistics.jsx";
+import TransactionHistory from "./components/pages/admin/TransactionHistory.jsx";
 import StaffReport from "./components/pages/staff/StaffReport.jsx";
 import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx";
 import UserReport from "./components/profile/UserReport.jsx"
@@ -86,12 +88,6 @@ export default function App() {
           <Route path="sign-up" element={<Signup />} />
           <Route path="forgot-password" element={<Forgotpassword />} />
 
-          {/* Demo Charge */}
-          {/* <Route path="station-list" element={<StationList />} />
-          <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
-          <Route path="station-list/:stationID/posts/:postID/connector" element={<ConnectorList />} />
-          <Route path="station-list/:stationID/posts/:postID/connector/:connectorID/session" element={<Session />} /> */}
-
           {/* // */}
           {/* Profile */}
           <Route path="profile-page" element={<ProfilePage />} />
@@ -101,7 +97,7 @@ export default function App() {
           <Route path="car" element={<Car />} />
           <Route path="report-page" element={<ReportPage />} />
           <Route path="rating-page" element={<RatingPage />} />
-          <Route path="user-report" element={<UserReport/>} />
+          <Route path="user-report" element={<UserReport />} />
 
           {/* // */}
           {/* Trạm Sạc */}
@@ -110,7 +106,7 @@ export default function App() {
           <Route path="admin-pannel" element={<AdminStationPanel />} />
           <Route path="" element={<RoutingMachine />} />
           <Route path="" element={<Booking />} />
-          <Route path="booking-order" element={<BookingOrder/>} />
+          <Route path="booking-order" element={<BookingOrder />} />
           {/* // */}
           {/* IOTChargingSystem */}
           <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
@@ -150,7 +146,7 @@ export default function App() {
 
           <Route path="staff" element={<AdminStaff />} />
           <Route path="admin-reportcontainer" element={<AdminReportContainer />} />
-          
+
           <Route path="map-station" element={<AdminMapStation />} />
           <Route path="admin-session" element={<AdminSession />}>
             <Route path=":stationID/posts" element={<ChargingPostList />} />
@@ -161,20 +157,24 @@ export default function App() {
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="station/:stationId" element={<AdminStationDetail />} />
+          <Route path="stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
+          <Route path="revenue-statistics" element={<RevenueStatistics />} />
+          <Route path="transaction-history" element={<TransactionHistory />} />
           <Route path="/admin/station/:stationId" element={<AdminStationDetail />} />
           <Route path="/admin/stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
-          
+
 
         </Route>
         {/* Staff Routes */}
         <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
           <Route index element={<StaffLayout />} />
           <Route path="stations" element={<StaffStation />} />
-           <Route path="staff-report" element={<StaffReport />} />
+          <Route path="staff-report" element={<StaffReport />} />
           <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
           <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
           <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
-          <Route path="/staff/booking-order" element={<StaffBookingOrder/>} />
+          <Route path="/staff/booking-order" element={<StaffBookingOrder />} />
         </Route>
 
       </Routes>

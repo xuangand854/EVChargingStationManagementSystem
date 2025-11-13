@@ -6,7 +6,7 @@ import "./AdminLayout.css";
 
 const AdminLayout = () => {
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="admin-layout min-h-screen bg-gray-50 flex">
             {/* --- SIDEBAR (bên trái cố định) --- */}
             <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-30">
                 <AdminSidebar />

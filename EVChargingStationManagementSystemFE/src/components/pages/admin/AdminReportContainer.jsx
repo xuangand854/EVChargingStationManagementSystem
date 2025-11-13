@@ -96,7 +96,6 @@ const ReportAdmin = () => {
   };
 
   if (loading) return <p>Đang tải danh sách...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="booking-container">
@@ -157,7 +156,7 @@ const ReportAdmin = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="no-booking">
+                <td colSpan="7" style={{ textAlign: "center", padding: "16px" }}>
                   Không có report nào
                 </td>
               </tr>

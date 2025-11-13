@@ -16,10 +16,10 @@ namespace BusinessLogic.IServices
         Task AutoCancelExpiredBookings();
         Task AutoReassignBookingsForErrorStations();
         Task AutoCompleteBookingsAsync();
-
+        Task AutoProcessAllBookingsAsync();
         Task LockAccountsWithTooManyNoShows();
         Task AutoReserveConnectorBeforeStart();
-        Task<List<Connector>> PredictUpcomingLockedConnectorsAsync(int minutes = 30);
+
 
     }
 }

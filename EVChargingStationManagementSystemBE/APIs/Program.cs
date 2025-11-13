@@ -13,16 +13,14 @@ using BusinessLogic.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// 🔗 Kết nối database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<EVCSMSContext>(options => options.UseSqlServer(connectionString));
 
+// 🔧 Đăng ký DI services
 builder.Services.ExtensionServices();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 builder.Services.AddScoped<IEmailService, EmailService>();
-
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISCStaffService, SCStaffService>();
 builder.Services.AddScoped<IEVDriverService, EVDriverService>();
@@ -40,12 +38,10 @@ builder.Services.AddScoped<INotificationRecipientService, NotificationRecipientS
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICheckInCodeService, CheckInCodeService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-builder.Services.AddHostedService<VoucherExpiryJob>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddHostedService<VoucherExpiryJob>();
 builder.Services.AddHostedService<BookingBackgroundJob>();
-
-
-// Cấu hình JWT Authentication
+// 🔐 Cấu hình JWT + Google OAuth
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,23 +61,23 @@ builder.Services.AddAuthentication(options =>
     };
 })
 .AddGoogle(options =>
- {
-     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-     options.CallbackPath = "/signin-google"; // Google redirect URI
- });
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/signin-google";
+});
 
+// 👤 Identity
 builder.Services.AddIdentityApiEndpoints<UserAccount>()
     .AddRoles<Role>()
     .AddEntityFrameworkStores<EVCSMSContext>();
 
+// 📦 Controllers + Swagger
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-//builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
 {
-    option.SwaggerDoc("v1", new OpenApiInfo()
+    option.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "EV Charging Station Management System Project",
         Version = "v1"
@@ -108,42 +104,41 @@ builder.Services.AddSwaggerGen(option =>
                     Id = "Bearer"
                 }
             },
-            []
+            new string[] {}
         }
     });
 });
 
+// 🌐 CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 🚀 Middleware pipeline
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
 app.UseCors("AllowAllOrigins");
-
-//app.MapIdentityApi<UserAccount>();
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
 
+// ✅ Endpoint mặc định để test root URL
+app.MapGet("/", () => "EVCSMS API is running...");
+
+// 📌 Map controller routes
 app.MapControllers();
 
+// 🔚 Run app
 app.Run();

@@ -327,6 +327,28 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+        public async Task AutoCompleteBookingsAsync()
+        {
+            try
+            {
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    predicate: b => !b.IsDeleted
+                                    && b.Status == BookingStatus.InProgress.ToString(),
+                    asNoTracking: false
+                );
+
+                foreach (var booking in bookings)
+                {
+                    // Gọi lại logic có sẵn
+                    await CompleteBookingAsync(booking.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AutoCompleteBookingsAsync] Lỗi: {ex.Message}");
+            }
+
+        }
 
         public async Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId)
         {

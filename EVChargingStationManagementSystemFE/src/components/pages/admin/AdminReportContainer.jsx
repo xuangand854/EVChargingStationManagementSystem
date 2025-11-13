@@ -2,21 +2,25 @@ import React, { useEffect, useState } from "react";
 import { getReport } from "../../../API/Report"; 
 import "./AdminReportContainer.css";
 
+const PAGE_SIZE = 10; // Số item mỗi trang
+
 const ReportAdmin = () => {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState("all"); // all | staff | evdriver | admin
-  const [search, setSearch] = useState(""); // input tìm kiếm
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchReports = async () => {
+      setLoading(true);
       try {
         const response = await getReport();
-        const data = response?.data?.data || [];
+        const data = response?.data?.data || response?.data || [];
         setReports(data);
-        setFilteredReports(data); // mặc định show tất cả
+        setFilteredReports(data);
       } catch (err) {
         console.error(err);
         setError("Không thể tải danh sách report");
@@ -27,28 +31,26 @@ const ReportAdmin = () => {
 
     fetchReports();
   }, []);
+
   const removeVietnameseTones = (str) => {
-  if (!str) return "";
+    if (!str) return "";
     return str
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // loại bỏ dấu
+      .replace(/[\u0300-\u036f]/g, "")
       .replace(/đ/g, "d")
       .replace(/Đ/g, "D")
       .toLowerCase();
   };
 
-  // Hàm lọc kết hợp filter + search
   const applyFilters = (reportsList, roleFilter, searchTerm) => {
     let result = [...reportsList];
 
-    // Lọc theo role
     if (roleFilter !== "all") {
       result = result.filter(
         (r) => removeVietnameseTones(r.roleName) === removeVietnameseTones(roleFilter)
       );
     }
 
-    // Lọc theo search term
     if (searchTerm.trim() !== "") {
       const term = removeVietnameseTones(searchTerm);
       result = result.filter((r) =>
@@ -66,20 +68,31 @@ const ReportAdmin = () => {
     return result;
   };
 
-  // Khi thay đổi filter
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setFilter(value);
     const newFiltered = applyFilters(reports, value, search);
     setFilteredReports(newFiltered);
+    setCurrentPage(1); // reset page
   };
 
-  // Khi thay đổi search
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearch(value);
     const newFiltered = applyFilters(reports, filter, value);
     setFilteredReports(newFiltered);
+    setCurrentPage(1); // reset page
+  };
+
+  const totalPages = Math.ceil(filteredReports.length / PAGE_SIZE);
+  const currentData = filteredReports.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
   };
 
   if (loading) return <p>Đang tải danh sách...</p>;
@@ -110,8 +123,6 @@ const ReportAdmin = () => {
             <option value="admin">Admin</option>
           </select>
         </div>
-
-        
       </div>
 
       <div className="booking-card">
@@ -128,8 +139,8 @@ const ReportAdmin = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredReports.length > 0 ? (
-              filteredReports.map((report, index) => (
+            {currentData.length > 0 ? (
+              currentData.map((report, index) => (
                 <tr key={report.id || index}>
                   <td>{report.title || "-"}</td>
                   <td>{report.reportType || "-"}</td>
@@ -153,6 +164,29 @@ const ReportAdmin = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="pagination">
+      {totalPages > 1 && (
+        <div style={{ marginTop: "16px", display: "flex", justifyContent: "center", gap: "8px" }}>
+          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => goToPage(i + 1)}
+              style={{ fontWeight: currentPage === i + 1 ? "bold" : "normal" }}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            Next
+          </button>
+        </div>
+      )}
       </div>
     </div>
   );

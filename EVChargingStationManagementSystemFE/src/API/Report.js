@@ -24,7 +24,7 @@ export const addReport = async (
     postId
 ) => {
     try {
-        const response = await api.post(`${BASE_URL}/getall`,{
+        const response = await api.post(`${BASE_URL}`, {  // sửa từ `${BASE_URL}/getall` -> `${BASE_URL}`
             title,
             reportType,
             severity,
@@ -32,13 +32,14 @@ export const addReport = async (
             stationId,
             postId 
         });
-        console.log('Thêm Thành Công Report',response.data);
+        console.log('Thêm thành công report', response.data);
         return response.data;
     } catch (error) {
-        console.log('Lỗi thêm report',error);
+        console.log('Lỗi thêm report', error);
         throw error;
     }
 }
+
 export const addReportByEVDriver = async(
     title,
     reportType,

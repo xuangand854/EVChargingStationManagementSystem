@@ -58,7 +58,7 @@
 /* Input search */
 .filter-container input[type="text"] {
   flex: 2; /* chiếm nhiều hơn so với select */
-  min-width: 50vh; /* khởi điểm rộng hơn */
+  min-width: 47vh; /* khởi điểm rộng hơn */
   padding: 8px 14px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -129,3 +129,43 @@
     padding: 10px 6px;
   }
 }
+/* ===== Pagination ===== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  flex-wrap: wrap; /* responsive trên màn hình nhỏ */
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #1e293b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.pagination button:hover {
+  border-color: #007bff;
+  color: #007bff;
+  background-color: #e6f0ff;
+}
+
+.pagination button:disabled {
+  border-color: #e2e8f0;
+  color: #a1a1aa;
+  cursor: not-allowed;
+  background-color: #f8f9fa;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+

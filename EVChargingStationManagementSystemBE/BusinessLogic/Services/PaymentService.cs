@@ -9,7 +9,6 @@ using Common.Helper;
 using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Web;
@@ -21,13 +20,11 @@ namespace BusinessLogic.Services
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IConfiguration _config = config;
         private readonly INotificationService _notify = notify;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public async Task<IServiceResult> CreatePaymentURL(Guid sessionId)
         {
             try
             {
-<<<<<<< Updated upstream
                 var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
                     .AsNoTracking()
                     .Where(s => !s.IsDeleted && s.Id == sessionId)
@@ -35,21 +32,12 @@ namespace BusinessLogic.Services
 
                 if (chargingSession == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Phiên sạc này không tồn tại");
-=======
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(sessionId);
-                if (chargingSession == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc");
->>>>>>> Stashed changes
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
 
                 var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
-<<<<<<< Updated upstream
                 string encoded = HttpUtility.UrlEncode("GiaTienPhienSac");
-=======
-                var orderInfo = HttpUtility.UrlEncode("GiaTienPhienSac");
->>>>>>> Stashed changes
 
                 var vat = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
                     .AsNoTracking().Where(c => !c.IsDeleted && c.Name == "VAT").FirstOrDefaultAsync();
@@ -63,34 +51,25 @@ namespace BusinessLogic.Services
                     ChargingSessionId = sessionId,
                     TxnRef = txnRef,
                     TaxRate = vatValue,
-                    BeforeVatAmount = chargingSession.Cost,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    BeforeVatAmount = chargingSession.Cost
                 };
-
-                if (chargingSession.UserId != null && chargingSession.UserId != Guid.Empty)
+                if (chargingSession.UserId != null || chargingSession.UserId != Guid.Empty)
                     payment.PaidBy = chargingSession.UserId;
-
                 payment.Amount = payment.BeforeVatAmount * (1 + vatValue / 100);
+                payment.CreatedAt = DateTime.Now;
+                payment.UpdatedAt = DateTime.Now;
 
-                // ✅ Lấy IP client thật thay vì 127.0.0.1
-                var ipAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "0.0.0.0";
 
                 var vnpParameters = PaymentHelper.CreateVnPayParameters(
                     _config["VnPay:TmnCode"],
                     (long)payment.Amount * 100,
                     txnRef,
-                    orderInfo,
+                    encoded,
                     _config["VnPay:ReturnUrl"],
-                    ipAddress,
-                    "vn"
-                );
+                    "127.0.0.1",
+                    "vn");
 
-                string url = PaymentHelper.CreateVnPayUrl(
-                    _config["VnPay:PaymentUrl"],   // ✅ đã đổi sang https://pay.vnpay.vn/vpcpay.html trong appsettings
-                    vnpParameters,
-                    _config["VnPay:HashSecret"]
-                );
+                string url = PaymentHelper.CreateVnPayUrl(_config["VnPay:PaymentUrl"], vnpParameters, _config["VnPay:HashSecret"]);
 
                 await _unitOfWork.PaymentRepository.CreateAsync(payment);
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -104,8 +83,8 @@ namespace BusinessLogic.Services
             {
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
-        }
 
+        }
 
         public async Task<string> ProcessVNPayIPN(Dictionary<string, string> queryParams)
         {

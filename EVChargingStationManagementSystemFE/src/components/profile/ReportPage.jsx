@@ -109,7 +109,7 @@ const ReportPage = () => {
       setPostSearch("");
       setShowStationList(false);
       setShowPostList(false);
-      setTimeout(() => navigate("/profile-page"), 1500);
+      setTimeout(() => navigate("/staff/staff-report"), 1500);
     } catch (err) {
       console.error(" Lỗi gửi báo cáo:", err);
       setMessage(" Gửi báo cáo thất bại!");

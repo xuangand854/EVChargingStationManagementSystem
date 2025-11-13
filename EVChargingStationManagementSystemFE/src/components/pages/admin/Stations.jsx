@@ -170,7 +170,7 @@ const AdminStation = () => {
                 dataSource={stations}
                 rowKey="stationId"
                 loading={loading}
-                pagination={{ pageSize: 6 }}
+                pagination={{ pageSize: 10 }}
             />
 
             {/* Modal thêm trạm */}

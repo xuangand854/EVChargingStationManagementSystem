@@ -91,38 +91,45 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-
         // Redeem voucher
         public async Task<IServiceResult> RedeemVoucher(Guid evDriverId, Guid voucherId)
         {
             try
             {
                 var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
-                    .Where(d => d.Id == evDriverId)
-                    .FirstOrDefaultAsync();
+      .FirstOrDefaultAsync(d => d.AccountId == evDriverId && !d.IsDeleted);
                 var voucher = await _unitOfWork.VoucherRepository.GetQueryable()
-                    .Where(v => v.Id == voucherId)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(v => v.Id == voucherId && v.IsActive);
 
                 if (driver == null || voucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy user hoặc voucher");
 
+                var now = DateTime.Now;
+                if (now < voucher.ValidFrom || now > voucher.ValidTo)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Voucher đã hết hạn hoặc chưa đến thời gian sử dụng");
+
                 if (driver.Point < voucher.RequiredPoints)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Điểm thưởng không đủ để đổi voucher này");
 
-                driver.Point -= voucher.RequiredPoints;
-                driver.UpdatedAt = DateTime.Now;
+                var alreadyRedeemed = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .AnyAsync(uv => uv.EVDriverId == evDriverId && uv.VoucherId == voucherId && uv.Status != "Expired");
+                if (alreadyRedeemed)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Bạn đã đổi voucher này rồi");
 
-                // Tạo UserVoucher
+                driver.Point -= voucher.RequiredPoints;
+                driver.UpdatedAt = now;
+
                 var userVoucher = new UserVoucher
                 {
                     Id = Guid.NewGuid(),
-                    EVDriverId = evDriverId,
+                    EVDriverId = driver.Id,
                     VoucherId = voucherId,
-                    AssignedDate = DateTime.Now,
-                    RedeemDate = DateTime.Now,
+                    AssignedDate = now,
+                    RedeemDate = now,
                     ExpiryDate = voucher.ValidTo,
-                    Status = "Redeemed"
+                    Status = "Redeemed",
+                    CreatedAt = now,
+                    UpdatedAt = now
                 };
 
                 await _unitOfWork.UserVoucherRepository.CreateAsync(userVoucher);
@@ -140,6 +147,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         // Sử dụng voucher
         public async Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid stationId)

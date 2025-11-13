@@ -146,15 +146,15 @@ namespace APIs.Configs
             //    .Ignore(dest => dest.Status)
             //    .IgnoreNullValues(true);
 
-
-            // View Booking
             TypeAdapterConfig<Booking, BookingViewDto>.NewConfig()
-                 .Map(dest => dest.DriverName, src => src.BookedByNavigation != null ? src.BookedByNavigation.Name : null)
-                 .Map(dest => dest.DriverEmail, src => src.BookedByNavigation != null ? src.BookedByNavigation.Email : null)
-                 .Map(dest => dest.StationName, src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.StationName : null)
-                 .Map(dest => dest.Location, src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.Location : null)
-                 .Map(dest => dest.ConnectorName, src => src.ConnectorNavigation != null ? src.ConnectorNavigation.ConnectorName : null)
-                 .IgnoreNullValues(true);
+             .Map(dest => dest.DriverName, src => src.BookedByNavigation != null ? src.BookedByNavigation.Name : null)
+             .Map(dest => dest.DriverEmail, src => src.BookedByNavigation != null ? src.BookedByNavigation.Email : null)
+             .Map(dest => dest.StationName, src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.StationName : null)
+             .Map(dest => dest.Location, src => src.ChargingStationNavigation != null ? src.ChargingStationNavigation.Location : null)
+             .Map(dest => dest.ConnectorName, src => src.ConnectorNavigation != null ? src.ConnectorNavigation.ConnectorName : null)
+             .Map(dest => dest.ChargingPostId, src => src.ConnectorNavigation != null ? src.ConnectorNavigation.ChargingPostId : (Guid?)null)
+             .Map(dest => dest.ChargingPostName, src => src.ConnectorNavigation != null ? src.ConnectorNavigation.ChargingPost != null ? src.ConnectorNavigation.ChargingPost.PostName : null : null)
+             .IgnoreNullValues(true);
 
             TypeAdapterConfig<ChargingSession, ChargingSessionViewDetailDto>.NewConfig()
                 .Map(dest => dest.TotalEnergyConsumedKWh, src => src.EnergyDeliveredKWh)

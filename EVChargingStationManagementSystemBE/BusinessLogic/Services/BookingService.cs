@@ -1,5 +1,4 @@
-﻿using BusinessLogic.Base;
-using BusinessLogic.IServices;
+﻿using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.BookingDto;
 using Common.Enum.ChargingSession;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Common.Enum.Booking;
 using Common.Enum.Connector;
+using BusinessLogic.Base;
 
 namespace BusinessLogic.Services
 {
@@ -57,11 +57,9 @@ namespace BusinessLogic.Services
                 var validVehicle = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
                     v => v.Id == vehicle.Id && !v.IsDeleted);
                 if (validVehicle == null)
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Xe không tồn tại trong hệ thống.");
-
-                // --- BR06: StartTime >= Now + 15min ---
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Xe không tồn tại trong hệ thống.");// --- BR06: StartTime >= Now + 5min ---
                 if (dto.StartTime < DateTime.Now.AddMinutes(5))
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Thời gian bắt đầu phải cách hiện tại ≥ 15 phút.");
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Thời gian bắt đầu phải cách hiện tại ≥ 5 phút.");
 
                 // --- BR05: Kiểm tra booking đang hoạt động ---
                 var active = await _unitOfWork.BookingRepository.GetAllAsync(
@@ -71,14 +69,14 @@ namespace BusinessLogic.Services
                 if (active.Any())
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Bạn đã có booking đang hoạt động.");
 
-                // --- BR07: Không đặt liên tiếp tại cùng trạm trong 30 phút ---
-                var recent = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => b.BookedBy == userId &&
-                         b.StationId == dto.StationId &&
-                         b.ActualEndTime.HasValue &&
-                         b.ActualEndTime.Value > DateTime.Now.AddMinutes(-30));
-                if (recent.Any())
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong 30 phút.");
+                //// --- BR07: Không đặt liên tiếp tại cùng trạm trong 30 phút ---
+                //var recent = await _unitOfWork.BookingRepository.GetAllAsync(
+                //    b => b.BookedBy == userId &&
+                //         b.StationId == dto.StationId &&
+                //         b.ActualEndTime.HasValue &&
+                //         b.ActualEndTime.Value > DateTime.Now.AddMinutes(-30));
+                //if (recent.Any())
+                //    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong 30 phút.");
 
                 // --- Kiểm tra trạm sạc ---
                 var station = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
@@ -86,8 +84,12 @@ namespace BusinessLogic.Services
                     include: s => s.Include(x => x.ChargingPosts));
                 if (station == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc.");
-                if (station.Status.Equals("Error", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc đang gặp sự cố.");
+                if (station.Status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase) ||
+          station.Status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc không khả dụng.");
+                }
+
 
                 // --- BR09: EndTime mặc định = StartTime + 90 phút ---
                 var booking = dto.Adapt<Booking>();
@@ -107,7 +109,6 @@ namespace BusinessLogic.Services
                     var response = booking.Adapt<BookingViewDto>();
                     return new ServiceResult(Const.SUCCESS_CREATE_CODE, Const.SUCCESS_CREATE_MSG, response);
                 }
-
                 return new ServiceResult(Const.FAIL_CREATE_CODE, Const.FAIL_CREATE_MSG);
             }
             catch (Exception ex)
@@ -121,13 +122,13 @@ namespace BusinessLogic.Services
             try
             {
                 //  1. Tìm booking theo mã CheckInCode + userId
-                   var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => b.CheckInCode == request.CheckInCode &&
-                    !b.IsDeleted,
-                   include: b => b.Include(x => x.ConnectorNavigation),
-                   asNoTracking: false 
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                 b => b.CheckInCode == request.CheckInCode &&
+                 !b.IsDeleted,
+                include: b => b.Include(x => x.ConnectorNavigation),
+                asNoTracking: false
 
-   );
+);
 
                 var booking = bookings.FirstOrDefault();
 
@@ -170,8 +171,7 @@ namespace BusinessLogic.Services
 
                 if (result > 0)
                 {
-                    var response = booking.Adapt<BookingViewDto>();
-                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công, trụ đã được mở khóa.", response);
+                    var response = booking.Adapt<BookingViewDto>(); return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Check-in thành công, trụ đã được mở khóa.", response);
                 }
 
                 return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hoàn tất check-in.");
@@ -231,8 +231,7 @@ namespace BusinessLogic.Services
 
         //            // 4️⃣ Cập nhật lại trạng thái trụ và cổng (nếu cần)
         //            var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-        //                predicate: c => !c.IsDeleted && c.Id == session.ConnectorId,
-        //                asNoTracking: false
+        //                predicate: c => !c.IsDeleted && c.Id == session.ConnectorId,//                asNoTracking: false
         //            );
         //            if (connector != null)
         //            {
@@ -304,7 +303,7 @@ namespace BusinessLogic.Services
                 booking.ActualEndTime = DateTime.Now;
                 booking.UpdatedAt = DateTime.Now;
 
-                session.Status = ChargingSessionStatus.Completed.ToString();
+                session.Status = ChargingSessionStatus.Paid.ToString();
                 session.EndTime = DateTime.Now;
                 session.UpdatedAt = DateTime.Now;
 
@@ -353,9 +352,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không có quyền hủy booking này");
 
                 if (!booking.Status.Equals("Scheduled", StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ được hủy khi booking đang Scheduled");
-
-                if (DateTime.Now >= booking.StartTime)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chỉ được hủy khi booking đang Scheduled"); if (DateTime.Now >= booking.StartTime)
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Không thể hủy sau thời điểm bắt đầu");
 
                 // Cập nhật trạng thái booking
@@ -397,8 +394,9 @@ namespace BusinessLogic.Services
                     include: b => b
                         .Include(x => x.BookedByNavigation)
                         .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.ChargingStationNavigation.ChargingPosts),
-                        asNoTracking: false
+                        .Include(x => x.ConnectorNavigation)               
+                            .ThenInclude(c => c.ChargingPost),              
+                    asNoTracking: false
                 );
 
                 if (booking == null)
@@ -412,19 +410,21 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-
         // Lấy danh sách tất cả booking (hoặc chỉ booking của 1 user)
         public async Task<IServiceResult> GetBookingList(Guid? userId = null)
         {
             try
             {
                 var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
-                    include: b => b
-                        .Include(x => x.ChargingStationNavigation)
-                        .Include(x => x.BookedByNavigation),
-                    orderBy: q => q.OrderByDescending(b => b.CreatedAt)
-                );
+     b => !b.IsDeleted && (userId == null || b.BookedBy == userId),
+     include: b => b
+         .Include(x => x.ChargingStationNavigation)
+         .Include(x => x.BookedByNavigation)
+         .Include(x => x.ConnectorNavigation)
+             .ThenInclude(c => c.ChargingPost),
+     orderBy: q => q.OrderByDescending(b => b.CreatedAt)
+ );
+
 
                 if (bookings == null || bookings.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy booking nào");
@@ -471,59 +471,56 @@ namespace BusinessLogic.Services
 
         // Tự động hủy các booking quá thời gian check-in cho phép
         // Chú ý: phương thức này sẽ xử lý những booking có trạng thái "Scheduled" mà
-        // hiện tại (UTC) đã vượt quá StartTime + CHECKIN_ALLOW_MINUTES.
+        // hiện tại  đã vượt quá StartTime + CHECKIN_ALLOW_MINUTES.
         // CHECKIN_ALLOW_MINUTES lấy từ SystemConfiguration (nếu không có → mặc định 15 phút).
         public async Task AutoCancelExpiredBookings()
         {
-            // Lấy thời điểm hiện tại (dùng  cho thống nhất trên server)
             var now = DateTime.Now;
 
-            // Lấy cấu hình CHECKIN_ALLOW_MINUTES từ DB (nếu không tồn tại thì mặc định 15)
-            // Đây là khoảng thời gian cho phép người dùng check-in trước/sau StartTime.
+            // Lấy cấu hình CHECKIN_ALLOW_MINUTES từ DB, default = 15 phút
             var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
                 c => !c.IsDeleted && c.Name == "CHECKIN_ALLOW_MINUTES");
-            int allowance = (int)(config?.MinValue ?? 15); // if null -> default 15 minutes
+            int allowance = (int)(config?.MinValue ?? 15);
 
-            // Lấy tất cả booking có trạng thái "Scheduled" mà thời điểm hiện tại đã vượt quá StartTime + allowance
-            // Kèm theo include để load thông tin ChargingStation và danh sách ChargingPosts
-            // Vì khi hủy cần thao tác trên các trụ đã bị Reserved trong trạm tương ứng.
+            // Lấy tất cả booking Scheduled mà đã quá thời gian cho phép check-in hoặc đã kết thúc
             var expiredBookings = await _unitOfWork.BookingRepository.GetAllAsync(
                 b => !b.IsDeleted &&
                      b.Status == "Scheduled" &&
-                     now > b.StartTime.AddMinutes(allowance),
+                     (now > b.StartTime.AddMinutes(allowance) || now > b.EndTime),
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(cs => cs.ChargingPosts)
+                                   .ThenInclude(p => p.Connectors),
+                                       asNoTracking: false
             );
 
-            // Duyệt từng booking quá hạn
             foreach (var booking in expiredBookings)
             {
-                // Cập nhật trạng thái booking → "Cancelled"
-                // Ghi lại thời điểm cập nhật bằng now (UTC)
+                // Hủy booking
                 booking.Status = "Cancelled";
                 booking.UpdatedAt = now;
 
-                // Nếu có trụ nào trong danh sách trụ của trạm đang ở trạng thái "Reserved",
-                // thì giải phóng trụ đó (trở về "Available") vì người đặt không đến (no-show)
-                foreach (var post in booking.ChargingStationNavigation.ChargingPosts
-                             .Where(p => p.Status == "Reserved"))
+                var station = booking.ChargingStationNavigation;
+                if (station != null)
                 {
-                    post.Status = "Available";
-                    post.UpdatedAt = now;
+                    foreach (var post in station.ChargingPosts)
+                    {
+                        foreach (var connector in post.Connectors ?? Enumerable.Empty<Connector>())
+                        {
+                            // Nếu connector đang bị lock/reserved vì booking này -> unlock và set lại Available
+                            if (connector.IsLocked && booking.ConnectorId == connector.Id)
+                            {
+                                connector.IsLocked = false;
+                                connector.Status = "Available";
+                                connector.UpdatedAt = now;
+                            }
+                        }
+                    }
                 }
-
-                // Lưu ý: không gọi SaveChangesAsync() trong vòng foreach để tránh nhiều lần commit nhỏ.
-                // Ta sẽ lưu chung sau khi xử lý xong tất cả expiredBookings để giảm số lần gọi DB.
             }
 
-            // Lưu mọi thay đổi (cập nhật booking + thay đổi trạng thái trụ) vào DB 1 lần
-            // Nếu có deadlock / concurrency, UnitOfWork hoặc DbContext phải được cấu hình retry/transaction phù hợp.
             await _unitOfWork.SaveChangesAsync();
-            // - Phương thức này "chỉ" tác động lên booking đã ở trạng thái Scheduled và đã quá StartTime + allowance.
-            // - Nếu muốn đảm bảo idempotency: chạy lại nhiều lần cũng không gây lỗi vì booking đã chuyển sang "Cancelled".
-
-            // - Sử dụng UTC để tránh sai lệch timezone giữa server và client.
         }
+
 
         // Tự động xử lý các booking thuộc trạm bị lỗi
         // Tự động xử lý các booking thuộc trạm bị lỗi
@@ -535,8 +532,7 @@ namespace BusinessLogic.Services
         {
             //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
             var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
-                s => s.Status == "Error" && !s.IsDeleted,
-                include: s => s.Include(x => x.ChargingPosts)
+                s => s.Status == "Error" && !s.IsDeleted, include: s => s.Include(x => x.ChargingPosts)
             );
 
             // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
@@ -595,9 +591,7 @@ namespace BusinessLogic.Services
                         booking.UpdatedAt = now;
                     }
                 }
-            }
-
-            //  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
+            }//  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -614,7 +608,7 @@ namespace BusinessLogic.Services
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(s => s.ChargingPosts)
                                    .ThenInclude(p => p.Connectors),
-                                   asNoTracking :false
+                                   asNoTracking: false
             );
 
             foreach (var booking in upcomingBookings)
@@ -635,26 +629,16 @@ namespace BusinessLogic.Services
 
             await _unitOfWork.SaveChangesAsync();
         }
-  public async Task<List<Connector>> PredictUpcomingLockedConnectorsAsync(int minutes = 30)
+   
+        public Task AutoCompleteBookingsAsync()
         {
-            var now = DateTime.UtcNow;
+            throw new NotImplementedException();
+        }
 
-            var upcomingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                b => !b.IsDeleted
-                  && b.Status == BookingStatus.Scheduled.ToString()
-                  && b.StartTime <= now.AddMinutes(minutes)
-                  && b.StartTime > now,
-                include: b => b.Include(x => x.ConnectorNavigation)
-            );
-
-            var predictedConnectors = upcomingBookings
-                .Where(b => b.ConnectorNavigation != null)
-                .Select(b => b.ConnectorNavigation)
-                .Distinct()
-                .ToList();
-
-            return predictedConnectors;
+        public Task AutoProcessAllBookingsAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 
-    }   
+}

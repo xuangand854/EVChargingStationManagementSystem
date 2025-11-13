@@ -150,23 +150,7 @@ namespace APIs.Controllers
             return StatusCode(500, new { message = result.Message });
         }
 
-        // 8️ Dự đoán trụ sạc sắp bị khóa (trước X phút)
-        [HttpGet("predict-locked")]
-        [Authorize]
-        public async Task<IActionResult> PredictLockedConnectors([FromQuery] int minutes = 30)
-        {
-            var result = await _service.PredictUpcomingLockedConnectorsAsync(minutes);
-
-            if (result == null || !result.Any())
-                return NotFound(new { message = $"Không có trụ nào dự kiến bị khóa trong {minutes} phút tới." });
-
-            return Ok(new
-            {
-                message = $"Danh sách trụ dự kiến bị khóa trong {minutes} phút tới.",
-                data = result
-            });
-        }
-
+    
         // 9️ Auto Reserve - Tự động khóa trụ trước giờ sạc 5 phút
         [HttpPost("auto-reserve-before-start")]
         [Authorize]

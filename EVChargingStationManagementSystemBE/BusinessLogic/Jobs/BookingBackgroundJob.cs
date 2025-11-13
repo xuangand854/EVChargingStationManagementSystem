@@ -29,7 +29,6 @@ namespace BusinessLogic.Jobs
                 await bookingService.LockAccountsWithTooManyNoShows();
                 await bookingService.AutoCancelExpiredBookings();
                 await bookingService.AutoReassignBookingsForErrorStations();
-                await bookingService.PredictUpcomingLockedConnectorsAsync();
                 await bookingService.AutoReserveConnectorBeforeStart();
                 {
                     _logger.LogInformation("[BookingBackgroundJob] hoàn tất vòng chạy lúc {time}", DateTime.Now);

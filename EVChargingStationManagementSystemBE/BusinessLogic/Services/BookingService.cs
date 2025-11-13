@@ -601,35 +601,53 @@ namespace BusinessLogic.Services
 
             // Lấy danh sách booking Scheduled mà StartTime cách now <= 5 phút
             var upcomingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
-            predicate: b => !b.IsDeleted &&
-                     b.Status == "Scheduled" &&
-                     b.StartTime <= now.AddMinutes(5) &&
-                     b.StartTime > now,
+                predicate: b => !b.IsDeleted &&
+                         b.Status == "Scheduled" &&
+                         b.StartTime <= now.AddMinutes(5) &&
+                         b.StartTime > now,
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(s => s.ChargingPosts)
-                                   .ThenInclude(p => p.Connectors),
-                                   asNoTracking: false
+                                   .ThenInclude(p => p.Connectors)
+                               .Include(x => x.ConnectorNavigation) // 👈 include connector đã gắn
+                                   .ThenInclude(c => c.ChargingPost),
+                asNoTracking: false
             );
 
             foreach (var booking in upcomingBookings)
             {
-                var connector = booking.ChargingStationNavigation.ChargingPosts
-                    .SelectMany(p => p.Connectors)
-                    .FirstOrDefault(c => c.Status == "Available");
-
-                if (connector != null)
+                // Nếu booking chưa có connector thì mới chọn
+                if (booking.ConnectorId == null)
                 {
-                    connector.Status = "Reserved";
-                    connector.IsLocked = true;
-                    connector.UpdatedAt = now;
-                    booking.ConnectorId = connector.Id;
+                    var connector = booking.ChargingStationNavigation.ChargingPosts
+                        .SelectMany(p => p.Connectors)
+                        .FirstOrDefault(c => c.Status == ConnectorStatus.Available.ToString());
 
+                    if (connector != null)
+                    {
+                        connector.Status = ConnectorStatus.Reserved.ToString();
+                        connector.IsLocked = true;
+                        connector.UpdatedAt = now;
+
+                        booking.ConnectorId = connector.Id; 
+                        booking.UpdatedAt = now;
+                    }
+                }
+                else
+                {
+                    // Nếu đã có connector thì giữ nguyên, không chọn lại
+                    var connector = booking.ConnectorNavigation;
+                    if (connector != null && connector.IsLocked == false)
+                    {
+                        connector.Status = ConnectorStatus.Reserved.ToString();
+                        connector.IsLocked = true;
+                        connector.UpdatedAt = now;
+                    }
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
         }
-   
+
         public Task AutoCompleteBookingsAsync()
         {
             throw new NotImplementedException();

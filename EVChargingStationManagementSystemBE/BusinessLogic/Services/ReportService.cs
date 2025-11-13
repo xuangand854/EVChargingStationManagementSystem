@@ -7,10 +7,6 @@ using Infrastructure.Models;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
@@ -26,15 +22,15 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var reports = await _unitOfWork.ReportRepository.GetAllAsync(
-                    predicate: r => !r.IsDeleted,
-                    include: q => q
-                        .Include(r => r.ReportedBy)
-                        .Include(r => r.ChargingStation)
-                        .Include(r => r.ChargingPost),
-                    orderBy: q => q.OrderByDescending(r => r.CreatedAt),
-                    asNoTracking: true
-                );
+                // Lấy tất cả report chưa bị xóa, kèm navigation để hiển thị thông tin đầy đủ
+                var reports = await _unitOfWork.ReportRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(r => !r.IsDeleted)
+                    .Include(r => r.ReportedBy)
+                    .Include(r => r.ChargingStation)
+                    .Include(r => r.ChargingPost)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
 
                 if (reports == null || reports.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy báo cáo nào.");
@@ -70,20 +66,19 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var report = await _unitOfWork.ReportRepository.GetByIdAsync(
-                    predicate: r => r.Id == id && !r.IsDeleted,
-                    include: q => q
-                        .Include(r => r.ReportedBy)
-                        .Include(r => r.ChargingStation)
-                        .Include(r => r.ChargingPost),
-                    asNoTracking: true
-                );
+                var report = await _unitOfWork.ReportRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(r => r.Id == id && !r.IsDeleted)
+                    .Include(r => r.ReportedBy)
+                    .Include(r => r.ChargingStation)
+                    .Include(r => r.ChargingPost)
+                    .ProjectToType<ViewReportDTO>()
+                    .FirstOrDefaultAsync();
 
                 if (report == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy báo cáo.");
 
-                var response = report.Adapt<ViewReportDTO>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, report);
             }
             catch (Exception ex)
             {
@@ -123,10 +118,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var report = await _unitOfWork.ReportRepository.GetByIdAsync(
-                    predicate: r => r.Id == id && !r.IsDeleted,
-                    asNoTracking: false // có tracking để EF nhận thay đổi
-                );
+                var report = await _unitOfWork.ReportRepository.GetQueryable()
+                    .Where(r => r.Id == id && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (report == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy báo cáo.");
@@ -154,10 +148,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var report = await _unitOfWork.ReportRepository.GetByIdAsync(
-                    predicate: r => r.Id == id && !r.IsDeleted,
-                    asNoTracking: false
-                );
+                var report = await _unitOfWork.ReportRepository.GetQueryable()
+                    .Where(r => r.Id == id && !r.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (report == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy báo cáo.");
@@ -207,6 +200,5 @@ namespace BusinessLogic.Services
             }
         }
     }
-    }
+}
 
-      

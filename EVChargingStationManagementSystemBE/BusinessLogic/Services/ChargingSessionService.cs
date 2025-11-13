@@ -16,24 +16,22 @@ namespace BusinessLogic.Services
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public async Task<IServiceResult> GetList(Guid userId)
+        public async Task<IServiceResult> GetList()
         {
             try
             {
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetAllAsync(
-                    predicate: c => !c.IsDeleted && c.UserId == userId,
-                    orderBy: q => q.OrderByDescending(v => v.CreatedAt)
-                    );
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .AsNoTracking()
+                    //.Where(c => !c.IsDeleted && c.UserId == userId)
+                    .Where(c => !c.IsDeleted)
+                    .ProjectToType<ChargingSessionViewListDto>()
+                    .ToListAsync();
                 if (chargingSession == null || chargingSession.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy phiên sạc nào");
 
-                else
-                {
-                    var response = chargingSession.Adapt<List<ChargingSessionViewListDto>>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingSession);
             }
             catch (Exception ex)
             {
@@ -45,20 +43,18 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == SessionId 
-                    );
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted && v.Id == SessionId)
+                    .ProjectToType<ChargingSessionViewDetailDto>()
+                    .FirstOrDefaultAsync();
                 if (chargingSession == null)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy phiên sạc nào"
                     );
 
-                else
-                {
-                    var response = chargingSession.Adapt<ChargingSessionViewDetailDto>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingSession);
             }
             catch (Exception ex)
             {
@@ -96,22 +92,25 @@ namespace BusinessLogic.Services
                         return new ServiceResult(Const.FAIL_CREATE_CODE, "Vui lòng chọn xe trong profile của bạn");
                 }
 
-                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-                    predicate: p => !p.IsDeleted && p.Id == dto.ConnectorId,
-                    include: c => c.Include(p => p.ChargingPost),
-                    asNoTracking: false
-                    );
+                var connector = await _unitOfWork.ConnectorRepository.GetQueryable()
+                    .Where(p => !p.IsDeleted && p.Id == dto.ConnectorId)
+                    .Include(v => v.ChargingPost)
+                        .ThenInclude(c => c.ChargingStationNavigation)
+                    .FirstOrDefaultAsync();
 
                 if (connector == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc được chọn");
 
-                var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
-                    predicate: p => !p.IsDeleted && p.Id == connector.ChargingPost.Id,
-                    include: c => c.Include(p => p.ChargingStationNavigation),
-                    asNoTracking: false
-                );
-                if (chargingPost == null)
+                //var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
+                //    predicate: p => !p.IsDeleted && p.Id == connector.ChargingPost.Id,
+                //    include: c => c.Include(p => p.ChargingStationNavigation),
+                //    asNoTracking: false
+                //);
+                if (connector.ChargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trụ sạc được chọn");
+
+                if (connector.ChargingPost.ChargingStationNavigation == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
 
                 // Nếu cổng sạc là bất cứ trạng thái nào khác ngoài "InUse - (đang được sử dụng)" thì trả lỗi 
                 if (!connector.Status.Equals(ConnectorStatus.InUse.ToString()))
@@ -123,9 +122,9 @@ namespace BusinessLogic.Services
                 chargingSession.ChargingPostId = connector.ChargingPostId;
                 connector.Status = ConnectorStatus.Charging.ToString();
                 connector.IsLocked = true;
-                chargingPost.UpdatedAt = DateTime.Now;
+                connector.ChargingPost.UpdatedAt = DateTime.Now;
 
-                chargingPost.ChargingStationNavigation.UpdatedAt = DateTime.Now;
+                connector.ChargingPost.ChargingStationNavigation.UpdatedAt = DateTime.Now;
 
                 await _unitOfWork.ChargingSessionRepository.CreateAsync(chargingSession);
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -147,31 +146,29 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var session = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    predicate: s => !s.IsDeleted && s.Id == sessionId,
-                    asNoTracking: false
-                );
+                var session = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .Where(s => !s.IsDeleted && s.Id == sessionId)
+                    .FirstOrDefaultAsync();
                 if (session == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc nào");
 
                 if (!session.Status.Equals(ChargingSessionStatus.Charging.ToString()))
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Phiên sạc này đã được dừng lại rồi");
 
-                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-                    predicate: p => !p.IsDeleted && p.Id == session.ConnectorId,
-                    asNoTracking: false
-                    );
+                var connector = await _unitOfWork.ConnectorRepository.GetQueryable()
+                    .Where(p => !p.IsDeleted && p.Id == session.ConnectorId)
+                    .FirstOrDefaultAsync();
 
                 if (connector == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc được chọn");
 
                 dto.Adapt(session);
 
-                var t_e = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                    c => !c.IsDeleted && c.Name == "PRICE_PER_kWH"
-                );
-                
-                
+                var t_e = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted && c.Name == "PRICE_PER_kWH")
+                .FirstOrDefaultAsync();
+
                 decimal pricePerKWh = 1000; //vnd
                 if (t_e != null && _unitOfWork.SystemConfigurationRepository.Validate(t_e))
                     pricePerKWh = t_e.MinValue ?? 1000;

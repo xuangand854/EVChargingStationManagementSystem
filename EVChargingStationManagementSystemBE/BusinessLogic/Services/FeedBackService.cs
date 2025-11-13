@@ -13,7 +13,7 @@ namespace BusinessLogic.Services
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        //  TẠO PHẢN HỒI (AccountId lấy từ token)
+        // TẠO PHẢN HỒI (AccountId lấy từ token)
         public async Task<IServiceResult> CreateFeedbackAsync(FeedbackCreateDto dto, Guid userId)
         {
             try
@@ -36,22 +36,21 @@ namespace BusinessLogic.Services
             }
         }
 
-        // ✅ LẤY DANH SÁCH PHẢN HỒI
+        // LẤY DANH SÁCH PHẢN HỒI
         public async Task<IServiceResult> GetAllFeedbacksAsync()
         {
             try
             {
-                var feedbacks = await _unitOfWork.FeedBackRepository.GetAllAsync(
-                    include: q => q.Include(f => f.UserAccount),
-                    orderBy: q => q.OrderByDescending(f => f.CreatedAt),
-                    asNoTracking: true
-                );
-
+                var feedbacks = await _unitOfWork.FeedBackRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Include(f => f.UserAccount)
+                    .OrderByDescending(f => f.CreatedAt)
+                    .ProjectToType<FeedbackListDto>()
+                    .ToListAsync();
                 if (feedbacks == null || feedbacks.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có phản hồi nào.");
 
-                var response = feedbacks.Adapt<List<FeedbackListDto>>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, feedbacks);
             }
             catch (Exception ex)
             {
@@ -59,22 +58,22 @@ namespace BusinessLogic.Services
             }
         }
 
-        // ✅ LẤY PHẢN HỒI THEO ID
+        // LẤY PHẢN HỒI THEO ID
         public async Task<IServiceResult> GetFeedbackByIdAsync(Guid id)
         {
             try
             {
-                var feedback = await _unitOfWork.FeedBackRepository.GetByIdAsync(
-                    predicate: f => f.Id == id,
-                    include: q => q.Include(f => f.UserAccount),
-                    asNoTracking: true
-                );
+                var feedback = await _unitOfWork.FeedBackRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(f => f.Id == id)
+                    .Include(f => f.UserAccount)
+                    .ProjectToType<FeedbackReadDto>()
+                    .FirstOrDefaultAsync();
 
                 if (feedback == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phản hồi.");
 
-                var response = feedback.Adapt<FeedbackReadDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, feedback);
             }
             catch (Exception ex)
             {
@@ -82,15 +81,14 @@ namespace BusinessLogic.Services
             }
         }
 
-        // ✅ CẬP NHẬT TRẠNG THÁI PHẢN HỒI
+        // CẬP NHẬT TRẠNG THÁI PHẢN HỒI
         public async Task<IServiceResult> UpdateStatusAsync(FeedbackUpdateStatusDto dto)
         {
             try
             {
-                var feedback = await _unitOfWork.FeedBackRepository.GetByIdAsync(
-                    predicate: f => f.Id == dto.Id,
-                    asNoTracking: false
-                );
+                var feedback = await _unitOfWork.FeedBackRepository.GetQueryable()
+                    .Where(f => f.Id == dto.Id)
+                    .FirstOrDefaultAsync();
 
                 if (feedback == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phản hồi.");

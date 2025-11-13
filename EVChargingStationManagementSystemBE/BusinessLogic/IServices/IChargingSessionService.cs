@@ -5,7 +5,7 @@ namespace BusinessLogic.IServices
 {
     public interface IChargingSessionService
     {
-        Task<IServiceResult> GetList(Guid userId);
+        Task<IServiceResult> GetList();
         Task<IServiceResult> GetById(Guid SessionId);
         Task<IServiceResult> Start(ChargingSessionStartDto dto);
         Task<IServiceResult> Stop(ChargingSessionStopDto dto, Guid sessionId);

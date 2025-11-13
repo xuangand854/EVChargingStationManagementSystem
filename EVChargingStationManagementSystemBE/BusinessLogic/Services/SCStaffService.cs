@@ -23,18 +23,18 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staffs = await _unitOfWork.SCStaffRepository.GetAllAsync(
-                    predicate: s => !s.IsDeleted,
-                    include: q => q.Include(x => x.UserAccountNavigation),
-                    orderBy: q => q.OrderByDescending(s => s.CreatedAt),
-                    asNoTracking: true
-                );
+                var staffs = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted)
+                    .Include(x => x.UserAccountNavigation)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .ProjectToType<StaffViewDto>()
+                    .ToListAsync();
 
                 if (staffs == null || staffs.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào");
 
-                var response = staffs.Adapt<List<StaffViewDto>>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staffs);
             }
             catch (Exception ex)
             {
@@ -50,6 +50,7 @@ namespace BusinessLogic.Services
                     .AsNoTracking()
                     .Where(s => !s.IsDeleted && s.SCStaffProfile != null)
                     .Include(Task => Task.SCStaffProfile)
+                    .OrderByDescending(s => s.CreatedAt)
                     .ProjectToType<StaffViewDto>()
                     .ToListAsync();
 
@@ -68,17 +69,17 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == id && !s.IsDeleted,
-                    include: q => q.Include(x => x.UserAccountNavigation),
-                    asNoTracking: true
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => s.Id == id && !s.IsDeleted)
+                    .Include(Task => Task.UserAccountNavigation)
+                    .ProjectToType<StaffViewDto>()
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
-                var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staff);
             }
             catch (Exception ex)
             {
@@ -120,7 +121,7 @@ namespace BusinessLogic.Services
                 await _unitOfWork.SCStaffRepository.CreateAsync(staff);
                 await _unitOfWork.SaveChangesAsync();
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công",response);
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công", response);
             }
             catch (Exception ex)
             {
@@ -133,11 +134,10 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
-                    include: q => q.Include(x => x.UserAccountNavigation),
-                    asNoTracking: false
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .Where(s => s.Id == dto.StaffId && !s.IsDeleted)
+                    .Include(Task => Task.UserAccountNavigation)
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
@@ -171,11 +171,10 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
-                    include: q => q.Include(x => x.UserAccountNavigation),
-                    asNoTracking: false
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .Where(s => s.Id == dto.StaffId && !s.IsDeleted)
+                    .Include(Task => Task.UserAccountNavigation)
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
@@ -207,10 +206,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == dto.StaffId && !s.IsDeleted,
-                    asNoTracking: false
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .Where(s => s.Id == dto.StaffId && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
@@ -236,10 +234,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.Id == staffId && !s.IsDeleted,
-                    asNoTracking: false
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .Where(s => s.Id == staffId && !s.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
@@ -259,15 +256,17 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-             public async Task<IServiceResult> GetByAccountId(Guid accountId)
+
+        public async Task<IServiceResult> GetByAccountId(Guid accountId)
         {
             try
             {
-                var staff = await _unitOfWork.SCStaffRepository.GetByIdAsync(
-                    predicate: s => s.AccountId == accountId && !s.IsDeleted,
-                    include: q => q.Include(x => x.UserAccountNavigation),
-                    asNoTracking: true
-                );
+                var staff = await _unitOfWork.SCStaffRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => s.AccountId == accountId && !s.IsDeleted)
+                    .Include(Task => Task.UserAccountNavigation)
+                    .ProjectToType<StaffViewDto>()
+                    .FirstOrDefaultAsync();
 
                 if (staff == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE,

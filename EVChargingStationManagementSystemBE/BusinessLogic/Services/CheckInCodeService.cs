@@ -1,10 +1,6 @@
 ﻿using BusinessLogic.IServices;
 using Infrastructure.IUnitOfWork;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -22,9 +18,12 @@ namespace BusinessLogic.Services
             {
                 code = _random.Next(1000, 10000).ToString();
 
-                exists = (await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => b.CheckInCode == code
-                )).Any();
+                //exists = (await _unitOfWork.BookingRepository.GetAllAsync(
+                //    b => b.CheckInCode == code
+                //)).Any();
+                exists = (await _unitOfWork.BookingRepository.GetQueryable()
+                    .Where(b => b.CheckInCode == code).ToListAsync()
+                    ).Count != 0;
 
             } while (exists);
 

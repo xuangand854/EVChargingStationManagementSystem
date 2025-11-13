@@ -160,6 +160,9 @@ namespace APIs.Configs
                 .Map(dest => dest.TotalEnergyConsumedKWh, src => src.EnergyDeliveredKWh)
                 .IgnoreNullValues(true);
 
+            TypeAdapterConfig<ChargingSession, ChargingSessionViewListDto>.NewConfig()
+                .IgnoreNullValues(true);
+
             TypeAdapterConfig<ChargingSessionStopDto, ChargingSession>.NewConfig()
                 .IgnoreNullValues(true);
 

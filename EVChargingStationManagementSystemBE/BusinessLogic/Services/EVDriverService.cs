@@ -20,21 +20,19 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var drivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
-                    predicate: d => !d.IsDeleted,
-                    include: q => q
-                        .Include(d => d.UserAccount)
-                        .Include(d => d.UserVehicles)
-                        .ThenInclude(uv => uv.VehicleModel),
-                    orderBy: q => q.OrderByDescending(d => d.CreatedAt),
-                    asNoTracking: true
-                );
-
+                var drivers = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(d => !d.IsDeleted)
+                    .Include(d => d.UserAccount)
+                    .Include(d => d.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel)
+                    .OrderByDescending(d => d.CreatedAt)
+                    .ProjectToType<EVDriverViewDto>()
+                    .ToListAsync();
                 if (drivers == null || drivers.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver nào");
 
-                var response = drivers.Adapt<List<EVDriverViewDto>>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, drivers);
             }
             catch (Exception ex)
             {
@@ -47,20 +45,20 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == driverId && !d.IsDeleted,
-                    include: q => q
-                        .Include(d => d.UserAccount)
-                        .Include(d => d.UserVehicles)
-                        .ThenInclude(uv => uv.VehicleModel),
-                    asNoTracking: true
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(d => d.Id == driverId && !d.IsDeleted)
+                    .Include(d => d.UserAccount)
+                    .Include(d => d.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel)
+                    .OrderByDescending(d => d.CreatedAt)
+                    .ProjectToType<EVDriverViewDto>()
+                    .ToListAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
 
-                var response = driver.Adapt<EVDriverViewDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, driver);
             }
             catch (Exception ex)
             {
@@ -94,18 +92,16 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == dto.DriverId && !d.IsDeleted,
-                    include: q => q
-                        .Include(d => d.UserAccount)
-                        .Include(d => d.UserVehicles),
-                    asNoTracking: false
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .Where(d => d.Id == dto.DriverId && !d.IsDeleted)
+                    .Include(d => d.UserAccount)
+                    .Include(d => d.UserVehicles)
+                    .FirstOrDefaultAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
 
-                // ✅ Cập nhật thông tin cơ bản
+                // Cập nhật thông tin cơ bản
                 dto.Adapt(driver);
                 driver.UpdatedAt = DateTime.UtcNow;
 
@@ -115,7 +111,7 @@ namespace BusinessLogic.Services
                     driver.UserAccount.UpdatedAt = DateTime.UtcNow;
                 }
 
-                // ✅ Nếu có danh sách xe mới từ client
+                // Nếu có danh sách xe mới từ client
                 if (dto.VehicleModelIds != null && dto.VehicleModelIds.Any())
                 {
                     var existingVehicleIds = driver.UserVehicles
@@ -145,17 +141,17 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
 
                 //  Lấy lại profile sau khi cập nhật
-                var updatedDriver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == dto.DriverId,
-                    include: q => q
-                        .Include(d => d.UserAccount)
-                        .Include(d => d.UserVehicles)
-                        .ThenInclude(uv => uv.VehicleModel),
-                    asNoTracking: true
-                );
-
-                var response = updatedDriver.Adapt<EVDriverViewDto>();
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
+                var updatedDriver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(d => d.Id == dto.DriverId)
+                    .Include(d => d.UserAccount)
+                    .Include(d => d.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel)
+                    .ProjectToType<EVDriverViewDto>()
+                    .FirstOrDefaultAsync();
+                if (updatedDriver == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy profile");
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, updatedDriver);
             }
             catch (Exception ex)
             {
@@ -168,10 +164,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == dto.DriverId && !d.IsDeleted,
-                    asNoTracking: false
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .Where(d => d.Id == dto.DriverId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
@@ -197,10 +192,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == driverId && !d.IsDeleted,
-                    asNoTracking: false
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .Where(d => d.Id == driverId && !d.IsDeleted)
+                    .FirstOrDefaultAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
@@ -227,14 +221,14 @@ namespace BusinessLogic.Services
             try
             {
                 // Lấy thông tin EVDriver gắn với tài khoản đang đăng nhập
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-        predicate: d => d.AccountId == accountId && !d.IsDeleted,
-        include: q => q
-            .Include(d => d.UserAccount)
-            .Include(d => d.UserVehicles)
-                .ThenInclude(uv => uv.VehicleModel),
-        asNoTracking: true
-    );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(d => d.AccountId == accountId && !d.IsDeleted)
+                    .Include(d => d.UserAccount)
+                    .Include(d => d.UserVehicles)
+                        .ThenInclude(uv => uv.VehicleModel)
+                    .ProjectToType<EVDriverViewDto>()
+                    .FirstOrDefaultAsync();
 
 
                 // Nếu không tìm thấy tài xế
@@ -244,13 +238,10 @@ namespace BusinessLogic.Services
                         "Không tìm thấy hồ sơ tài xế tương ứng với tài khoản hiện tại."
                     );
 
-                // Map entity sang DTO
-                var response = driver.Adapt<EVDriverViewDto>();
-
                 return new ServiceResult(
                     Const.SUCCESS_READ_CODE,
                     Const.SUCCESS_READ_MSG,
-                    response
+                    driver
                 );
             }
             catch (Exception ex)
@@ -265,11 +256,10 @@ namespace BusinessLogic.Services
             try
             {
                 // Lấy driver kèm danh sách xe
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.AccountId == accountId && !d.IsDeleted,
-                    include: q => q.Include(d => d.UserVehicles),
-                    asNoTracking: false
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .Where(d => d.AccountId == accountId && !d.IsDeleted)
+                    .Include(d => d.UserVehicles)
+                    .FirstOrDefaultAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy hồ sơ của bạn.");
@@ -280,7 +270,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy xe trong hồ sơ của bạn.");
 
                 // Xóa cứng bản ghi UserVehicle (KHÔNG đụng vào VehicleModel)
-                _unitOfWork.UserVehicleRepository.RemoveAsync(userVehicle);
+                await _unitOfWork.UserVehicleRepository.RemoveAsync(userVehicle);
 
 
                 var result = await _unitOfWork.SaveChangesAsync();

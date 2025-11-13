@@ -1,7 +1,6 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.ConnectorDto;
 using Common.DTOs.PaymentDto;
 using Common.Enum.ChargingSession;
 using Common.Enum.Payment;
@@ -26,17 +25,22 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(sessionId);
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(s => !s.IsDeleted && s.Id == sessionId)
+                    .FirstOrDefaultAsync();
+
+                if (chargingSession == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Phiên sạc này không tồn tại");
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
 
                 var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
-                string encoded = HttpUtility.UrlEncode("GiaTienPhienSac");                
+                string encoded = HttpUtility.UrlEncode("GiaTienPhienSac");
 
-                var vat = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                    c => !c.IsDeleted && c.Name == "VAT"
-                );
+                var vat = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking().Where(c => !c.IsDeleted && c.Name == "VAT").FirstOrDefaultAsync();
 
                 decimal vatValue = 0;
                 if (vat != null && _unitOfWork.SystemConfigurationRepository.Validate(vat))
@@ -106,24 +110,21 @@ namespace BusinessLogic.Services
                 string transactionNo = queryParams.ContainsKey("vnp_TransactionNo") ? queryParams["vnp_TransactionNo"] : null;
 
                 // Tìm payment tương ứng
-                var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(
-                    predicate: p => p.TxnRef == txnRef,
-                    asNoTracking: false
-                );
+                var payment = await _unitOfWork.PaymentRepository.GetQueryable()
+                    .Where(p => p.TxnRef == txnRef).FirstOrDefaultAsync();
+
                 if (payment == null)
                     return JsonResponse("01", "Không tìm thấy đơn thanh toán");
 
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    predicate: p => p.Id == payment.ChargingSessionId,
-                    asNoTracking: false
-                );
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .Where(p => p.Id == payment.ChargingSessionId).FirstOrDefaultAsync();
+
                 if (chargingSession == null)
                     return JsonResponse("01", "Không tìm thấy phiên sạc");
 
-                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-                    predicate: p => p.Id == chargingSession.ConnectorId,
-                    asNoTracking: false
-                );
+                var connector = await _unitOfWork.ConnectorRepository.GetQueryable()
+                    .Where(p => p.Id == chargingSession.ConnectorId).FirstOrDefaultAsync();
+
                 if (connector == null)
                     return JsonResponse("01", "Không tìm thấy cổng sạc");
 
@@ -192,9 +193,9 @@ namespace BusinessLogic.Services
             try
             {
                 var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
-                    .Where( cs => cs.Id == sessionId)
-                    .Include( cs => cs.ChargingPost)
-                        .ThenInclude( cs => cs.ChargingStationNavigation)
+                    .Where(cs => cs.Id == sessionId)
+                    .Include(cs => cs.ChargingPost)
+                        .ThenInclude(cs => cs.ChargingStationNavigation)
                     .FirstOrDefaultAsync();
 
                 if (chargingSession == null)
@@ -209,9 +210,8 @@ namespace BusinessLogic.Services
 
                 var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
 
-                var vat = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                    c => !c.IsDeleted && c.Name == "VAT"
-                );
+                var vat = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking().Where(c => !c.IsDeleted && c.Name == "VAT").FirstOrDefaultAsync();
 
                 decimal vatValue = 0;
                 if (vat != null && _unitOfWork.SystemConfigurationRepository.Validate(vat))
@@ -223,7 +223,7 @@ namespace BusinessLogic.Services
                     ChargingSessionId = sessionId,
                     TxnRef = txnRef,
                     TaxRate = vatValue,
-                    BeforeVatAmount = chargingSession.Cost,                    
+                    BeforeVatAmount = chargingSession.Cost,
                 };
                 if (chargingSession.UserId != null || chargingSession.UserId != Guid.Empty)
                     payment.PaidBy = chargingSession.UserId;
@@ -265,26 +265,24 @@ namespace BusinessLogic.Services
         public async Task<IServiceResult> UpdatePaymentOfflineRecord(Guid paymentId, Guid userId)
         {
             try
-            {             
+            {
+                var payment = await _unitOfWork.PaymentRepository.GetQueryable()
+                    .Where(s => !s.IsDeleted && s.Id == paymentId).FirstOrDefaultAsync();
 
-                var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(
-                    predicate: s => !s.IsDeleted && s.Id == paymentId,
-                    asNoTracking: false
-                );
                 if (payment == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy đơn thanh toán");
 
-                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    s => !s.IsDeleted && s.Id == payment.ChargingSessionId);
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .Where(s => !s.IsDeleted && s.Id == payment.ChargingSessionId).FirstOrDefaultAsync();
 
                 if (chargingSession == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc của đơn thanh toán này");
 
-                var connector = await _unitOfWork.ConnectorRepository.GetByIdAsync(
-                    predicate: s => !s.IsDeleted && s.Id == chargingSession.ConnectorId,
-                    include: s => s.Include( s => s.ChargingPost).ThenInclude(s => s.ChargingStationNavigation),
-                    asNoTracking: false
-                );
+                var connector = await _unitOfWork.ConnectorRepository.GetQueryable()
+                    .Where(s => !s.IsDeleted && s.Id == chargingSession.ConnectorId)
+                    .Include(s => s.ChargingPost).ThenInclude(s => s.ChargingStationNavigation)
+                    .FirstOrDefaultAsync();
+
                 if (connector == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc của phiên sạc này");
 
@@ -293,7 +291,7 @@ namespace BusinessLogic.Services
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
-                
+
                 payment.Status = PaymentStatus.Successed.ToString();
                 payment.UpdatedAt = DateTime.Now;
 
@@ -325,8 +323,8 @@ namespace BusinessLogic.Services
 
                 if (result > 0)
                     return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Ghi nhận giao dịch thành công");
-                else
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, Const.FAIL_CREATE_MSG);
+
+                return new ServiceResult(Const.FAIL_CREATE_CODE, Const.FAIL_CREATE_MSG);
             }
             catch (Exception ex)
             {
@@ -347,8 +345,7 @@ namespace BusinessLogic.Services
                 if (payment == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy đơn thanh toán");
 
-                else
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, payment);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, payment);
             }
             catch (Exception ex)
             {
@@ -359,9 +356,10 @@ namespace BusinessLogic.Services
 
         public async void UpdatePoint(Guid accountId, double EnergyDeliveredKWh)
         {
-            var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                    c => !c.IsDeleted && c.Name == "POINT_PER_KWH"
-                );
+            var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted && c.Name == "POINT_PER_KWH")
+                .FirstOrDefaultAsync();
 
             decimal pointValue = 0;
             if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
@@ -373,7 +371,7 @@ namespace BusinessLogic.Services
                 .FirstOrDefaultAsync();
 
             if (user != null && user.EVDriverProfile != null)
-                {
+            {
                 user.EVDriverProfile.Point = (int)((decimal)EnergyDeliveredKWh * pointValue);
                 user.EVDriverProfile.UpdatedAt = DateTime.Now;
             }

@@ -297,10 +297,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var chargingStation = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    predicate: c => c.Id == stationId,
-                    asNoTracking: false
-                    );
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => c.Id == stationId)
+                    .FirstOrDefaultAsync();
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 

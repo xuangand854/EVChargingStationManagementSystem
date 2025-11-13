@@ -1,7 +1,6 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.PaymentDto;
 using Common.DTOs.SystemConfigurationDto;
 using Infrastructure.IUnitOfWork;
 using Mapster;
@@ -16,17 +15,19 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var configurations = await _unitOfWork.SystemConfigurationRepository.GetAllAsync(
-                    predicate: sc => !sc.IsDeleted,
-                    orderBy: q => q.OrderByDescending(sc => sc.CreatedAt)
-                );
+                var configurations = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(sc => !sc.IsDeleted)
+                    .OrderByDescending(sc => sc.CreatedAt)
+                    .ProjectToType<SystemConfigurationViewListDto>()
+                    .ToListAsync();
+
                 if (configurations == null || configurations.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy tùy chỉnh hệ thống nào"
                     );
-                var response = configurations.Adapt<List<SystemConfigurationViewListDto>>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, configurations);
             }
             catch (Exception ex)
             {
@@ -47,8 +48,7 @@ namespace BusinessLogic.Services
                 if (config == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy đơn thanh toán");
 
-                else
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, config);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, config);
             }
             catch (Exception ex)
             {
@@ -60,10 +60,10 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var configuration = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                    predicate: sc => !sc.IsDeleted && sc.Id == id,
-                    asNoTracking: false
-                );
+                var configuration = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                    .Where(sc => !sc.IsDeleted && sc.Id == id)
+                    .FirstOrDefaultAsync();
+
                 if (configuration == null)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,

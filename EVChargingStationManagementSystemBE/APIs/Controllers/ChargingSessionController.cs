@@ -15,17 +15,17 @@ namespace APIs.Controllers
         [HttpGet]
         public async Task<IActionResult> GetList()
         {
-            Guid userId;
-            try
-            {
-                userId = User.GetUserId();
-            }
-            catch
-            {
-                return Unauthorized(new { message = "Không xác định được userId từ token." });
-            }
+            //Guid userId;
+            //try
+            //{
+            //    userId = User.GetUserId();
+            //}
+            //catch
+            //{
+            //    return Unauthorized(new { message = "Không xác định được userId từ token." });
+            //}
 
-            var result = await _service.GetList(userId);
+            var result = await _service.GetList();
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

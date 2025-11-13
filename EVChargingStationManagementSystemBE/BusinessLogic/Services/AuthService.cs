@@ -38,7 +38,12 @@ namespace BusinessLogic.Services
             // Sau khi tạo tài khoản thành công thì tạo profile cho EVDriver
             if (result.Succeeded)
             {
-                var createdUser = await _unitOfWork.UserAccountRepository.GetByIdAsync(user.Id);
+                //var createdUser = await _unitOfWork.UserAccountRepository.GetByIdAsync(user.Id);
+                var createdUser = await unitOfWork.UserAccountRepository.GetQueryable()
+                    .AsNoTracking().Where(u => u.Id == user.Id).FirstOrDefaultAsync();
+                if (createdUser == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản", result.Errors);
+
                 EVDriverProfile eVDriver = new()
                 {
                     Id = Guid.NewGuid(),

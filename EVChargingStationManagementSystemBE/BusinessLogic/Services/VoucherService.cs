@@ -68,10 +68,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var voucher = await _unitOfWork.VoucherRepository.GetByIdAsync(
-                    predicate: v => v.Id == voucherId,
-                    asNoTracking: false
-                );
+                var voucher = await _unitOfWork.VoucherRepository.GetQueryable()
+                    .Where(v => v.Id == voucherId)
+                    .FirstOrDefaultAsync();
 
                 if (voucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Voucher không tồn tại");
@@ -98,14 +97,12 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var driver = await _unitOfWork.EVDriverRepository.GetByIdAsync(
-                    predicate: d => d.Id == evDriverId,
-                    asNoTracking: false
-                );
-                var voucher = await _unitOfWork.VoucherRepository.GetByIdAsync(
-                    predicate: v => v.Id == voucherId,
-                    asNoTracking: true
-                );
+                var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
+                    .Where(d => d.Id == evDriverId)
+                    .FirstOrDefaultAsync();
+                var voucher = await _unitOfWork.VoucherRepository.GetQueryable()
+                    .Where(v => v.Id == voucherId)
+                    .FirstOrDefaultAsync();
 
                 if (driver == null || voucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy user hoặc voucher");
@@ -149,10 +146,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var userVoucher = await _unitOfWork.UserVoucherRepository.GetByIdAsync(
-                    predicate: uv => uv.Id == userVoucherId,
-                    asNoTracking: false
-                );
+                var userVoucher = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .Where(uv => uv.Id == userVoucherId)
+                    .FirstOrDefaultAsync();
 
                 if (userVoucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Voucher không tồn tại");
@@ -183,18 +179,15 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var userVoucher = await _unitOfWork.UserVoucherRepository.GetByIdAsync(
-                    predicate: uv => uv.Id == userVoucherId,
-                    asNoTracking: false
-                );
+                var userVoucher = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .Where(uv => uv.Id == userVoucherId)
+                    .FirstOrDefaultAsync();
 
                 if (userVoucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Voucher không tồn tại");
 
                 if (userVoucher.ExpiryDate < DateTime.Now && userVoucher.Status != "Used")
-                {
                     userVoucher.Status = "Expired";
-                }
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -207,14 +200,13 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-            public async Task<IServiceResult> DeleteVoucher(Guid voucherId)
+        public async Task<IServiceResult> DeleteVoucher(Guid voucherId)
         {
             try
             {
-                var voucher = await _unitOfWork.VoucherRepository.GetByIdAsync(
-                    predicate: v => v.Id == voucherId,
-                    asNoTracking: false
-                );
+                var voucher = await _unitOfWork.VoucherRepository.GetQueryable()
+                    .Where(v => v.Id == voucherId)
+                    .FirstOrDefaultAsync();
 
                 if (voucher == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Voucher không tồn tại");

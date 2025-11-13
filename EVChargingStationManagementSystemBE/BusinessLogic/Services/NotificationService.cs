@@ -12,13 +12,13 @@ namespace BusinessLogic.Services
         Guid recipientId, Guid senderId, string content)
         {
             var title = "Đã có người dùng chọn phương thức thanh toán offline";
-            var message = $"";
 
             var notification = new Notification
             {
                 Id = Guid.NewGuid(),
+                NotificationCode = $"NOTI-{DateTime.Now:yyyyMMddHHmmss}-{Guid.NewGuid().ToString()[..8]}",
                 Title = title,
-                Message = message,
+                Message = content,
                 Type = "OffLinePayment",
                 CreatedAt = DateTime.Now
             };
@@ -38,8 +38,6 @@ namespace BusinessLogic.Services
             };
 
             await _unitOfWork.NotificationRecipientRepository.CreateAsync(recipient);
-
-            await _unitOfWork.SaveChangesAsync();
 
             return notification;
         }

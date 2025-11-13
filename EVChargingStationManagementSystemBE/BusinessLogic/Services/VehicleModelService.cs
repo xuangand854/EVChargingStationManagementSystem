@@ -6,6 +6,7 @@ using Infrastructure.IUnitOfWork;
 using Infrastructure.Models;
 using BusinessLogic.Base;
 using BusinessLogic.IServices;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services
 {
@@ -17,10 +18,13 @@ namespace BusinessLogic.Services
 
             try
             {
-                var vehicleModels = await _unitOfWork.VehicleModelRepository.GetAllAsync(
-                    predicate: v => !v.IsDeleted,
-                    orderBy: q => q.OrderByDescending(v => v.CreatedAt)
-                    );
+                var vehicleModels = await _unitOfWork.VehicleModelRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted)
+                    .OrderByDescending(v => v.CreatedAt)
+                    .ProjectToType<VehicleModelViewGeneralDto>()
+                    .ToListAsync();
+
                 if (vehicleModels == null || vehicleModels.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
@@ -28,10 +32,7 @@ namespace BusinessLogic.Services
                         new List<VehicleModelViewGeneralDto>());
 
                 else
-                {
-                    var response = vehicleModels.Adapt<List<VehicleModelViewGeneralDto>>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, vehicleModels);
             }
             catch (Exception ex)
             {
@@ -44,20 +45,20 @@ namespace BusinessLogic.Services
 
             try
             {
-                var vehicleModels = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == vehicleModelId
-                    );
-                if (vehicleModels == null)
+                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted && v.Id == vehicleModelId)
+                    .ProjectToType<VehicleModelViewDetailDto>()
+                    .FirstOrDefaultAsync();
+
+                if (vehicleModel == null)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy mẫu xe nào"
                     );
 
                 else
-                {
-                    var response = vehicleModels.Adapt<VehicleModelViewDetailDto>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, vehicleModel);
             }
             catch (Exception ex)
             {
@@ -95,10 +96,10 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
-                    asNoTracking: false
-                    );
+                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetQueryable()
+                    .Where(v => !v.IsDeleted && v.Id == vehicleModelId)
+                    .FirstOrDefaultAsync();
+
                 if (vehicleModel == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
@@ -124,10 +125,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
-                    asNoTracking: false
-                    );
+                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetQueryable()
+                    .Where(v => !v.IsDeleted && v.Id == vehicleModelId)
+                    .FirstOrDefaultAsync();
                 if (vehicleModel == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 
@@ -153,10 +153,9 @@ namespace BusinessLogic.Services
         {
             try
             {
-                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetByIdAsync(
-                    predicate: vm => vm.Id == vehicleModelId,
-                    asNoTracking: false
-                    );
+                var vehicleModel = await _unitOfWork.VehicleModelRepository.GetQueryable()
+                    .Where(v => !v.IsDeleted && v.Id == vehicleModelId)
+                    .FirstOrDefaultAsync();
                 if (vehicleModel == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Mẫu xe không tồn tại");
 

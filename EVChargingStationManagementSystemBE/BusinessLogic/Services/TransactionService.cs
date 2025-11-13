@@ -1,4 +1,5 @@
-﻿using BusinessLogic.Base;
+﻿using Azure;
+using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
 using Common.DTOs.TransactionDto;
@@ -17,20 +18,19 @@ namespace BusinessLogic.Services
 
             try
             {
-                var transaction = await _unitOfWork.TransactionRepository.GetAllAsync(
-                    predicate: v => !v.IsDeleted,
-                    orderBy: q => q.OrderByDescending(v => v.CreatedAt)
-                    );
+                var transaction = await _unitOfWork.TransactionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted)
+                    .OrderByDescending(v => v.CreatedAt)
+                    .ProjectToType<TransactionViewListDto>()
+                    .ToListAsync();
                 if (transaction == null || transaction.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy lịch sử giao dịch nào");
 
                 else
-                {
-                    var response = transaction.Adapt<List<TransactionViewListDto>>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, transaction);
             }
             catch (Exception ex)
             {
@@ -43,20 +43,20 @@ namespace BusinessLogic.Services
 
             try
             {
-                var transaction = await _unitOfWork.TransactionRepository.GetAllAsync(
-                    predicate: v => !v.IsDeleted && v.PaidBy == paidBy,
-                    orderBy: q => q.OrderByDescending(v => v.CreatedAt)
-                    );
+                var transaction = await _unitOfWork.TransactionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted && v.PaidBy == paidBy)
+                    .OrderByDescending(v => v.CreatedAt) 
+                    .ProjectToType<TransactionViewListDto>()
+                    .ToListAsync();
+
                 if (transaction == null || transaction.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy lịch sử giao dịch nào");
 
                 else
-                {
-                    var response = transaction.Adapt<List<TransactionViewListDto>>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, transaction);
             }
             catch (Exception ex)
             {
@@ -69,10 +69,11 @@ namespace BusinessLogic.Services
 
             try
             {
-                var transaction = await _unitOfWork.TransactionRepository.GetByIdAsync(
-                    predicate: v => !v.IsDeleted && v.Id == transactionId,
-                    include: c => c.Include(cs => cs.Payment)
-                    );
+                var transaction = await _unitOfWork.TransactionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted && v.Id == transactionId)
+                    .ProjectToType<TransactionViewDetailDto>()
+                    .FirstOrDefaultAsync();
                 if (transaction == null)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
@@ -80,10 +81,7 @@ namespace BusinessLogic.Services
                     );
 
                 else
-                {
-                    var response = transaction.Adapt<TransactionViewDetailDto>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
-                }
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, transaction);
             }
             catch (Exception ex)
             {

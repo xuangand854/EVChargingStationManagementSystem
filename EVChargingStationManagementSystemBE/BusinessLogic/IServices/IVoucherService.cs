@@ -21,7 +21,7 @@ namespace BusinessLogic.IServices
 
         Task<IServiceResult> RedeemVoucher(Guid evDriverId, Guid voucherId);
 
-        Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid stationId);
+        Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid sessionId);
 
         Task<IServiceResult> ExpireVoucher(Guid userVoucherId);
     }

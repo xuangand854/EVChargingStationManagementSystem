@@ -148,9 +148,8 @@ namespace BusinessLogic.Services
             }
         }
 
-
         // Sử dụng voucher
-        public async Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid stationId)
+        public async Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid sessionId)
         {
             try
             {
@@ -165,7 +164,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Voucher chưa được redeem hoặc đã hết hạn");
 
                 userVoucher.UsedDate = DateTime.Now;
-                userVoucher.StationId = stationId;
+                userVoucher.SessionId = sessionId;   // thay vì StationId
                 userVoucher.Status = "Used";
 
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -181,6 +180,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         // Background job: Expire voucher
         public async Task<IServiceResult> ExpireVoucher(Guid userVoucherId)

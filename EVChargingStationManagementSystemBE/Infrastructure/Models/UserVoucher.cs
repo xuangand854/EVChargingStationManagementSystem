@@ -56,8 +56,11 @@ namespace Infrastructure.Models
         public Voucher Voucher { get; set; }
         // Liên kết ngược tới Voucher để truy xuất chi tiết voucher
 
-        public ChargingStation? Station { get; set; }
-        // Liên kết ngược tới ChargingStation nếu voucher được áp dụng
+        //public ChargingStation? Station { get; set; }
+        //// Liên kết ngược tới ChargingStation nếu voucher được áp dụng
+        [ForeignKey("ChargingSession")]
+        public Guid? SessionId { get; set; }
+        public ChargingSession? Session { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         // Thời điểm bản ghi được tạo
 

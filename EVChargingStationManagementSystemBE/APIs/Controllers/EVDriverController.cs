@@ -97,10 +97,8 @@ namespace APIs.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (dto.DriverId != driverId)
-                return BadRequest(new { message = "DriverId trong route và body không khớp" });
-
-            var result = await _evDriverService.UpdateStatus(dto);
+            // gọi service với cả driverId và dto
+            var result = await _evDriverService.UpdateStatus(driverId, dto);
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });
@@ -113,6 +111,7 @@ namespace APIs.Controllers
 
             return StatusCode(500, new { message = result.Message });
         }
+
 
         //  DELETE: api/evdriver/{driverId} (Admin)
         [HttpDelete("{driverId}")]

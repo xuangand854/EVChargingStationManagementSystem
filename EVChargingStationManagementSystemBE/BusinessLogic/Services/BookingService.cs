@@ -29,13 +29,12 @@ namespace BusinessLogic.Services
             {
                 // --- BR12: Kiểm tra tài khoản EVDriver ---
                 var user = await _unitOfWork.UserAccountRepository.GetByIdAsync(
+                    predicate : 
                     u => u.Id == userId && !u.IsDeleted);
                 if (user == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy tài khoản người dùng.");
                 if (!user.EmailConfirmed)
-
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Tài khoản chưa được xác thực .");
-
                 var roles = await _userManager.GetRolesAsync(user);
                 if (!roles.Contains("EVDriver", StringComparer.OrdinalIgnoreCase))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Chỉ EVDriver mới được phép đặt chỗ.");
@@ -46,7 +45,10 @@ namespace BusinessLogic.Services
                     include: e => e.Include(x => x.UserVehicles).ThenInclude(v => v.VehicleModel));
                 if (evDriver == null)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Người dùng chưa có hồ sơ EVDriver.");
-
+                if (!evDriver.Status.Equals("Active"))
+                {
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Tài khoản của bạn đã bị khóa  ");
+                }
                 var vehicle = evDriver.UserVehicles
                     .Select(uv => uv.VehicleModel)
                     .FirstOrDefault(v => v.Id == dto.VehicleId && !v.IsDeleted);

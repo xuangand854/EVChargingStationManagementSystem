@@ -20,7 +20,8 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> UpdateProfile(EVDriverUpdateSelfDto dto);
 
         // Admin cập nhật trạng thái EVDriver (Active / Inactive)
-        Task<IServiceResult> UpdateStatus(EVDriverUpdateStatusDto dto);
+        Task<IServiceResult> UpdateStatus(Guid driverId, EVDriverUpdateStatusDto dto);
+
 
         // Admin xóa mềm EVDriver
         Task<IServiceResult> Delete(Guid driverId);

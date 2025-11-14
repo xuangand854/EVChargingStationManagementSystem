@@ -103,12 +103,12 @@ namespace BusinessLogic.Services
 
                 // Cập nhật thông tin cơ bản
                 dto.Adapt(driver);
-                driver.UpdatedAt = DateTime.UtcNow;
+                driver.UpdatedAt = DateTime.Now;
 
                 if (driver.UserAccount != null)
                 {
                     dto.Adapt(driver.UserAccount);
-                    driver.UserAccount.UpdatedAt = DateTime.UtcNow;
+                    driver.UserAccount.UpdatedAt = DateTime.Now;
                 }
 
                 // Nếu có danh sách xe mới từ client
@@ -159,20 +159,20 @@ namespace BusinessLogic.Services
             }
         }
 
-        //  Admin cập nhật trạng thái EVDriver
-        public async Task<IServiceResult> UpdateStatus(EVDriverUpdateStatusDto dto)
+        // Admin cập nhật trạng thái EVDriver
+        public async Task<IServiceResult> UpdateStatus(Guid driverId, EVDriverUpdateStatusDto dto)
         {
             try
             {
                 var driver = await _unitOfWork.EVDriverRepository.GetQueryable()
-                    .Where(d => d.Id == dto.DriverId && !d.IsDeleted)
+                    .Where(d => d.Id == driverId && !d.IsDeleted)
                     .FirstOrDefaultAsync();
 
                 if (driver == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy EVDriver");
 
                 driver.Status = dto.Status;
-                driver.UpdatedAt = DateTime.UtcNow;
+                driver.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
@@ -186,6 +186,9 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+
+
 
         //  Xóa mềm EVDriver
         public async Task<IServiceResult> Delete(Guid driverId)
@@ -201,7 +204,7 @@ namespace BusinessLogic.Services
 
                 driver.IsDeleted = true;
                 driver.Status = "Inactive";
-                driver.UpdatedAt = DateTime.UtcNow;
+                driver.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)

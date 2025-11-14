@@ -24,6 +24,7 @@ import AdminDashboard from "./components/pages/admin/AdminDashboard";
 import AdminStations from "./components/pages/admin/Stations";
 import AdminStaff from "./components/pages/admin/Staff";
 import AdminVehicles from "./components/pages/admin/AdminVehicles";
+import AdminVouchers from "./components/pages/admin/AdminVouchers";
 import AdminSettings from "./components/pages/admin/AdminSettings";
 import AdminPrivateRoute from "./components/pages/admin/AdminPrivateRoute";
 import PaymentPage from "./components/Payment/PaymentPage";
@@ -155,6 +156,7 @@ export default function App() {
           </Route>
           <Route path="admin-map" element={<AdminStationMap />} />
           <Route path="vehicles" element={<AdminVehicles />} />
+          <Route path="vouchers" element={<AdminVouchers />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="station/:stationId" element={<AdminStationDetail />} />

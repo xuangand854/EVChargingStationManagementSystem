@@ -2,6 +2,7 @@
 using Common;
 using Common.DTOs.ChargingStationDto;
 using Common.Enum.ChargingStation;
+using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,30 @@ namespace APIs.Controllers
         public async Task<IActionResult> GetById([FromRoute] Guid stationId)
         {
             var result = await _chargingStationService.GetById(stationId);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        [HttpGet("staff")]
+        [Authorize(Roles = "Staff")]
+        public async Task<IActionResult> GetByStaffId()
+        {
+            Guid userId;
+            try
+            {
+                userId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+            var result = await _chargingStationService.GetByStaffId(userId);
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

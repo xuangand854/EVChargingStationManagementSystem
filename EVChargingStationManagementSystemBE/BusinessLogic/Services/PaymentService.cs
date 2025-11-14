@@ -1,6 +1,7 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
+using Common.DTOs.ChargingStationDto;
 using Common.DTOs.PaymentDto;
 using Common.Enum.ChargingSession;
 using Common.Enum.Payment;
@@ -331,7 +332,31 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+        public async Task<IServiceResult> GetList()
+        {
 
+            try
+            {
+                var payment = await _unitOfWork.PaymentRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ProjectToType<PaymentViewDetailDto>()
+                    .ToListAsync();
+
+                if (payment == null || payment.Count == 0)
+                    return new ServiceResult(
+                        Const.WARNING_NO_DATA_CODE,
+                        "Không tìm thấy giao dịch nào");
+
+                else
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, payment);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
         public async Task<IServiceResult> GetById(Guid paymentId)
         {
             try

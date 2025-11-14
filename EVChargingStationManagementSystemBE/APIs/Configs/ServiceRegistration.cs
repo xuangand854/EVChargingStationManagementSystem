@@ -5,6 +5,7 @@ using Common.DTOs.ChargingSessionDto;
 using Common.DTOs.ChargingStationDto;
 using Common.DTOs.ConnectorDto;
 using Common.DTOs.FeedbackDto;
+using Common.DTOs.NotificationDto;
 using Common.DTOs.ProfileEVDriverDto;
 using Common.DTOs.ProfileStaffDto;
 using Common.DTOs.ReportDto;
@@ -247,6 +248,13 @@ namespace APIs.Configs
                 .Map(dest => dest.IsResolved, src => src.IsResolved)
                 .IgnoreNullValues(true);
 
+            TypeAdapterConfig<NotificationRecipient, NotificationDto>.NewConfig()
+                .Map(dest => dest.Title, src => src.Notification.Title)
+                .Map(dest => dest.Message, src => src.Notification.Message)
+                .Map(dest => dest.Type, src => src.Notification.Type)
+                .Map(dest => dest.CreatedAt, src => src.Notification.CreatedAt)
+                .Map(dest => dest.CreatedBy, src => src.Notification.CreatedBy)
+                .IgnoreNullValues(true);
             return services;
         }
     }

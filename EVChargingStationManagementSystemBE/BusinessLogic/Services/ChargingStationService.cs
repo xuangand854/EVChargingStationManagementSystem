@@ -75,6 +75,36 @@ namespace BusinessLogic.Services
             }
         }
 
+        public async Task<IServiceResult> GetByStaffId(Guid StaffAccountId)
+        {
+
+            try
+            {
+                var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
+                    .Where(c => !c.IsDeleted && c.OperatorId == StaffAccountId)
+                    .Include(c => c.ChargingPosts.Where(cp => !cp.IsDeleted).OrderByDescending(cp => cp.CreatedAt))
+                    .Include(cp => cp.OperatorNavigation)
+                    .OrderByDescending(cp => cp.CreatedAt)
+                    .ProjectToType<ChargingStationsViewDetailDto>()
+                    .FirstOrDefaultAsync();
+                if (chargingStation == null)
+                    return new ServiceResult(
+                        Const.WARNING_NO_DATA_CODE,
+                        "Không tìm thấy trạm sạc nào"
+                    );
+
+                else
+                {
+                    //var response = chargingStation.Adapt<ChargingStationsViewDetailDto>();
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingStation);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
         public async Task<IServiceResult> Create(ChargingStationCreateDto dto)
         {
             try

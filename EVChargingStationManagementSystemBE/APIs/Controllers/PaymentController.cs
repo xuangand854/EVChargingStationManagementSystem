@@ -1,4 +1,5 @@
 ﻿using BusinessLogic.IServices;
+using BusinessLogic.Services;
 using Common;
 using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
@@ -115,6 +116,21 @@ namespace APIs.Controllers
         public async Task<IActionResult> GetById([FromRoute] Guid paymentId)
         {
             var result = await _service.GetById(paymentId);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Staff")]
+        public async Task<IActionResult> GetList()
+        {
+            var result = await _service.GetList();
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

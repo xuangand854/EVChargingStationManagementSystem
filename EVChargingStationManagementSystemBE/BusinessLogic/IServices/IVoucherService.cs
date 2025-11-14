@@ -10,19 +10,18 @@ namespace BusinessLogic.IServices
 {
     public interface IVoucherService
     {
+        // ===== ADMIN CRUD =====
         Task<IServiceResult> GetAvailableVouchers();
-
         Task<IServiceResult> CreateVoucher(VoucherCreateDto dto);
-
-
-        /// Cập nhật voucher đã tồn tại.
-        Task<IServiceResult> DeleteVoucher(Guid voucherId);
         Task<IServiceResult> UpdateVoucher(VoucherUpdateDto dto, Guid voucherId);
+        Task<IServiceResult> DeleteVoucher(Guid voucherId);
 
+        // ===== USER FLOW =====
         Task<IServiceResult> RedeemVoucher(Guid evDriverId, Guid voucherId);
-
         Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid sessionId);
 
+        // ===== BACKGROUND JOB =====
         Task<IServiceResult> ExpireVoucher(Guid userVoucherId);
+        Task<int> ExpireAllExpiredVouchers();
     }
 }

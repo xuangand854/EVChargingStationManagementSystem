@@ -104,14 +104,13 @@
 
             return StatusCode(500, new { message = result.Message });
         }
-
         // USER SỬ DỤNG VOUCHER
-        // POST: api/voucher/use/{userVoucherId}/{stationId} (EVDriver)
-        [HttpPost("use/{userVoucherId}/{stationId}")]
+        // POST: api/voucher/use/{userVoucherId}/{sessionId} (EVDriver)
+        [HttpPost("use/{userVoucherId}/{sessionId}")]
         [Authorize(Roles = "EVDriver")]
-        public async Task<IActionResult> UseVoucher([FromRoute] Guid userVoucherId, [FromRoute] Guid stationId)
+        public async Task<IActionResult> UseVoucher([FromRoute] Guid userVoucherId, [FromRoute] Guid sessionId)
         {
-            var result = await _voucherService.UseVoucher(userVoucherId, stationId);
+            var result = await _voucherService.UseVoucher(userVoucherId, sessionId);
 
             if (result.Status == Const.SUCCESS_UPDATE_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

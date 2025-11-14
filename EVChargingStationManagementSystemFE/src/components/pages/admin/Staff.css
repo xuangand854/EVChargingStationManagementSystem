@@ -51,7 +51,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background: linear-gradient(90deg, #00b09b, #96c93d);
     border-radius: 20px 20px 0 0;
 }
 
@@ -134,7 +134,7 @@
 .admin-staff .staff-avatar {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #00b09b, #96c93d);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -195,12 +195,13 @@
 }
 
 .admin-staff .action-btn.edit {
-    background-color: #3b82f6;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
     color: white;
 }
 
 .admin-staff .action-btn.edit:hover {
-    background-color: #2563eb;
+    background: linear-gradient(135deg, #009688, #7cb342);
+    transform: translateY(-2px);
 }
 
 .admin-staff .action-btn.delete {
@@ -220,7 +221,7 @@
 }
 
 .admin-staff .modal-icon {
-    color: #3b82f6;
+    color: #00b09b;
 }
 
 .admin-staff .form-container {
@@ -334,7 +335,7 @@
 
 /* Focus styles for accessibility */
 .admin-staff .action-btn:focus {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid #00b09b;
     outline-offset: 2px;
 }
 
@@ -359,25 +360,47 @@
 }
 
 .admin-staff .ant-pagination .ant-pagination-item-active {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    border-color: #00b09b;
 }
 
 .admin-staff .ant-pagination .ant-pagination-item-active a {
     color: white;
 }
 
-.ant-modal-content {
-    border-radius: 16px !important;
-    background: #fff0f5;
+/* Input and Select focus */
+.admin-staff .ant-input:focus,
+.admin-staff .ant-select-focused .ant-select-selector {
+    border-color: #00b09b !important;
+    box-shadow: 0 0 0 2px rgba(0, 176, 155, 0.1) !important;
 }
 
-.ant-form-item-label>label {
-    color: #c2185b;
-    font-weight: 500;
+/* Green theme for Staff page */
+.admin-staff .ant-btn-primary,
+.ant-modal-wrap .ant-modal .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border: none !important;
+    color: white !important;
 }
 
-.ant-btn-primary {
-    background-color: #e91e63 !important;
-    border-color: #e91e63 !important;
+.admin-staff .ant-btn-primary:hover,
+.ant-modal-wrap .ant-modal .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.3) !important;
+}
+
+.admin-staff .ant-btn-default:hover {
+    border-color: #00b09b !important;
+    color: #00b09b !important;
+}
+
+/* Modal footer buttons */
+.ant-modal-footer .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border-color: transparent !important;
+}
+
+.ant-modal-footer .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
 }

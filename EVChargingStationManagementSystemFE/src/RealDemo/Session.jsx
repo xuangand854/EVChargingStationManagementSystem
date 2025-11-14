@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button, message, Card, Space, Tag, Progress, Statistic, Row, Col, Divider, Modal, Input } from "antd";
+import { Button, message, Card, Space, Progress, Row, Col, Divider, Modal, Input } from "antd";
 import { StartSession, Stop } from "../API/ChargingSession";
 import { getChargingPostId } from "../API/ChargingPost";
 import { PatchConnectorToggle, GetConnectorId } from "../API/Connector";
-import { GetVAT, GetByConfigName, GetPrice } from "../API/SystemConfiguration";
+import { GetVAT, GetPrice } from "../API/SystemConfiguration";
+import { MyBooking, BookCheckin } from "../API/Booking";
 
 import {
     PlugZap,
@@ -28,6 +29,9 @@ const Session = () => {
     const [isPaid, setIsPaid] = useState(false);
     const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [bookingData, setBookingData] = useState(null);
+    const [checkinCode, setCheckinCode] = useState(null);
+    const [showCheckinModal, setShowCheckinModal] = useState(false);
     const [chargingData, setChargingData] = useState({
         batteryLevel: 20,
         energyDelivered: 0,
@@ -66,6 +70,33 @@ const Session = () => {
         } catch { }
         return () => { };
     }, []);
+
+    // Kiểm tra booking khi component mount
+    useEffect(() => {
+        const checkBooking = async () => {
+            try {
+                const res = await MyBooking();
+                const bookings = res?.data || [];
+
+                // Tìm booking cho connector hiện tại
+                const currentBooking = bookings.find(b => b.connectorId === connectorID);
+
+                if (currentBooking) {
+                    setBookingData(currentBooking);
+                    console.log("📋 Booking hiện tại:", currentBooking);
+
+                    // Nếu booking ở trạng thái Reserved, hiển thị modal check-in
+                    if (currentBooking.status === "Reserved") {
+                        setShowCheckinModal(true);
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi khi kiểm tra booking:", error);
+            }
+        };
+
+        checkBooking();
+    }, [connectorID]);
 
     // Lấy giá điện và thuế VAT khi component mount
     useEffect(() => {
@@ -160,6 +191,32 @@ const Session = () => {
         }
         return () => clearInterval(interval);
     }, [isCharging, pricingData]);
+
+    const handleCheckin = async () => {
+        if (!bookingData || !bookingData.id) {
+            message.error("Không tìm thấy thông tin booking!");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await BookCheckin(bookingData.id);
+            const code = response?.data?.checkinCode || response?.checkinCode;
+
+            if (code) {
+                setCheckinCode(code);
+                message.success("✅ Check-in thành công!");
+
+                // Cập nhật trạng thái booking
+                setBookingData(prev => ({ ...prev, status: "CheckedIn" }));
+            }
+        } catch (error) {
+            console.error("❌ Lỗi khi check-in:", error);
+            message.error("Không thể check-in!");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handlePlugToCar = async () => {
         // Kiểm tra status trước khi cắm
@@ -390,6 +447,55 @@ const Session = () => {
                     />
                 </Modal>
 
+                {/* Modal Check-in */}
+                <Modal
+                    title="🎫 Check-in Booking"
+                    open={showCheckinModal}
+                    onOk={handleCheckin}
+                    onCancel={() => setShowCheckinModal(false)}
+                    okText="Check-in"
+                    cancelText="Đóng"
+                    okButtonProps={{ loading: loading }}
+                >
+                    {bookingData && bookingData.status === "Reserved" ? (
+                        <div className="space-y-4">
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <p className="text-gray-700 mb-2">
+                                    <strong>Trạng thái:</strong> <span className="text-blue-600">Đã đặt chỗ</span>
+                                </p>
+                                <p className="text-gray-700 mb-2">
+                                    <strong>Booking ID:</strong> <span className="font-mono">{bookingData.id}</span>
+                                </p>
+                                <p className="text-gray-700">
+                                    Nhấn "Check-in" để xác nhận và nhận mã check-in
+                                </p>
+                            </div>
+
+                            {checkinCode && (
+                                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                    <p className="text-gray-700 mb-2 font-semibold">
+                                        ✅ Mã Check-in của bạn:
+                                    </p>
+                                    <div className="text-center">
+                                        <span className="text-3xl font-bold text-green-600 font-mono">
+                                            {checkinCode}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-2 text-center">
+                                        Vui lòng lưu lại mã này
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-gray-600">
+                                Booking không ở trạng thái Reserved hoặc đã check-in rồi.
+                            </p>
+                        </div>
+                    )}
+                </Modal>
+
                 {/* Trạng thái hiện tại - Nổi bật */}
                 <div className="mb-6">
                     <Card className="shadow-lg" style={{ borderWidth: '2px', borderColor: '#00b09b' }}>
@@ -450,7 +556,7 @@ const Session = () => {
                                 <span className="text-3xl text-gray-500">%</span>
                             </div>
                             <Progress
-                                percent={chargingData.batteryLevel}
+                                percent={chargingData.batteryLevel.toFixed(1)}
                                 strokeColor={{
                                     '0%': '#ef4444',
                                     '30%': '#f59e0b',

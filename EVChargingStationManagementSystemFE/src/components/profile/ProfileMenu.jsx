@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "./ProfileMenu.css";
 import { logout } from "../../API/Auth";
 import { getEVDriverProfile } from "../../API/EVDriver";
-import {jwtDecode} from "jwt-decode";
+import { MyBooking } from "../../API/Booking";
+import { jwtDecode } from "jwt-decode";
 
 const ProfileMenu = () => {
   const [open, setOpen] = useState(false);
@@ -64,6 +65,34 @@ const ProfileMenu = () => {
     setOpen(false);
   };
 
+  const handleSimulate = async () => {
+    try {
+      const res = await MyBooking();
+
+      const bookings = res?.data || [];
+      if (bookings.length === 0) {
+        // Không có booking → vào mô phỏng sạc bình thường
+        navigate("/station-list");
+        return;
+      }
+
+      // Có booking → lấy booking đầu tiên
+      const booking = bookings[0];
+
+      const stationId = booking.stationId;
+      const postId = booking.chargingPostId;
+      const connectorId = booking.connectorId;
+
+      // Điều hướng đến trang session
+      navigate(`/station-list/${stationId}/posts/${postId}/connector/${connectorId}/session`);
+    } catch (err) {
+      console.error("Lỗi xem booking:", err);
+      navigate("/station-list");
+    }
+
+    setOpen(false);
+  };
+
   return (
     <div className="profile-container" ref={menuRef}>
       <div className="profile-trigger" onClick={() => setOpen(!open)}>
@@ -83,8 +112,8 @@ const ProfileMenu = () => {
           <button onClick={() => handleNavigate("/order-charging")}>Đặt chỗ sạc</button>
           <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
           {/* <button onClick={() => handleNavigate("/Payment")}>Thanh Toán</button> */}
-          <button onClick={() => handleNavigate("/station-list")}>Mô Phỏng Sạc</button>
-          
+          <button onClick={handleSimulate}>Mô Phỏng Sạc</button>
+
           <button className="logout-btn" onClick={() => { logout(); setOpen(false); }}>
             Đăng xuất
           </button>

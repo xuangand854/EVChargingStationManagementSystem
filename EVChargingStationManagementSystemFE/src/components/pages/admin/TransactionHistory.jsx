@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { GetTransaction } from "../../../API/Transaction";
 import dayjs from "dayjs";
+import "./TransactionHistory.css";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -328,8 +329,8 @@ const TransactionHistory = () => {
                                 className="w-full"
                             >
                                 <Option value="all">Tất cả loại</Option>
-                                <Option value="OnlinePayment">Online</Option>
-                                <Option value="OfflinePayment">Offline</Option>
+                                <Option value="OnlinePayment">Thanh toán trực tuyến</Option>
+                                <Option value="OfflinePayment">Thanh toán trực tiếp</Option>
                                 <Option value="Refund">Hoàn tiền</Option>
                             </Select>
                         </Col>
@@ -394,12 +395,23 @@ const TransactionHistory = () => {
                                 </div>
                                 <div>
                                     <p className="text-gray-600 text-sm">Loại giao dịch</p>
-                                    <p className="font-semibold">{selectedTransaction.transactionType}</p>
+                                    <p className="font-semibold">
+                                        {selectedTransaction.transactionType === 'OnlinePayment' ? 'Thanh toán trực tuyến' :
+                                            selectedTransaction.transactionType === 'OfflinePayment' ? 'Thanh toán trực tiếp' :
+                                                selectedTransaction.transactionType === 'Refund' ? 'Hoàn tiền' :
+                                                    selectedTransaction.transactionType}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-gray-600 text-sm">Trạng thái</p>
-                                    <Tag color={selectedTransaction.status === 'Completed' ? 'success' : 'processing'}>
-                                        {selectedTransaction.status}
+                                    <Tag color={selectedTransaction.status === 'Completed' ? 'success' :
+                                        selectedTransaction.status === 'Pending' ? 'processing' :
+                                            selectedTransaction.status === 'Failed' ? 'error' : 'default'}>
+                                        {selectedTransaction.status === 'Completed' ? 'Hoàn thành' :
+                                            selectedTransaction.status === 'Pending' ? 'Đang xử lý' :
+                                                selectedTransaction.status === 'Failed' ? 'Thất bại' :
+                                                    selectedTransaction.status === 'Cancelled' ? 'Đã hủy' :
+                                                        selectedTransaction.status}
                                     </Tag>
                                 </div>
                                 <div className="col-span-2">

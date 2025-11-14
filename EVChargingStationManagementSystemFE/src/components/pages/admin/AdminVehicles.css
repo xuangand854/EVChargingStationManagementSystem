@@ -51,7 +51,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background: linear-gradient(90deg, #00b09b, #96c93d);
     border-radius: 20px 20px 0 0;
 }
 
@@ -134,7 +134,7 @@
 .admin-vehicles .vehicle-icon {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    background: linear-gradient(135deg, #00b09b, #96c93d);
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
@@ -234,12 +234,13 @@
 }
 
 .admin-vehicles .action-btn.edit {
-    background-color: #3b82f6;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
     color: white;
 }
 
 .admin-vehicles .action-btn.edit:hover {
-    background-color: #2563eb;
+    background: linear-gradient(135deg, #009688, #7cb342);
+    transform: translateY(-2px);
 }
 
 .admin-vehicles .action-btn.delete {
@@ -249,6 +250,7 @@
 
 .admin-vehicles .action-btn.delete:hover {
     background-color: #dc2626;
+    transform: translateY(-2px);
 }
 
 /* Modal */
@@ -259,7 +261,7 @@
 }
 
 .admin-vehicles .modal-icon {
-    color: #8b5cf6;
+    color: #00b09b;
 }
 
 .admin-vehicles .form-container {
@@ -373,8 +375,21 @@
 
 /* Focus styles for accessibility */
 .admin-vehicles .action-btn:focus {
-    outline: 2px solid #3b82f6;
+    outline: 2px solid #00b09b;
     outline-offset: 2px;
+}
+
+/* Select dropdown focus */
+.admin-vehicles .ant-select-focused .ant-select-selector {
+    border-color: #00b09b !important;
+    box-shadow: 0 0 0 2px rgba(0, 176, 155, 0.1) !important;
+}
+
+/* Input focus */
+.admin-vehicles .ant-input:focus,
+.admin-vehicles .ant-input-number:focus {
+    border-color: #00b09b !important;
+    box-shadow: 0 0 0 2px rgba(0, 176, 155, 0.1) !important;
 }
 
 /* Table responsive */
@@ -398,10 +413,79 @@
 }
 
 .admin-vehicles .ant-pagination .ant-pagination-item-active {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    border-color: #00b09b;
 }
 
 .admin-vehicles .ant-pagination .ant-pagination-item-active a {
     color: white;
+}
+
+/* Primary buttons - Green gradient */
+.admin-vehicles .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.admin-vehicles .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.3) !important;
+}
+
+.admin-vehicles .ant-btn-primary:disabled {
+    background: #d1d5db !important;
+    transform: none !important;
+}
+
+/* Default buttons */
+.admin-vehicles .ant-btn-default:hover {
+    border-color: #00b09b !important;
+    color: #00b09b !important;
+}
+
+/* Modal buttons - Higher specificity */
+.ant-modal .ant-modal-footer .ant-btn-primary,
+.admin-vehicles .ant-modal .ant-btn-primary,
+.ant-modal-wrap .ant-modal .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.ant-modal .ant-modal-footer .ant-btn-primary:hover,
+.admin-vehicles .ant-modal .ant-btn-primary:hover,
+.ant-modal-wrap .ant-modal .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.3) !important;
+}
+
+.ant-modal .ant-modal-footer .ant-btn-default:hover,
+.admin-vehicles .ant-modal .ant-btn-default:hover {
+    border-color: #00b09b !important;
+    color: #00b09b !important;
+}
+
+/* Modal OK button */
+.ant-modal-confirm .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border: none !important;
+}
+
+.ant-modal-confirm .ant-btn-primary:hover {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
+}
+
+/* Override Ant Design default pink/red */
+.ant-modal-footer .ant-btn-primary {
+    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
+    border-color: transparent !important;
+}
+
+.ant-modal-footer .ant-btn-primary:hover,
+.ant-modal-footer .ant-btn-primary:focus {
+    background: linear-gradient(135deg, #009688, #7cb342) !important;
+    border-color: transparent !important;
 }

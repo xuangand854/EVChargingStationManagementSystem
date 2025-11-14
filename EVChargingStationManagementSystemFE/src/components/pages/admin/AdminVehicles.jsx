@@ -219,39 +219,53 @@ const AdminVehicles = () => {
     const getStatusLabel = (status) => {
         // Xử lý null/undefined
         if (status === null || status === undefined) {
-            return "Unknown";
+            return "Không rõ";
         }
 
-        // Xử lý string
+        // Xử lý string - thêm case cho chữ hoa đầu
         if (typeof status === 'string') {
             const lowerStatus = status.toLowerCase();
             switch (lowerStatus) {
-                case "Inactive":
+                case "inactive":
                 case "0":
-                    return "Inactive";
+                    return "Ngừng hoạt động";
                 case "active":
                 case "1":
-                    return "Active";
+                    return "Hoạt động";
                 case "discontinued":
                 case "2":
-                    return "Discontinued";
+                    return "Ngừng sản xuất";
                 case "unknown":
                 case "3":
-                    return "unknown";
+                    return "Không rõ";
                 default:
+                    // Nếu không match, thử convert sang number
+                    const num = Number(status);
+                    if (!isNaN(num)) {
+                        switch (num) {
+                            case 0: return "Ngừng hoạt động";
+                            case 1: return "Hoạt động";
+                            case 2: return "Ngừng sản xuất";
+                            case 3: return "Không rõ";
+                        }
+                    }
                     return status; // Trả về nguyên gốc nếu không match
             }
         }
 
         // Xử lý number
         const numStatus = Number(status);
-        switch (numStatus) {
-            case 0: return "Inactive";
-            case 1: return "Active";
-            case 2: return "Discontinued";
-            case 3: return "Unknown";
-            default: return `Status ${numStatus}`;
+        if (!isNaN(numStatus)) {
+            switch (numStatus) {
+                case 0: return "Ngừng hoạt động";
+                case 1: return "Hoạt động";
+                case 2: return "Ngừng sản xuất";
+                case 3: return "Không rõ";
+                default: return `Trạng thái ${numStatus}`;
+            }
         }
+
+        return "Không rõ";
     };
 
     const getStatusColor = (status) => {
@@ -323,24 +337,36 @@ const AdminVehicles = () => {
                 const id = record.vehicleModelId ?? record.id;
                 const isUpdating = updatingStatusId === id;
 
+                // Convert status sang number để hiển thị trong Select
+                let normalizedStatus = status;
+                if (typeof status === 'string') {
+                    const lowerStatus = status.toLowerCase();
+                    if (lowerStatus === 'inactive' || lowerStatus === '0') normalizedStatus = 0;
+                    else if (lowerStatus === 'active' || lowerStatus === '1') normalizedStatus = 1;
+                    else if (lowerStatus === 'discontinued' || lowerStatus === '2') normalizedStatus = 2;
+                    else if (lowerStatus === 'unknown' || lowerStatus === '3') normalizedStatus = 3;
+                    else normalizedStatus = Number(status);
+                } else {
+                    normalizedStatus = Number(status);
+                }
+
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Tag color={getStatusColor(status)} style={{ margin: 0 }}>
                             {getStatusLabel(status)}
                         </Tag>
                         <Select
-                            value={status}
+                            value={normalizedStatus}
                             onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
                             loading={isUpdating}
                             disabled={isUpdating}
-                            style={{ minWidth: 100 }}
+                            style={{ minWidth: 150 }}
                             size="small"
                             placeholder="Thay đổi"
                         >
-                            <Select.Option value={0}>Inactive</Select.Option>
-                            <Select.Option value={1}>Active</Select.Option>
-                            <Select.Option value={2}>Discontinued</Select.Option>
-                            {/* <Select.Option value={3}>Unknown</Select.Option> */}
+                            <Select.Option value={0}>Ngừng hoạt động</Select.Option>
+                            <Select.Option value={1}>Hoạt động</Select.Option>
+                            <Select.Option value={2}>Ngừng sản xuất</Select.Option>
                         </Select>
                     </div>
                 );
@@ -493,14 +519,6 @@ const AdminVehicles = () => {
                     <Form.Item name="recommendedChargingPowerKW" label="Công suất sạc khuyến nghị (kW)" rules={[{ required: true }]}>
                         <Input type="number" />
                     </Form.Item>
-
-                    {/* <Form.Item name="status" label="Tình trạng xe" rules={[{ required: true }]}>
-                        <Select>
-                            <Select.Option value="Active">Active</Select.Option>
-                            <Select.Option value="Discontinued">Discontinued</Select.Option>
-                            <Select.Option value="Unknown">Unknown</Select.Option>
-                        </Select>
-                    </Form.Item> */}
 
                     <Form.Item name="imageUrl" label="Hình ảnh (URL)">
                         <Input placeholder="https://..." />

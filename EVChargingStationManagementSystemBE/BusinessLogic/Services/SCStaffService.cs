@@ -95,10 +95,10 @@ namespace BusinessLogic.Services
                 // Tạo UserAccount
                 var user = dto.Adapt<UserAccount>();
                 user.UserName = dto.Email;
-                user.RegistrationDate = DateTime.UtcNow;
+                user.RegistrationDate = DateTime.Now;
                 user.Status = "Active";
-                user.CreatedAt = DateTime.UtcNow;
-                user.UpdatedAt = DateTime.UtcNow;
+                user.CreatedAt = DateTime.Now;
+                user.UpdatedAt = DateTime.Now;
 
                 var result = await _userManager.CreateAsync(user, dto.Password);
                 if (!result.Succeeded)
@@ -114,8 +114,8 @@ namespace BusinessLogic.Services
                 staff.Id = Guid.NewGuid();
                 staff.AccountId = user.Id;
                 staff.Status = "Active";
-                staff.CreatedAt = DateTime.UtcNow;
-                staff.UpdatedAt = DateTime.UtcNow;
+                staff.CreatedAt = DateTime.Now;
+                staff.UpdatedAt = DateTime.Now;
                 staff.IsDeleted = false;
 
                 await _unitOfWork.SCStaffRepository.CreateAsync(staff);
@@ -144,13 +144,13 @@ namespace BusinessLogic.Services
 
                 // Map vào SCStaff
                 dto.Adapt(staff);
-                staff.UpdatedAt = DateTime.UtcNow;
+                staff.UpdatedAt = DateTime.Now;
 
                 // Map vào UserAccount
                 if (staff.UserAccountNavigation != null)
                 {
                     dto.Adapt(staff.UserAccountNavigation);
-                    staff.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
+                    staff.UserAccountNavigation.UpdatedAt = DateTime.Now;
                 }
 
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -180,12 +180,12 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
                 dto.Adapt(staff);
-                staff.UpdatedAt = DateTime.UtcNow;
+                staff.UpdatedAt = DateTime.Now;
 
                 if (staff.UserAccountNavigation != null)
                 {
                     dto.Adapt(staff.UserAccountNavigation);
-                    staff.UserAccountNavigation.UpdatedAt = DateTime.UtcNow;
+                    staff.UserAccountNavigation.UpdatedAt = DateTime.Now;
                 }
 
                 var result = await _unitOfWork.SaveChangesAsync();
@@ -214,7 +214,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
 
                 staff.Status = dto.Status;
-                staff.UpdatedAt = DateTime.UtcNow;
+                staff.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
@@ -243,7 +243,7 @@ namespace BusinessLogic.Services
 
                 staff.IsDeleted = true;
                 staff.Status = "Inactive";
-                staff.UpdatedAt = DateTime.UtcNow;
+                staff.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)

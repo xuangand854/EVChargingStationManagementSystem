@@ -16,9 +16,9 @@ import {
     Battery,
     Clock,
     Zap,
-    DollarSign,
     Gauge,
-    Banknote
+    Banknote,
+    ArrowLeft
 } from "lucide-react";
 
 const Session = () => {
@@ -29,9 +29,9 @@ const Session = () => {
     const [isPaid, setIsPaid] = useState(false);
     const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [bookingData, setBookingData] = useState(null);
-    const [checkinCode, setCheckinCode] = useState(null);
     const [showCheckinModal, setShowCheckinModal] = useState(false);
+    const [otpValues, setOtpValues] = useState(["", "", "", ""]);
+    const [otpError, setOtpError] = useState(false);
     const [chargingData, setChargingData] = useState({
         batteryLevel: 20,
         energyDelivered: 0,
@@ -71,31 +71,32 @@ const Session = () => {
         return () => { };
     }, []);
 
-    // Kiểm tra booking khi component mount
+    // Kiểm tra connector status khi component mount
     useEffect(() => {
-        const checkBooking = async () => {
+        const checkConnectorStatus = async () => {
             try {
-                const res = await MyBooking();
-                const bookings = res?.data || [];
+                // Lấy thông tin connector để check status
+                const connectorResponse = await GetConnectorId(connectorID);
+                console.log("🔌 Thông tin connector:", connectorResponse);
 
-                // Tìm booking cho connector hiện tại
-                const currentBooking = bookings.find(b => b.connectorId === connectorID);
+                const status = connectorResponse?.data?.status || connectorResponse?.status;
+                console.log("📊 Status của connector:", status);
 
-                if (currentBooking) {
-                    setBookingData(currentBooking);
-                    console.log("📋 Booking hiện tại:", currentBooking);
-
-                    // Nếu booking ở trạng thái Reserved, hiển thị modal check-in
-                    if (currentBooking.status === "Reserved") {
-                        setShowCheckinModal(true);
-                    }
+                // Nếu connector status là Reserved, hiển thị modal yêu cầu nhập mã check-in
+                if (status === "Reserved") {
+                    console.log("🎫 Connector đang Reserved - Yêu cầu nhập mã check-in 4 số");
+                    setShowCheckinModal(true);
+                } else {
+                    console.log("ℹ️ Connector không ở trạng thái Reserved, status:", status);
                 }
             } catch (error) {
-                console.error("Lỗi khi kiểm tra booking:", error);
+                console.error("❌ Lỗi khi kiểm tra connector:", error);
             }
         };
 
-        checkBooking();
+        if (connectorID) {
+            checkConnectorStatus();
+        }
     }, [connectorID]);
 
     // Lấy giá điện và thuế VAT khi component mount
@@ -193,26 +194,52 @@ const Session = () => {
     }, [isCharging, pricingData]);
 
     const handleCheckin = async () => {
-        if (!bookingData || !bookingData.id) {
-            message.error("Không tìm thấy thông tin booking!");
+        // Ghép 4 ô thành mã
+        const checkinCode = otpValues.join("");
+
+        // Validate mã 4 số
+        if (checkinCode.length !== 4) {
+            setOtpError(true);
+            message.error("Vui lòng nhập đủ 4 số!");
+            // Reset error sau 1 giây
+            setTimeout(() => setOtpError(false), 1000);
             return;
         }
 
+        setOtpError(false);
         setLoading(true);
         try {
-            const response = await BookCheckin(bookingData.id);
-            const code = response?.data?.checkinCode || response?.checkinCode;
+            // Lấy danh sách booking của user để tìm booking theo mã
+            const res = await MyBooking();
+            const bookings = res?.data || [];
 
-            if (code) {
-                setCheckinCode(code);
-                message.success("✅ Check-in thành công!");
+            // Tìm booking có connector hiện tại và mã check-in khớp
+            const matchedBooking = bookings.find(b =>
+                String(b.connectorId) === String(connectorID) &&
+                String(b.checkinCode || "").slice(-4) === checkinCode
+            );
 
-                // Cập nhật trạng thái booking
-                setBookingData(prev => ({ ...prev, status: "CheckedIn" }));
+            if (!matchedBooking) {
+                message.error("Mã check-in không đúng!");
+                return;
             }
+
+            // Gọi API check-in
+            const response = await BookCheckin(matchedBooking.id);
+            console.log("✅ Check-in response:", response);
+
+            message.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
+            setShowCheckinModal(false);
+            setOtpValues(["", "", "", ""]);
+
+            // Refresh connector status
+            const connectorResponse = await GetConnectorId(connectorID);
+            const newStatus = connectorResponse?.data?.status || connectorResponse?.status;
+            setConnectorStatus(newStatus);
+
         } catch (error) {
             console.error("❌ Lỗi khi check-in:", error);
-            message.error("Không thể check-in!");
+            message.error("Không thể check-in! Vui lòng thử lại.");
         } finally {
             setLoading(false);
         }
@@ -363,7 +390,7 @@ const Session = () => {
                 sessionStorage.setItem('payment.returnPath', window.location.pathname);
                 //
                 sessionStorage.setItem('payment.amount', String(chargingData.cost));
-                
+
             } catch { }
             navigate(`/payment-method/${sessionId}`); //  chuyển hướng đến trang chọn phương thức thanh toán
         } catch (error) {
@@ -408,6 +435,22 @@ const Session = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
+                {/* Back Button */}
+                <div className="mb-4">
+                    <Button
+                        icon={<ArrowLeft size={20} />}
+                        onClick={() => navigate(-1)}
+                        size="large"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
+                    >
+                        Quay lại
+                    </Button>
+                </div>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div
@@ -452,51 +495,131 @@ const Session = () => {
 
                 {/* Modal Check-in */}
                 <Modal
-                    title="🎫 Check-in Booking"
+                    title={<div style={{ textAlign: 'center', fontSize: '20px' }}>🎫 Nhập mã Check-in</div>}
                     open={showCheckinModal}
                     onOk={handleCheckin}
-                    onCancel={() => setShowCheckinModal(false)}
-                    okText="Check-in"
-                    cancelText="Đóng"
+                    onCancel={() => {
+                        // Nếu connector vẫn Reserved, đưa user về trang trước (danh sách connector)
+                        if (connectorStatus === "Reserved") {
+                            message.info("Quay về danh sách connector");
+                            navigate(-1);
+                        } else {
+                            // Nếu không còn Reserved, chỉ đóng modal
+                            setShowCheckinModal(false);
+                            setOtpValues(["", "", "", ""]);
+                        }
+                    }}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
                     okButtonProps={{ loading: loading }}
+                    closable={true}
+                    maskClosable={false}
+                    centered
+                    width={500}
                 >
-                    {bookingData && bookingData.status === "Reserved" ? (
-                        <div className="space-y-4">
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <p className="text-gray-700 mb-2">
-                                    <strong>Trạng thái:</strong> <span className="text-blue-600">Đã đặt chỗ</span>
-                                </p>
-                                <p className="text-gray-700 mb-2">
-                                    <strong>Booking ID:</strong> <span className="font-mono">{bookingData.id}</span>
-                                </p>
-                                <p className="text-gray-700">
-                                    Nhấn "Check-in" để xác nhận và nhận mã check-in
-                                </p>
-                            </div>
-
-                            {checkinCode && (
-                                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                                    <p className="text-gray-700 mb-2 font-semibold">
-                                        ✅ Mã Check-in của bạn:
-                                    </p>
-                                    <div className="text-center">
-                                        <span className="text-3xl font-bold text-green-600 font-mono">
-                                            {checkinCode}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 mt-2 text-center">
-                                        Vui lòng lưu lại mã này
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                            <p className="text-gray-600">
-                                Booking không ở trạng thái Reserved hoặc đã check-in rồi.
+                    <div style={{ padding: '20px 0' }}>
+                        <div style={{
+                            padding: '20px',
+                            backgroundColor: '#eff6ff',
+                            borderRadius: '8px',
+                            border: '1px solid #bfdbfe',
+                            marginBottom: '30px',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{
+                                color: '#1f2937',
+                                marginBottom: '8px',
+                                fontSize: '16px',
+                                fontWeight: '600'
+                            }}>
+                                ⚠️ Connector đang được đặt trước
+                            </p>
+                            <p style={{
+                                color: '#6b7280',
+                                fontSize: '14px',
+                                margin: 0
+                            }}>
+                                Vui lòng nhập mã check-in 4 số để xác nhận và bắt đầu sạc
                             </p>
                         </div>
-                    )}
+
+                        <div>
+                            <label style={{
+                                display: 'block',
+                                color: '#374151',
+                                fontWeight: '600',
+                                marginBottom: '20px',
+                                textAlign: 'center',
+                                fontSize: '16px'
+                            }}>
+                                Mã Check-in (4 số)
+                            </label>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    gap: '12px',
+                                    marginBottom: '20px',
+                                    animation: otpError ? 'shake 0.5s' : 'none'
+                                }}
+                            >
+                                <style>{`
+                                    @keyframes shake {
+                                        0%, 100% { transform: translateX(0); }
+                                        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+                                        20%, 40%, 60%, 80% { transform: translateX(10px); }
+                                    }
+                                `}</style>
+                                {otpValues.map((value, index) => (
+                                    <Input
+                                        key={index}
+                                        id={`otp-${index}`}
+                                        value={value}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            if (val.length <= 1) {
+                                                const newOtpValues = [...otpValues];
+                                                newOtpValues[index] = val;
+                                                setOtpValues(newOtpValues);
+                                                setOtpError(false); // Reset error khi user nhập
+
+                                                // Auto focus next input
+                                                if (val && index < 3) {
+                                                    document.getElementById(`otp-${index + 1}`)?.focus();
+                                                }
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            // Backspace: focus previous input
+                                            if (e.key === 'Backspace' && !value && index > 0) {
+                                                document.getElementById(`otp-${index - 1}`)?.focus();
+                                            }
+                                        }}
+                                        maxLength={1}
+                                        style={{
+                                            width: '70px',
+                                            height: '70px',
+                                            fontSize: '32px',
+                                            textAlign: 'center',
+                                            fontWeight: 'bold',
+                                            borderRadius: '8px',
+                                            border: otpError ? '2px solid #ef4444' : '2px solid #d1d5db',
+                                            backgroundColor: otpError ? '#fee2e2' : 'white',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            {/* <p style={{
+                                color: '#9ca3af',
+                                fontSize: '12px',
+                                textAlign: 'center',
+                                margin: 0
+                            }}>
+                                Mã này được gửi qua email/SMS khi bạn đặt chỗ
+                            </p> */}
+                        </div>
+                    </div>
                 </Modal>
 
                 {/* Trạng thái hiện tại - Nổi bật */}
@@ -632,24 +755,24 @@ const Session = () => {
                             {!pricingData.loading ? (
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-gray-600">Giá điện</span>
+                                        <span className="text-gray-600">Giá điện: </span>
                                         <span className="font-semibold text-gray-800">
                                             {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-gray-600">Thuế VAT</span>
+                                        <span className="text-gray-600">Thuế VAT: </span>
                                         <span className="font-semibold text-gray-800">{pricingData.vatRate}%</span>
                                     </div>
                                     <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                        <span className="text-gray-700 font-medium">Công suất tối đa</span>
+                                        <span className="text-gray-700 font-medium">Công suất tối đa: </span>
                                         <span className="font-bold text-green-600 text-lg">
                                             {pricingData.maxPowerKw} kW
                                         </span>
                                     </div>
                                     {chargingData.energyDelivered > 0 && (
                                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                            <span className="text-gray-600">Tiền điện</span>
+                                            <span className="text-gray-600">Tiền điện: </span>
                                             <span className="font-semibold text-gray-800">
                                                 {(chargingData.energyDelivered * pricingData.pricePerKWh).toLocaleString()} VNĐ
                                             </span>
@@ -657,7 +780,7 @@ const Session = () => {
                                     )}
                                     {sessionId && (
                                         <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200 mt-4">
-                                            <span className="text-gray-700 font-medium">Mã phiên</span>
+                                            <span className="text-gray-700 font-medium">Mã phiên: </span>
                                             <span className="font-mono text-green-700 font-semibold">{sessionId}</span>
                                         </div>
                                     )}

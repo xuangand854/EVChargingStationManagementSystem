@@ -13,6 +13,7 @@ import {
     updateChargingPost,
     updateChargingPostStatus,
 } from "../../../API/ChargingPost";
+import { getMyAccountStaff } from "../../../API/Staff";
 import {
     Card,
     Table,
@@ -45,6 +46,8 @@ const AdminStationDetail = () => {
     const [editingPost, setEditingPost] = useState(null);
     const [staffModalVisible, setStaffModalVisible] = useState(false);
     const [selectedOperatorId, setSelectedOperatorId] = useState("");
+    const [staffList, setStaffList] = useState([]);
+    const [loadingStaff, setLoadingStaff] = useState(false);
 
     // 🔹 Load trạm & trụ
     const fetchStationAndPosts = async () => {
@@ -69,6 +72,13 @@ const AdminStationDetail = () => {
         if (stationId) fetchStationAndPosts();
     }, [stationId]);
 
+    // Load danh sách nhân viên khi mở modal
+    useEffect(() => {
+        if (staffModalVisible) {
+            fetchStaffList();
+        }
+    }, [staffModalVisible]);
+
     // 🔹 Cập nhật trạng thái trạm (không ảnh hưởng trụ)
     const handleChangeStationStatus = async (status) => {
         try {
@@ -81,16 +91,34 @@ const AdminStationDetail = () => {
         }
     };
 
+    // 🔹 Load danh sách nhân viên
+    const fetchStaffList = async () => {
+        setLoadingStaff(true);
+        try {
+            const response = await getMyAccountStaff();
+            const allStaff = response?.data || [];
+            // Chỉ lấy nhân viên có status = "Active"
+            const activeStaff = allStaff.filter(staff => staff.status === "Active");
+            setStaffList(activeStaff);
+        } catch (error) {
+            console.error("Lỗi khi tải danh sách nhân viên:", error);
+            message.error("Không thể tải danh sách nhân viên!");
+        } finally {
+            setLoadingStaff(false);
+        }
+    };
+
     // 🔹 Cập nhật nhân viên phụ trách
     const handleUpdateStaff = async () => {
         if (!selectedOperatorId) {
-            message.warning("Vui lòng nhập mã nhân viên!");
+            message.warning("Vui lòng chọn nhân viên!");
             return;
         }
         try {
             await updateChargingStation(stationId, { operatorId: selectedOperatorId });
-            message.success(" Cập nhật nhân viên phụ trách thành công!");
+            message.success("Cập nhật nhân viên phụ trách thành công!");
             setStaffModalVisible(false);
+            setSelectedOperatorId("");
             fetchStationAndPosts();
         } catch (error) {
             console.error("updateStaff error:", error);
@@ -372,18 +400,38 @@ const AdminStationDetail = () => {
                     <Modal
                         title="Cập nhật nhân viên phụ trách"
                         open={staffModalVisible}
-                        onCancel={() => setStaffModalVisible(false)}
+                        onCancel={() => {
+                            setStaffModalVisible(false);
+                            setSelectedOperatorId("");
+                        }}
                         onOk={handleUpdateStaff}
                         okText="Lưu"
                         cancelText="Hủy"
                     >
                         <Form layout="vertical">
-                            <Form.Item label="Mã nhân viên mới">
-                                <Input
-                                    placeholder="Nhập mã nhân viên (operatorId)"
-                                    value={selectedOperatorId}
-                                    onChange={(e) => setSelectedOperatorId(e.target.value)}
-                                />
+                            <Form.Item label="Chọn nhân viên">
+                                <Select
+                                    placeholder="Chọn nhân viên phụ trách"
+                                    value={selectedOperatorId || undefined}
+                                    onChange={(value) => setSelectedOperatorId(value)}
+                                    loading={loadingStaff}
+                                    showSearch
+                                    filterOption={(input, option) =>
+                                        option.children.toLowerCase().includes(input.toLowerCase())
+                                    }
+                                    style={{ width: "100%" }}
+                                >
+                                    {staffList.map((staff) => (
+                                        <Option key={staff.id} value={staff.id}>
+                                            {staff.name} - {staff.email}
+                                        </Option>
+                                    ))}
+                                </Select>
+                                {staffList.length === 0 && !loadingStaff && (
+                                    <p className="text-gray-500 text-sm mt-2">
+                                        Không có nhân viên Active nào
+                                    </p>
+                                )}
                             </Form.Item>
                         </Form>
                     </Modal>

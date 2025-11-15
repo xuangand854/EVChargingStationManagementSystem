@@ -80,10 +80,11 @@ namespace BusinessLogic.Services
                 //if (recent.Any())
                 //    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong 30 phút.");
 
+                
                 // --- Kiểm tra trạm sạc ---
                 var station = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-      s => s.Id == dto.StationId && !s.IsDeleted,
-      include: s => s.Include(x => x.ChargingPosts)
+                      s => s.Id == dto.StationId && !s.IsDeleted,
+                      include: s => s.Include(x => x.ChargingPosts)
                      .ThenInclude(cp => cp.Connectors));
                 if (station == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc.");
@@ -697,23 +698,8 @@ namespace BusinessLogic.Services
 
             foreach (var booking in bookings)
             {
-                // Lấy session tương ứng
-                var session = await _unitOfWork.ChargingSessionRepository.GetByIdAsync(
-                    predicate: s => !s.IsDeleted && s.BookingId == booking.Id,
-                    asNoTracking: false
-                );
-
-                if (session == null)
-                    continue;
-
-                //  Yêu cầu session phải PAID
-                if (session.Status != ChargingSessionStatus.Paid.ToString())
-                    continue;
-
-                // Update trạng thái booking
-                booking.Status = BookingStatus.Completed.ToString();
-                booking.ActualEndTime = now;
-                booking.UpdatedAt = now;
+               
+                await CompleteBookingAsync(booking.Id);
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -722,3 +708,5 @@ namespace BusinessLogic.Services
     }
 
 }
+
+    

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getBooking } from "../../API/Booking";
+import { getStationBooking } from "../../API/Booking";
 import { getEVDriverId } from "../../API/EVDriver";
 import "./BookingOrder.css";
 
@@ -16,7 +16,7 @@ const BookingOrder = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const res = await getBooking();
+      const res = await getStationBooking();
       let data = res.data || [];
 
       // Gọi song song API lấy thông tin driver cho từng booking
@@ -55,7 +55,7 @@ const BookingOrder = () => {
 
   return (
     <div className="booking-container">
-      <h2 className="booking-title">📘 Quản Lý Booking</h2>
+      <h2 className="booking-title">📘 Quản Lý Đặt Lịch Sạc</h2>
 
       <div className="booking-filter">
         <input
@@ -71,10 +71,10 @@ const BookingOrder = () => {
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="All">Tất cả</option>
-          <option value="Scheduled">Scheduled</option>
-          <option value="Charging">Charging</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="Scheduled">Đã lên lịch</option>
+          <option value="Charging">Đang Sạc</option>
+          <option value="Completed">Hoàn Thành</option>
+          <option value="Cancelled">Đã Hủy</option>
         </select>
       </div>
 

@@ -75,6 +75,9 @@
   color: #333;
   font-size: 15px;
 }
+.order-history-list p{
+  color:black;
+}
 
 /* ====== Trạng thái ====== */
 
@@ -91,6 +94,14 @@
   font-weight: 600;
   font-size: 15px;
   color:#16a34a;;
+
+}
+
+.order-history-info .inprogress {
+
+  font-weight: 600;
+  font-size: 15px;
+  color:#F59E0B;
 
 }
 

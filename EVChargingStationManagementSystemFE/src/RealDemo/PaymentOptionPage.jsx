@@ -189,8 +189,8 @@ const PaymentOptionPage = () => {
             >
                 <div style={{ textAlign: "center", padding: 20 }}>
                     <CheckCircle size={50} color="green" />
-                    <h2 style={{ marginTop: 10,color: "#28a745", fontSize: "22px",fontWeight: 600, lineHeight: 1.5, textAlign: "center", }}> Thanh Toán Của Bạn Đã Được Ghi Nhận!<br /> </h2>
-                    <div style={{fontSize: "14px",fontWeight: 600}}> Hãy Tìm Đến Nhân Viên Để Thực Hiện Thanh Toán</div>
+                    <h2 style={{ marginTop: 10,color: "#28a745", fontSize: "22px",fontWeight: 600, lineHeight: 1.5, textAlign: "center", }}>Yêu Cầu Thanh Toán Của Bạn Đã Được Ghi Nhận!<br /> </h2>
+                    <div style={{fontSize: "14px",fontWeight: 600}}>Hoàn thành tại quầy</div>
                      <Button
                         type="primary"
                         style={{ marginTop: 20 }}

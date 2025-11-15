@@ -2,6 +2,7 @@ import api from "./axios";
 
 const BASE_URL = "/Voucher";
 
+//getallvoucher
 export const GetVoucher = async () => {
     try {
         const response = await api.get(`${BASE_URL}`);
@@ -12,6 +13,7 @@ export const GetVoucher = async () => {
     }
 }
 
+//tạo voucher
 export const PostVoucher = async (data) => {
     try {
         const response = await api.post(`${BASE_URL}`, data);
@@ -22,6 +24,7 @@ export const PostVoucher = async (data) => {
     }
 }
 
+//cập nhật voucher
 export const UpdateVoucher = async (voucherId, payload) => {
     try {
         const response = await api.put(`${BASE_URL}/${voucherId}`, payload);
@@ -32,6 +35,7 @@ export const UpdateVoucher = async (voucherId, payload) => {
     }
 }
 
+//xóa voucher
 export const DeleteVoucher = async (voucherId) => {
     try {
         const response = await api.delete(`${BASE_URL}/${voucherId}`);
@@ -42,6 +46,7 @@ export const DeleteVoucher = async (voucherId) => {
     }
 }
 
+//đổi voucher
 export const RedeemVoucher = async (voucherId) => {
     try {
         const response = await api.post(`${BASE_URL}/redeem/${voucherId}`);
@@ -51,4 +56,16 @@ export const RedeemVoucher = async (voucherId) => {
         throw error;
     }
 }
+
+//sử dụng voucher(user)
+export const useVoucher = async (userVoucherId, sessionId) => {
+    try {
+        const response = await api.post(`${BASE_URL}/use/${userVoucherId}`, { sessionId });
+        return response.data;
+    } catch (error) {
+        console.error(`Lỗi khi sử dụng voucher ${userVoucherId}:`, error);
+        throw error;
+    }
+}
+
 

@@ -1,6 +1,7 @@
 // src/pages/Admin/Station/AdminStationDetail.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
     getChargingStationId,
     updateChargingStationStatus,
@@ -19,7 +20,6 @@ import {
     Table,
     Button,
     Space,
-    message,
     Select,
     Modal,
     Input,
@@ -61,8 +61,8 @@ const AdminStationDetail = () => {
             const postRes = await getAllChargingPost(stationId);
             setPosts(Array.isArray(postRes) ? postRes : postRes?.data || []);
         } catch (error) {
-            console.error("fetchStationAndPosts error:", error);
-            message.error("Không thể tải dữ liệu trạm sạc!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể tải dữ liệu trạm sạc: ${errorMsg}`);
         } finally {
             setLoading(false);
         }
@@ -83,11 +83,11 @@ const AdminStationDetail = () => {
     const handleChangeStationStatus = async (status) => {
         try {
             await updateChargingStationStatus(stationId, status);
-            message.success(" Cập nhật trạng thái trạm thành công!");
+            toast.success("Cập nhật trạng thái trạm thành công!");
             fetchStationAndPosts();
         } catch (error) {
-            console.error("updateStationStatus error:", error);
-            message.error("Không thể cập nhật trạng thái trạm!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể cập nhật trạng thái trạm: ${errorMsg}`);
         }
     };
 
@@ -101,8 +101,8 @@ const AdminStationDetail = () => {
             const activeStaff = allStaff.filter(staff => staff.status === "Active");
             setStaffList(activeStaff);
         } catch (error) {
-            console.error("Lỗi khi tải danh sách nhân viên:", error);
-            message.error("Không thể tải danh sách nhân viên!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể tải danh sách nhân viên: ${errorMsg}`);
         } finally {
             setLoadingStaff(false);
         }
@@ -111,18 +111,18 @@ const AdminStationDetail = () => {
     // 🔹 Cập nhật nhân viên phụ trách
     const handleUpdateStaff = async () => {
         if (!selectedOperatorId) {
-            message.warning("Vui lòng chọn nhân viên!");
+            toast.warning("Vui lòng chọn nhân viên!");
             return;
         }
         try {
             await updateChargingStation(stationId, { operatorId: selectedOperatorId });
-            message.success("Cập nhật nhân viên phụ trách thành công!");
+            toast.success("Cập nhật nhân viên phụ trách thành công!");
             setStaffModalVisible(false);
             setSelectedOperatorId("");
             fetchStationAndPosts();
         } catch (error) {
-            console.error("updateStaff error:", error);
-            message.error("Không thể cập nhật nhân viên!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể cập nhật nhân viên: ${errorMsg}`);
         }
     };
 
@@ -131,31 +131,31 @@ const AdminStationDetail = () => {
         if (!confirmDelete) return;
 
         try {
-            console.log("Attempting to delete post:", postId);
             await deleteChargingPost(postId);
-            message.success(" Xóa trụ sạc thành công!");
+            toast.success("Xóa trụ sạc thành công!");
             fetchStationAndPosts();
         } catch (error) {
-            console.error("deletePost error:", error);
             if (error.response) {
                 const status = error.response.status;
+                const msg = error.response.data?.message || "Không xác định";
                 switch (status) {
                     case 404:
-                        message.error("Không tìm thấy trụ sạc để xóa!");
+                        toast.error("Không tìm thấy trụ sạc để xóa!");
                         break;
                     case 400:
-                        message.error("Yêu cầu không hợp lệ!");
+                        toast.error(`Yêu cầu không hợp lệ: ${msg}`);
                         break;
                     case 500:
-                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                         break;
                     default:
-                        message.error(`Lỗi ${status}: ${error.response.data?.message || "Không xác định"}`);
+                        toast.error(`Lỗi ${status}: ${msg}`);
                 }
             } else if (error.request) {
-                message.error("Không thể kết nối đến máy chủ!");
+                toast.error("Không thể kết nối đến máy chủ!");
             } else {
-                message.error("Có lỗi xảy ra khi xóa trụ sạc!");
+                const errorMsg = error?.message || "Lỗi không xác định";
+                toast.error(`Có lỗi xảy ra khi xóa trụ sạc: ${errorMsg}`);
             }
         }
     };
@@ -188,17 +188,17 @@ const AdminStationDetail = () => {
 
             if (editingPost) {
                 await updateChargingPost(editingPost.id, payload);
-                message.success(" Cập nhật trụ sạc thành công!");
+                toast.success("Cập nhật trụ sạc thành công!");
             } else {
                 await addChargingPost(payload);
-                message.success(" Thêm trụ sạc thành công!");
+                toast.success("Thêm trụ sạc thành công!");
             }
 
             setModalVisible(false);
             fetchStationAndPosts();
         } catch (error) {
-            console.error("handleSavePost error:", error);
-            message.error("Không thể lưu trụ sạc!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể lưu trụ sạc: ${errorMsg}`);
         }
     };
 
@@ -206,11 +206,11 @@ const AdminStationDetail = () => {
     const handleChangePostStatus = async (postId, newStatus) => {
         try {
             await updateChargingPostStatus(postId, newStatus);
-            message.success("⚙️ Cập nhật trạng thái trụ sạc thành công!");
+            toast.success("Cập nhật trạng thái trụ sạc thành công!");
             fetchStationAndPosts();
         } catch (error) {
-            console.error("updateChargingPostStatus error:", error);
-            message.error("Không thể cập nhật trạng thái trụ!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể cập nhật trạng thái trụ: ${errorMsg}`);
         }
     };
 

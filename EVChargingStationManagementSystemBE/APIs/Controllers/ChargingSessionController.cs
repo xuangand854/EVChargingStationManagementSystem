@@ -2,6 +2,7 @@
 using Common;
 using Common.DTOs.ChargingSessionDto;
 using Common.Helper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIs.Controllers
@@ -13,6 +14,7 @@ namespace APIs.Controllers
         private readonly IChargingSessionService _service = service;
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetList()
         {
             //Guid userId;

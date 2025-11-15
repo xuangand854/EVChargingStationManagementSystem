@@ -24,14 +24,14 @@ namespace BusinessLogic.Services
                     .AsNoTracking()
                     //.Where(c => !c.IsDeleted && c.UserId == userId)
                     .Where(c => !c.IsDeleted)
-                    .ProjectToType<ChargingSessionViewListDto>()
+                    //.ProjectToType<ChargingSessionViewListDto>()
                     .ToListAsync();
                 if (chargingSession == null || chargingSession.Count == 0)
                     return new ServiceResult(
                         Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy phiên sạc nào");
-
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingSession);
+                var response = chargingSession.Adapt<List<ChargingSessionViewListDto>>();
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
             }
             catch (Exception ex)
             {

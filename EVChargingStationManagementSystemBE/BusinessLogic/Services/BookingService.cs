@@ -479,16 +479,19 @@ namespace BusinessLogic.Services
         {
             var now = DateTime.Now;
 
-            // Lấy cấu hình CHECKIN_ALLOW_MINUTES từ DB, default = 15 phút
-            var config = await _unitOfWork.SystemConfigurationRepository.GetByIdAsync(
-                c => !c.IsDeleted && c.Name == "CHECKIN_ALLOW_MINUTES");
-            int allowance = (int)(config?.MinValue ?? 15);
+            // Lấy cấu hình từ systemconfig 
+            var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                        .AsNoTracking().Where(c => !c.IsDeleted && c.Name == "BOOKING_TIME_CANCEL_TRIGGER").FirstOrDefaultAsync();
+
+            decimal allowance = 0;
+            if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
+                allowance = config.MinValue ?? 0;
 
             // Lấy tất cả booking Scheduled mà đã quá thời gian cho phép check-in hoặc đã kết thúc
             var expiredBookings = await _unitOfWork.BookingRepository.GetAllAsync(
                 b => !b.IsDeleted &&
                      b.Status == "Scheduled" &&
-                     (now > b.StartTime.AddMinutes(allowance) || now > b.EndTime),
+                     (now > b.StartTime.AddMinutes((double)allowance) || now > b.EndTime),
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(cs => cs.ChargingPosts)
                                    .ThenInclude(p => p.Connectors),
@@ -649,16 +652,67 @@ namespace BusinessLogic.Services
 
             await _unitOfWork.SaveChangesAsync();
         }
-
-        public Task AutoCompleteBookingsAsync()
+        public async Task<IServiceResult> GetBookingsByStaff(Guid staffId)
         {
-            throw new NotImplementedException();
+            // 1️ Kiểm tra nhân viên tồn tại và không bị xóa
+            var staff = await _unitOfWork.UserAccountRepository.GetByIdAsync(
+                u => u.Id == staffId && !u.IsDeleted,
+                include: u => u.Include(x => x.ChargingStations)
+            );
+
+            if (staff == null)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
+
+            // 2️ Lấy danh sách trạm mà nhân viên này quản lý
+            var stationIds = staff.ChargingStations
+                .Where(s => !s.IsDeleted)
+                .Select(s => s.Id)
+                .ToList();
+
+            if (!stationIds.Any())
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Nhân viên chưa được gán trạm nào.");
+
+            // 3️ Lấy tất cả booking thuộc các trạm đó
+            var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                b => stationIds.Contains(b.StationId) && !b.IsDeleted,
+                include: b => b
+                    .Include(x => x.BookedByNavigation)
+                    .Include(x => x.ChargingStationNavigation)
+                    .Include(x => x.ConnectorNavigation)
+                        .ThenInclude(c => c.ChargingPost),
+                orderBy: q => q.OrderByDescending(b => b.CreatedAt)
+            );
+
+            if (bookings == null || bookings.Count == 0)
+                return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không có booking nào tại các trạm bạn quản lý.");
+
+            var response = bookings.Adapt<List<BookingViewDto>>();
+            return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
         }
 
-        public Task AutoProcessAllBookingsAsync()
+
+        public async Task AutoCompleteBookingsAsync()
         {
-            throw new NotImplementedException();
+            var now = DateTime.Now;
+
+            // Lấy tất cả booking Scheduled hoặc InProgress mà EndTime <= now
+            var bookingsToComplete = await _unitOfWork.BookingRepository.GetAllAsync(
+                b => !b.IsDeleted &&
+                     (b.Status == BookingStatus.Scheduled.ToString() || b.Status == BookingStatus.InProgress.ToString()) &&
+                     b.EndTime <= now,
+                include: b => b.Include(x => x.ConnectorNavigation)
+                               .ThenInclude(c => c.ChargingPost)
+                               .ThenInclude(p => p.ChargingStationNavigation),
+                asNoTracking: false
+            );
+
+            foreach (var booking in bookingsToComplete)
+            {
+               
+                await CompleteBookingAsync(booking.Id);
+            }
         }
+
     }
 
 }

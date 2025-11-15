@@ -177,6 +177,26 @@ namespace APIs.Controllers
             await _service.AutoReassignBookingsForErrorStations();
             return Ok(new { message = "Đã xử lý chuyển các booking khỏi trạm lỗi." });
         }
+        // 8️ Lấy danh sách booking của trạm mà nhân viên đang quản lý
+        [HttpGet("station-bookings")]
+        [Authorize(Roles = "Staff")]
+        public async Task<IActionResult> GetBookingsByStationOfStaff()
+        {
+            Guid staffId;
+            try { staffId = User.GetUserId(); }
+            catch { return Unauthorized(new { message = "Không xác định được userId từ token." }); }
+
+            var result = await _service.GetBookingsByStaff(staffId);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
 
         // 1️2 Auto Lock - Khóa tài khoản có nhiều no-show
         [HttpPost("lock-no-show-accounts")]

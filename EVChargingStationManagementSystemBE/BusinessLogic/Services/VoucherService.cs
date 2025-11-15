@@ -13,9 +13,7 @@ namespace BusinessLogic.Services
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        // -----------------------------
         // 1) GET AVAILABLE VOUCHERS
-        // -----------------------------
         public async Task<IServiceResult> GetAvailableVouchers()
         {
             try
@@ -43,9 +41,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // -----------------------------
         // 2) CREATE VOUCHER
-        // -----------------------------
         public async Task<IServiceResult> CreateVoucher(VoucherCreateDto dto)
         {
             try
@@ -66,9 +62,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // -----------------------------
         // 3) UPDATE VOUCHER
-        // -----------------------------
         public async Task<IServiceResult> UpdateVoucher(VoucherUpdateDto dto, Guid voucherId)
         {
             try
@@ -93,10 +87,7 @@ namespace BusinessLogic.Services
             }
         }
 
-
-        // -----------------------------
         // 4) REDEEM VOUCHER
-        // -----------------------------
         public async Task<IServiceResult> RedeemVoucher(Guid evDriverId, Guid voucherId)
         {
             try
@@ -151,16 +142,15 @@ namespace BusinessLogic.Services
             }
         }
 
-
-        // -----------------------------
         // 5) USE VOUCHER
-        // -----------------------------
+     
         public async Task<IServiceResult> UseVoucher(Guid userVoucherId, Guid sessionId)
         {
             try
             {
+                // 1️ Lấy thông tin voucher
                 var userVoucher = await _unitOfWork.UserVoucherRepository.GetQueryable()
-                    .Include(uv => uv.Voucher) // lấy luôn thông tin Voucher
+                    .Include(uv => uv.Voucher)
                     .FirstOrDefaultAsync(uv => uv.Id == userVoucherId);
 
                 if (userVoucher == null)
@@ -169,35 +159,47 @@ namespace BusinessLogic.Services
                 if (userVoucher.Status != "Redeemed")
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Voucher chưa được redeem hoặc đã hết hạn");
 
+                // 2️⃣ Lấy thông tin phiên sạc
                 var session = await _unitOfWork.ChargingSessionRepository.GetQueryable()
                     .FirstOrDefaultAsync(s => s.Id == sessionId);
 
                 if (session == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc");
 
-                // Gắn voucher vào session
+                // 3️ Kiểm tra xem session đã có voucher nào chưa
+                var existingVoucher = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .FirstOrDefaultAsync(uv => uv.SessionId == sessionId && uv.Status == "Used");
+
+                if (existingVoucher != null)
+                {
+                    //  Nếu đã có voucher thì gỡ ra trước khi gắn voucher mới
+                    existingVoucher.Status = "Redeemed"; // hoặc "Unused" nếu bạn có trạng thái này
+                    existingVoucher.SessionId = null;
+                    existingVoucher.UsedDate = null;
+                }
+
+                // 4️ Gắn voucher mới vào session
                 userVoucher.UsedDate = DateTime.Now;
                 userVoucher.SessionId = sessionId;
                 userVoucher.Status = "Used";
 
-                // Áp dụng giảm giá ngay dựa trên VoucherType
+                // 5️ Áp dụng giảm giá
                 if (userVoucher.Voucher != null)
                 {
                     if (userVoucher.Voucher.VoucherType == "Discount")
                     {
-                        // giảm theo %
                         var discount = session.Cost * (userVoucher.Voucher.Value / 100);
                         session.Cost -= discount;
                     }
-                    else if ( userVoucher.Voucher.VoucherType == "Amount")
+                    else if (userVoucher.Voucher.VoucherType == "Amount")
                     {
-                        // giảm theo số tiền cố định
                         session.Cost -= userVoucher.Voucher.Value;
                     }
 
                     if (session.Cost < 0) session.Cost = 0;
                 }
 
+                // 6️ Lưu thay đổi
                 await _unitOfWork.SaveChangesAsync();
 
                 return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Áp dụng voucher thành công", userVoucher.Adapt<UserVoucherDto>());
@@ -209,11 +211,7 @@ namespace BusinessLogic.Services
         }
 
 
-
-
-        // -----------------------------
         // 6) EXPIRE A SINGLE USER VOUCHER
-        // -----------------------------
         public async Task<IServiceResult> ExpireVoucher(Guid userVoucherId)
         {
             try
@@ -240,9 +238,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // -----------------------------
         // 7) DELETE VOUCHER (SOFT)
-        // -----------------------------
         public async Task<IServiceResult> DeleteVoucher(Guid voucherId)
         {
             try
@@ -265,9 +261,7 @@ namespace BusinessLogic.Services
         }
 
 
-        // -----------------------------
         // 8) EXPIRE ALL EXPIRED VOUCHERS (Background Job)
-        // -----------------------------
         public async Task<int> ExpireAllExpiredVouchers()
         {
             var now = DateTime.Now;
@@ -290,3 +284,4 @@ namespace BusinessLogic.Services
         }
     }
 }
+

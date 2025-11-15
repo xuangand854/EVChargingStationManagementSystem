@@ -12,8 +12,8 @@ const StaffSidebar = () => {
         // { name: "Xe điện", path: "/staff/vehicles", icon: <Car size={20} /> },
         { name: "Xác nhận thanh toán", path: "confirm-payment-offline", incon: <CreditCard size={20} /> },
 
-        { name: "Quản Lý Booking", path: "/staff/booking-order", icon: <Users size={20} /> },
-        { name: "Report", path: "/staff/staff-report", icon: <Users size={20} /> }
+        { name: "Quản Lý Đặt Lịch Sạc", path: "/staff/booking-order", icon: <Users size={20} /> },
+        { name: "Báo Cáo", path: "/staff/staff-report", icon: <Users size={20} /> }
 
 
     ];
@@ -28,7 +28,7 @@ const StaffSidebar = () => {
                         <span>⚡</span>
                     </div>
                     <div className="logo-text">
-                        <h1>EV Staff</h1>
+                        <h1>Nhân Viên</h1>
                         <p>Quản trị hệ thống</p>
                     </div>
                 </div>

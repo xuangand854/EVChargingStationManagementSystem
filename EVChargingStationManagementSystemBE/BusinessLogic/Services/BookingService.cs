@@ -80,16 +80,29 @@ namespace BusinessLogic.Services
                 //if (recent.Any())
                 //    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể đặt liên tiếp tại cùng trạm trong 30 phút.");
 
+                
                 // --- Kiểm tra trạm sạc ---
                 var station = await _unitOfWork.ChargingStationRepository.GetByIdAsync(
-                    s => s.Id == dto.StationId && !s.IsDeleted,
-                    include: s => s.Include(x => x.ChargingPosts));
+                      s => s.Id == dto.StationId && !s.IsDeleted,
+                      include: s => s.Include(x => x.ChargingPosts)
+                     .ThenInclude(cp => cp.Connectors));
                 if (station == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc.");
                 if (station.Status.Equals("Maintenance", StringComparison.OrdinalIgnoreCase) ||
-          station.Status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
+                    station.Status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))
                 {
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc không khả dụng.");
+                }
+
+                // --- BR10: Chỉ được đặt nếu có ít nhất 1 connector Available ---
+                var hasAvailableConnector = station.ChargingPosts
+                    .Any(cp => cp.Connectors != null &&
+                           cp.Connectors.Any(c => !c.IsDeleted &&
+                       c.Status.Equals(ConnectorStatus.Available.ToString(), StringComparison.OrdinalIgnoreCase)));
+
+                if (!hasAvailableConnector)
+                {
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc hiện không có cổng sạc khả dụng.");
                 }
 
 
@@ -271,9 +284,6 @@ namespace BusinessLogic.Services
             {
                 var booking = await _unitOfWork.BookingRepository.GetByIdAsync(
                     predicate: b => !b.IsDeleted && b.Id == bookingId,
-                    include: b => b.Include(x => x.ConnectorNavigation)
-                                   .ThenInclude(c => c.ChargingPost)
-                                   .ThenInclude(p => p.ChargingStationNavigation),
                     asNoTracking: false
                 );
 
@@ -286,41 +296,22 @@ namespace BusinessLogic.Services
                 );
 
                 if (session == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc tương ứng");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy phiên sạc");
 
-                // Kiểm tra đã thanh toán (payment) — nếu bạn lưu trạng thái Paid trên ChargingSession
-                if (!session.Status.Equals(ChargingSessionStatus.Paid.ToString(), StringComparison.OrdinalIgnoreCase))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Chưa thanh toán xong, không thể hoàn tất booking");
+                // ❗ REQUIRE SESSION PAID
+                if (session.Status != ChargingSessionStatus.Paid.ToString())
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Phiên sạc chưa thanh toán, không thể hoàn tất booking");
 
-                var connector = booking.ConnectorNavigation;
-                if (connector != null)
-                {
-                    connector.IsLocked = false;
-                    connector.IsPluggedIn = false;
-                    connector.Status = ConnectorStatus.Available.ToString();
-                    connector.UpdatedAt = DateTime.Now;
-                }
+                // Nếu đã completed thì thoát
+                if (booking.Status == BookingStatus.Completed.ToString())
+                    return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Booking đã hoàn tất trước đó");
 
                 booking.Status = BookingStatus.Completed.ToString();
                 booking.ActualEndTime = DateTime.Now;
                 booking.UpdatedAt = DateTime.Now;
 
-                session.Status = ChargingSessionStatus.Paid.ToString();
-                session.EndTime = DateTime.Now;
-                session.UpdatedAt = DateTime.Now;
-
-                var station = connector?.ChargingPost?.ChargingStationNavigation;
-                if (station != null && connector != null)
-                {
-                    if (connector.ChargingPost.VehicleTypeSupported == "Car")
-                        station.AvailableCarConnectors++;
-                    else
-                        station.AvailableBikeConnectors++;
-
-                    station.UpdatedAt = DateTime.Now;
-                }
-
                 await _unitOfWork.SaveChangesAsync();
+
                 return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Hoàn tất booking thành công");
             }
             catch (Exception ex)
@@ -328,6 +319,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
 
         public async Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId)
         {
@@ -613,7 +605,7 @@ namespace BusinessLogic.Services
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(s => s.ChargingPosts)
                                    .ThenInclude(p => p.Connectors)
-                               .Include(x => x.ConnectorNavigation) // 👈 include connector đã gắn
+                               .Include(x => x.ConnectorNavigation) //  include connector đã gắn
                                    .ThenInclude(c => c.ChargingPost),
                 asNoTracking: false
             );
@@ -695,24 +687,26 @@ namespace BusinessLogic.Services
         {
             var now = DateTime.Now;
 
-            // Lấy tất cả booking Scheduled hoặc InProgress mà EndTime <= now
-            var bookingsToComplete = await _unitOfWork.BookingRepository.GetAllAsync(
+            // Lấy tất cả booking đã hết giờ
+            var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
                 b => !b.IsDeleted &&
-                     (b.Status == BookingStatus.Scheduled.ToString() || b.Status == BookingStatus.InProgress.ToString()) &&
+                     (b.Status == BookingStatus.Scheduled.ToString() ||
+                      b.Status == BookingStatus.InProgress.ToString()) &&
                      b.EndTime <= now,
-                include: b => b.Include(x => x.ConnectorNavigation)
-                               .ThenInclude(c => c.ChargingPost)
-                               .ThenInclude(p => p.ChargingStationNavigation),
                 asNoTracking: false
             );
 
-            foreach (var booking in bookingsToComplete)
+            foreach (var booking in bookings)
             {
                
                 await CompleteBookingAsync(booking.Id);
             }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
     }
 
 }
+
+    

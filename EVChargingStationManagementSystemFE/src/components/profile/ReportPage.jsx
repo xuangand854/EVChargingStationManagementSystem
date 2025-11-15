@@ -172,10 +172,10 @@ const filteredPosts = Array.isArray(posts)
               required
             >
               <option value="">-- Chọn loại báo cáo --</option>
-              <option value="Bug">Lỗi hệ thống</option>
-              <option value="FeatureRequest">Yêu cầu tính năng</option>
-              <option value="Maintenance">Bảo trì</option>
-              <option value="Other">Khác</option>
+              <option value="Lỗi">Lỗi hệ thống</option>
+              <option value="Yêu Cầu Tính Năng">Yêu cầu tính năng</option>
+              <option value="Bảo Trì">Bảo trì</option>
+              <option value="Khác">Khác</option>
             </select>
           </div>
 
@@ -188,10 +188,10 @@ const filteredPosts = Array.isArray(posts)
               required
             >
               <option value="">-- Chọn mức độ --</option>
-              <option value="Low">Thấp</option>
-              <option value="Medium">Trung bình</option>
-              <option value="High">Cao</option>
-              <option value="Critical">Nghiêm trọng</option>
+              <option value="Thấp">Thấp</option>
+              <option value="Trung Bình">Trung bình</option>
+              <option value="Cao">Cao</option>
+              <option value="Nghiêm Trọng">Nghiêm trọng</option>
             </select>
           </div>
 

@@ -127,6 +127,16 @@ export const MyBooking = async () => {
     throw error;
   }
 }
+export const getStationBooking = async () =>{
+  try {
+    const response = await api.get(`${BASE_URL}/station-bookings`);
+    console.log ('GetStationBooking',response);
+    return response.data
+  } catch (error) {
+    console.log('ErrorGetStationBooking',error)
+    throw error;
+  }
+}
 
 export default {
   getBooking,

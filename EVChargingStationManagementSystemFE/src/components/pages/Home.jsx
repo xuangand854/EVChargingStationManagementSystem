@@ -146,7 +146,7 @@ const Home = () => {
                         </div>
                         <div className="feature-card">
                             <div className="icon">📊</div>
-                            <h3>Realtime</h3>
+                            <h3>Xác Thời Gian Thực</h3>
                             <p>Trạng thái trạm sạc, công suất và chi phí hiển thị theo thời gian thực, cập nhật liên tục.</p>
                         </div>
                     </div>
@@ -203,7 +203,7 @@ const Home = () => {
                                 <div className="stat-card">
                                     <div className="stat-icon">⚡</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">500+</span>
+                                        <span className="stat-value">Hổ Trợ </span>
                                         <span className="stat-label">Trạm sạc</span>
                                         <span className="stat-desc">Trên toàn quốc</span>
                                     </div>
@@ -211,16 +211,16 @@ const Home = () => {
                                 <div className="stat-card">
                                     <div className="stat-icon">🚗</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">50K+</span>
-                                        <span className="stat-label">Người dùng</span>
-                                        <span className="stat-desc">Đã tin tưởng</span>
+                                        <span className="stat-value">Đảm Bảo</span>
+                                        <span className="stat-label">Tin Tưởng Dịch Vụ </span>
+                                        <span className="stat-desc">Hỗ Trợ Sạc Xe Điện Của Chúng Tôi</span>
                                     </div>
                                 </div>
                                 <div className="stat-card">
                                     <div className="stat-icon">📊</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">99.9%</span>
-                                        <span className="stat-label">Uptime</span>
+                                        <span className="stat-value">Hệ Thống Thuận Tiện</span>
+                                        <span className="stat-label">Hổ Trợ Dịch Vụ Tốt</span>
                                         <span className="stat-desc">Độ tin cậy cao</span>
                                     </div>
                                 </div>

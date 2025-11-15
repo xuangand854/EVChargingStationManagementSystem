@@ -33,3 +33,13 @@ export const PatchPaymentOfflineStatus = async (paymentId) => {
         throw error;
     }
 }
+export const getPaymentThatHaveSend = async () =>{
+    try {
+        const response = await api.get(`${BASE_URL}`);
+        console.log('GetPaymentThatHaveSendSuccess',response);
+        return response.data;
+    } catch (error) {
+        console.log('ErrorGetPayMentThatHaveSend',error);
+        throw error;
+    }
+}

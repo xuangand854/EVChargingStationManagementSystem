@@ -4,6 +4,8 @@ import { updateEVDriver, getEVDriverProfile,deleteEVDriverVehicalid } from "../.
 import { getVehicleModels } from "../../API/Admin";
 import { changePassword } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
+import { SettingOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 import "react-toastify/dist/ReactToastify.css";
 
 const defaultAvatars = {
@@ -210,7 +212,7 @@ const Profile = () => {
             <h2>Thông tin cá nhân</h2>
             {mode === "view" && (
               <button className="edit-btn" onClick={() => setMode("edit")}>
-                Chỉnh sửa thông tin
+                <SettingOutlined style={{ fontSize: '24px', color: '#000' }} />
               </button>
             )}
           </div>
@@ -255,6 +257,9 @@ const Profile = () => {
                   Đổi mật khẩu
                 </button>
               </div>
+              <button className="edit-btn" onClick={() => setMode("edit")}>
+                <SettingOutlined style={{ fontSize: '24px', color: '#000' }} />
+              </button>
             </div>
           )}
 

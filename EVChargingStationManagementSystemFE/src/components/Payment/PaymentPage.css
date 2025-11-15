@@ -20,6 +20,12 @@
 .payment-header p {
   color: #64748b;
 }
+.moneyinpage{
+  color:black;
+}
+.payment-method-section h1{
+  color:black;
+}
 
 .steps {
   display: flex;
@@ -86,6 +92,7 @@
   font-size: 18px;
   font-weight: 700;
   color: #1e293b;
+  
 }
 
 .payment-method-section p {
@@ -190,6 +197,84 @@
   color: white;
   border: none;
 }
+.total-amount-box {
+  display: flex;
+  justify-content: space-between; /* trái - phải */
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.total-amount-box .label {
+  color: #1e293b;
+}
+
+.total-amount-box .amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.banknote-icon {
+  color: #16a34a;
+}
+/* Overlay mờ phủ full màn hình */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999; /* đảm bảo nằm trên hết */
+}
+
+/* Hộp popup */
+.popup-box {
+    background: white;
+    width: 320px;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    animation: popupZoom 0.25s ease;
+}
+
+/* Animation xuất hiện */
+@keyframes popupZoom {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Nút về trang chủ */
+.home-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.home-btn:hover {
+    background: #0b5ed7;
+}
+
 
 .next-btn.disabled {
   background: #e2e8f0;

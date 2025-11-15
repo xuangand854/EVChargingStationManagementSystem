@@ -51,6 +51,8 @@ import Invalid from "./PaymentStatus/Invalid.jsx";
 import AdminCheckLogin from "./components/pages/admin/Adminchecklogin.jsx"
 import BookingOrder from "./components/ordercharging/BookingOrder.jsx"
 import StaffBookingOrder from "./components/pages/staff/StaffBookingOrder.jsx";
+import NotificationBubble from "./components/notification/NotificationBubble.jsx";
+import { NotificationProvider } from "./components/notification/NotificationContext.jsx";
 
 
 
@@ -72,10 +74,12 @@ import TransactionHistory from "./components/pages/admin/TransactionHistory.jsx"
 import StaffReport from "./components/pages/staff/StaffReport.jsx";
 import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx";
 import UserReport from "./components/profile/UserReport.jsx"
+import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.jsx";
 
 
 export default function App() {
   return (
+    <NotificationProvider>
     <BrowserRouter>
 
       <Routes>
@@ -155,6 +159,8 @@ export default function App() {
             <Route path=":stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
           </Route>
           <Route path="admin-map" element={<AdminStationMap />} />
+          <Route path="admin-feedback" element={<AdminFeedbackPage/>} />
+
           <Route path="vehicles" element={<AdminVehicles />} />
           <Route path="vouchers" element={<AdminVouchers />} />
           <Route path="system-configuration" element={<SystemConfigEditor />} />
@@ -180,8 +186,10 @@ export default function App() {
         </Route>
 
       </Routes>
+      <NotificationBubble />
 
     </BrowserRouter>
+    </NotificationProvider>
   );
 }
 

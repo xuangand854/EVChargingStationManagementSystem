@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState,useEffect} from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, CheckCircle, CreditCard, Store } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, CreditCard, Store ,Banknote} from "lucide-react";
 import PaymentOption from "./PaymentOption";
 import "../components/Payment/PaymentPage.css";
+import { Modal } from "antd";
 import { message, Button } from "antd";
 import { PostPayment, PostPaymentOffline } from "../API/Payment";
 
@@ -12,11 +13,24 @@ const PaymentOptionPage = () => {
     const [selected, setSelected] = useState(null); // 'online' | 'offline'
     const [loading, setLoading] = useState(false);
     const [paymentId, setPaymentId] = useState(null);
+    const [amount, setAmount] = useState(0);
+    const [paidOffline, setPaidOffline] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    
 
     const handleBack = () => {
         const returnPath = (() => { try { return sessionStorage.getItem('payment.returnPath'); } catch { return null; } })();
         if (returnPath) navigate(returnPath); else navigate(-1);
     };
+    useEffect(() => {
+        try {
+            const storedAmount = parseFloat(sessionStorage.getItem('payment.amount') || 0);
+            setAmount(storedAmount);
+        } catch {
+            message.error("Không thể lấy số tiền thanh toán");
+        }
+    }, []);
+
 
     const handleNext = async () => {
         if (!selected) return;
@@ -37,6 +51,8 @@ const PaymentOptionPage = () => {
             } else if (selected === 'offline') {
                 const resp = await PostPaymentOffline(sessionId);
                 const id = resp?.data?.id ?? resp?.data;
+                setPaidOffline(true);
+                setShowPopup(true); 
                 if (id) {
                     setPaymentId(id);
                     try { sessionStorage.setItem('payment.paid', 'true'); } catch {}
@@ -57,30 +73,26 @@ const PaymentOptionPage = () => {
             {/* Header */}
             <div className="payment-header">
                 <h1>Thanh toán phiên sạc</h1>
+                
                 <p>Chọn phương thức thanh toán phù hợp cho phiên sạc hiện tại</p>
             </div>
 
-            {/* Stepper */}
-            <div className="steps">
-                <div className="step active">
-                    <div className="circle">1</div>
-                    <div className="info">
-                        <h4>Chọn phương thức</h4>
-                        <p>Chọn cách thanh toán</p>
-                    </div>
-                </div>
-                <div className="divider active"></div>
-                <div className="step">
-                    <div className="circle">2</div>
-                    <div className="info">
-                        <h4>Thanh toán</h4>
-                        <p>Hoàn tất thanh toán</p>
-                    </div>
-                </div>
-            </div>
+            
 
             {/* Content */}
             <div className="payment-method-section">
+                {/* Hiển thị số tiền */}
+                        <div className="text-center p-6 mb-6 border rounded-lg shadow-md bg-white">
+                        <div className="total-amount-box">
+                            <span className="label">Tổng Số Tiền:</span>
+                            <span className="amount">
+                                {amount.toLocaleString('vi-VN', { maximumFractionDigits: 0 })} VND
+                                <Banknote className="banknote-icon" size={24} />
+                            </span>
+                            </div>
+
+
+                        </div>
                 <h3>Chọn phương thức thanh toán</h3>
                 <p>Hỗ trợ thanh toán Online (VNPAY) hoặc Offline tại quầy</p>
 
@@ -142,9 +154,7 @@ const PaymentOptionPage = () => {
 
                 {/* Navigation */}
                 <div className="nav-buttons">
-                    <button className="back-btn" onClick={handleBack}>
-                        <ArrowLeft className="icon" /> Quay lại phiên sạc
-                    </button>
+                    <div></div>
                     <button className={`next-btn ${!selected || loading ? 'disabled' : ''}`} disabled={!selected || loading} onClick={handleNext}>
                         {loading ? 'Đang xử lý...' : 'Tiếp tục'} <ArrowRight className="icon" />
                     </button>
@@ -171,15 +181,34 @@ const PaymentOptionPage = () => {
             </div>
 
             {/* Hiển thị kết quả offline */}
-            {paymentId && (
-                <div className="payment-method-section" style={{ marginTop: 20 }}>
-                    <h3>Thanh toán Offline đã ghi nhận</h3>
-                    <p>Mã thanh toán của bạn: <b>{paymentId}</b></p>
-                    <div style={{ marginTop: 12 }}>
-                        <Button onClick={handleBack}>Quay lại phiên sạc</Button>
-                    </div>
+            <Modal 
+                open={showPopup}
+                onCancel={() => setShowPopup(false)}
+                footer={null}
+                centered
+            >
+                <div style={{ textAlign: "center", padding: 20 }}>
+                    <CheckCircle size={50} color="green" />
+                    <h2 style={{ marginTop: 10,color: "#28a745", fontSize: "22px",fontWeight: 600, lineHeight: 1.5, textAlign: "center", }}> Thanh Toán Của Bạn Đã Được Ghi Nhận!<br /> </h2>
+                    <div style={{fontSize: "14px",fontWeight: 600}}> Hãy Tìm Đến Nhân Viên Để Thực Hiện Thanh Toán</div>
+                     <Button
+                        type="primary"
+                        style={{ marginTop: 20 }}
+                        onClick={() => navigate("/")}
+                    >
+                        Về Trang Chủ
+                    </Button>
+                    
+
+                    {paymentId && (
+                        <p style={{ marginTop: 10 }}>Mã thanh toán: <b>{paymentId}</b></p>
+                    )}
+
+                    
                 </div>
-            )}
+            </Modal>
+
+
         </div>
     );
 };

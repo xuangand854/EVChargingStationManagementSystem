@@ -18,11 +18,11 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ✅ Lấy userId bằng searchParams, token thì giữ nguyên gốc
+  //  Lấy userId bằng searchParams, token thì giữ nguyên gốc
   useEffect(() => {
     const urlUserId = searchParams.get("userId");
 
-    // 🔥 Lấy token gốc từ window.location.search (giữ nguyên ký tự %)
+    //  Lấy token gốc từ window.location.search (giữ nguyên ký tự %)
     const rawQuery = window.location.search.substring(1); // bỏ dấu '?'
     const rawParams = Object.fromEntries(rawQuery.split("&").map(p => p.split("=")));
     const rawToken = rawParams.token;
@@ -30,7 +30,7 @@ const ResetPassword = () => {
     if (urlUserId && rawToken) {
       setUserId(urlUserId);
       setToken(rawToken);
-      console.log("✅ Token gốc (giữ nguyên %):", rawToken);
+      console.log(" Token gốc (giữ nguyên %):", rawToken);
     } else {
       setMessage("Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
       setIsSuccess(false);

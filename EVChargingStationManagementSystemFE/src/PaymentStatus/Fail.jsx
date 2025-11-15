@@ -32,8 +32,8 @@ export default function FailPage() {
                 <p style={{ margin: 0, color: "#475569" }}>Giao dịch thất bại. Vui lòng thử lại hoặc chọn phương thức khác</p>
 
                 <div style={{ marginTop: 20, display: "flex", gap: 12, justifyContent: "center" }}>
-                    <Button type="primary" onClick={() => navigate("/")}>Về trang chủ</Button>
-                    <Button onClick={() => navigate(-1)}>Quay lại</Button>
+                    <Button type="primary" onClick={() => navigate("/payment-method/:sessionId")}>Về trang chọn thanh toán</Button>
+                    
                 </div>
             </div>
         </div>

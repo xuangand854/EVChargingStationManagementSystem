@@ -159,9 +159,7 @@ const ProfilePage = () => {
         <p>Số lần đặt : <span className="green">{totalBookingCount} lần</span></p>
         <p>Phương tiện đã liên kết: {linkedVehicles} xe</p>
         <p>Đánh giá trung bình: <span className="star">★ 4.8/5</span></p>
-        <button className="manage-btn" onClick={() => navigate("/Payment")}>
-          Quản lý gói dịch vụ
-        </button>
+        
       </div>
     </div>
 
@@ -172,8 +170,8 @@ const ProfilePage = () => {
           <p>Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7</p>
         </div>
         <div className="support-buttons">
-          <button onClick={() => navigate("/report-page")}>Gửi yêu cầu hỗ trợ</button>
-          <button onClick={() => navigate("#")}>Đánh giá dịch vụ</button>
+          <button onClick={() => navigate("/user-report")}>Gửi yêu cầu hỗ trợ</button>
+          <button onClick={() => navigate("/rating-page")}>Đánh giá dịch vụ</button>
         </div>
       </div>
     </div>

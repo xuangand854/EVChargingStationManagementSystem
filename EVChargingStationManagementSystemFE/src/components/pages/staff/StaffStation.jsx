@@ -1,42 +1,36 @@
 import React, { useEffect, useState } from "react";
 import {
     Table,
-    Modal,
-    Form,
-    Input,
-    Button,
-    Space,
-    message,
     Card,
+    Space,
+    Button,
+    message,
     Tooltip,
+    Switch,
 } from "antd";
-import {
-    PlusOutlined,
-    DeleteOutlined,
-    ReloadOutlined,
-    InfoCircleOutlined,
-} from "@ant-design/icons";
+import { ReloadOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import {
-    getChargingStation,
-    addChargingStation,
-    deleteChargingStation,
-    getChargingStationId
+    getStaffWorkingStation,
+    updateChargingStationStatus,
 } from "../../../API/Station";
 
 const StaffStation = () => {
     const [stations, setStations] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [form] = Form.useForm();
     const navigate = useNavigate();
 
-    // 📦 Load danh sách trạm
+    // 📦 Load trạm nhân viên đang phục vụ
     const fetchStations = async () => {
         setLoading(true);
         try {
-            const response = await getChargingStation();
-            setStations(response.data || response);
+            const response = await getStaffWorkingStation();
+            const data = response.data
+                ? Array.isArray(response.data)
+                    ? response.data
+                    : [response.data]
+                : [];
+            setStations(data);
         } catch (error) {
             console.error("Error loading stations:", error);
             message.error("Không thể tải danh sách trạm sạc!");
@@ -49,59 +43,23 @@ const StaffStation = () => {
         fetchStations();
     }, []);
 
-    // ➕ Mở modal thêm mới
-    const openAddModal = () => {
-        form.resetFields();
-        setIsModalOpen(true);
+    // 🔄 Cập nhật status trạm
+    const handleChangeStatus = async (stationId, checked) => {
+        try {
+            await updateChargingStationStatus(stationId, checked);
+            message.success("Cập nhật trạng thái thành công!");
+            fetchStations();
+        } catch (error) {
+            console.error("Error updating status:", error);
+            message.error("Cập nhật trạng thái thất bại!");
+        }
     };
 
-    // // 🟢 Thêm trạm mới
-    // const handleAddStation = async () => {
-    //     try {
-    //         const values = await form.validateFields();
-    //         await addChargingStation(
-    //             values.stationName,
-    //             values.location,
-    //             values.province,
-    //             values.latitude,
-    //             values.longitude
-    //         );
-    //         message.success("Thêm trạm mới thành công!");
-    //         setIsModalOpen(false);
-    //         form.resetFields();
-    //         fetchStations();
-    //     } catch (error) {
-    //         console.error("Error adding station:", error);
-    //         message.error("Có lỗi xảy ra khi thêm trạm!");
-    //     }
-    // };
-
-    // // 🔴 Xóa trạm
-    // const handleDelete = async (stationId) => {
-    //     Modal.confirm({
-    //         title: "Xác nhận xóa",
-    //         content: "Bạn có chắc muốn xóa trạm này không?",
-    //         okText: "Xóa",
-    //         cancelText: "Hủy",
-    //         okType: "danger",
-    //         onOk: async () => {
-    //             try {
-    //                 await deleteChargingStation(stationId);
-    //                 message.success("Xóa trạm thành công!");
-    //                 fetchStations();
-    //             } catch (error) {
-    //                 console.error("Error deleting station:", error);
-    //                 message.error("Không thể xóa trạm!");
-    //             }
-    //         },
-    //     });
-    // };
-
+    // 🔹 Xem chi tiết (chỉ xem)
     const handleViewDetail = (stationId) => {
         console.log("Station ID:", stationId); // kiểm tra log
         navigate(`/staff/station/${stationId}`); // 🔹 dùng đúng route bạn đã khai báo
     };
-
 
     const columns = [
         {
@@ -119,60 +77,34 @@ const StaffStation = () => {
             dataIndex: "province",
             key: "province",
         },
-        {
-            title: "Vĩ độ",
-            dataIndex: "latitude",
-            key: "latitude",
-        },
-        {
-            title: "Kinh độ",
-            dataIndex: "longitude",
-            key: "longitude",
-        },
+        
         {
             title: "Hành động",
             key: "action",
             render: (_, record) => (
                 <Space>
-                    <Tooltip title="Chi tiết & chỉnh sửa">
+                    <Tooltip title="Chi tiết">
                         <Button
                             icon={<InfoCircleOutlined />}
                             onClick={() => handleViewDetail(record.id)}
                         />
                     </Tooltip>
-                    {/* <Tooltip title="Xóa"> */}
-                    {/* <Button
-                            icon={<DeleteOutlined />}
-                            danger
-                            onClick={() => handleDelete(record.stationId)}
-                        /> */}
-                    {/* </Tooltip> */}
                 </Space>
             ),
         },
-
     ];
 
     return (
         <Card
-            title="Quản lý trạm sạc"
+            title="Trạm sạc bạn đang phục vụ"
             extra={
-                <Space>
-                    <Button
-                        icon={<ReloadOutlined />}
-                        onClick={fetchStations}
-                        loading={loading}
-                    >
-                        Tải lại
-                    </Button>
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={openAddModal}
-                    >
-                        Thêm trạm mới
-                    </Button>
-                </Space>
+                <Button
+                    icon={<ReloadOutlined />}
+                    onClick={fetchStations}
+                    loading={loading}
+                >
+                    Tải lại
+                </Button>
             }
         >
             <Table
@@ -182,58 +114,6 @@ const StaffStation = () => {
                 loading={loading}
                 pagination={{ pageSize: 6 }}
             />
-
-            {/* Modal thêm trạm */}
-            {/* <Modal
-                title="Thêm trạm mới"
-                open={isModalOpen}
-                onOk={handleAddStation}
-                onCancel={() => setIsModalOpen(false)}
-                okText="Thêm"
-                cancelText="Hủy"
-            >
-                <Form layout="vertical" form={form}>
-                    <Form.Item
-                        label="Tên trạm"
-                        name="stationName"
-                        rules={[{ required: true, message: "Nhập tên trạm!" }]}
-                    >
-                        <Input placeholder="Nhập tên trạm" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Vị trí"
-                        name="location"
-                        rules={[{ required: true, message: "Nhập vị trí!" }]}
-                    >
-                        <Input placeholder="VD: Hải Châu, Đà Nẵng" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Tỉnh/Thành phố"
-                        name="province"
-                        rules={[{ required: true, message: "Nhập tỉnh/thành phố!" }]}
-                    >
-                        <Input placeholder="VD: Đà Nẵng" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Vĩ độ"
-                        name="latitude"
-                        rules={[{ required: true, message: "Nhập vĩ độ!" }]}
-                    >
-                        <Input type="number" placeholder="VD: 16.0471" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label="Kinh độ"
-                        name="longitude"
-                        rules={[{ required: true, message: "Nhập kinh độ!" }]}
-                    >
-                        <Input type="number" placeholder="VD: 108.2068" />
-                    </Form.Item>
-                </Form>
-            </Modal> */}
         </Card>
     );
 };

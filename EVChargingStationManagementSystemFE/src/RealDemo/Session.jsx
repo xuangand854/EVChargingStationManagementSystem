@@ -140,7 +140,7 @@ const Session = () => {
 
                 message.success(`Đã tải thông tin: Giá ${pricePerKWh.toLocaleString()} VNĐ/kWh, VAT ${vatRate}%, Công suất tối đa ${maxPowerKw}kW`);
             } catch (error) {
-                console.error("❌ Lỗi khi lấy thông tin:", error);
+                console.error(" Lỗi khi lấy thông tin:", error);
                 message.error("Không thể lấy thông tin hệ thống!");
                 setPricingData(prev => ({ ...prev, loading: false }));
             }
@@ -231,9 +231,9 @@ const Session = () => {
             // toggle = false nghĩa là đang sử dụng (cắm vào xe)
             await PatchConnectorToggle(false, connectorID);
             setConnectorStatus("InUse");
-            message.success("🔌 Đã cắm sạc vào xe!");
+            message.success(" Đã cắm sạc vào xe!");
         } catch (error) {
-            console.error("❌ Lỗi khi cắm sạc:", error);
+            console.error(" Lỗi khi cắm sạc:", error);
             message.error("Không thể cắm sạc!");
         } finally {
             setLoading(false);
@@ -361,8 +361,11 @@ const Session = () => {
                 sessionStorage.setItem('payment.sessionId', String(sessionId));
                 sessionStorage.setItem('payment.connectorId', String(connectorID));
                 sessionStorage.setItem('payment.returnPath', window.location.pathname);
+                //
+                sessionStorage.setItem('payment.amount', String(chargingData.cost));
+                
             } catch { }
-            navigate(`/payment-method/${sessionId}`); // ✅ chuyển hướng đến trang chọn phương thức thanh toán
+            navigate(`/payment-method/${sessionId}`); //  chuyển hướng đến trang chọn phương thức thanh toán
         } catch (error) {
             console.error("Lỗi khi điều hướng:", error);
         }

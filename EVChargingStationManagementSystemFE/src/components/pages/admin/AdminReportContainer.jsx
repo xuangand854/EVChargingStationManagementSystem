@@ -31,6 +31,18 @@ const ReportAdmin = () => {
 
     fetchReports();
   }, []);
+  const translateRole = (role) => {
+    const map = {
+      Admin: "Quản trị viên",
+      Staff: "Nhân viên",
+      EVDriver: "Tài xế",
+      admin: "Quản trị viên",
+      staff: "Nhân viên",
+      evdriver: "Tài xế"
+    };
+
+    return map[role] || "-";
+  };
 
   const removeVietnameseTones = (str) => {
     if (!str) return "";
@@ -127,9 +139,9 @@ const ReportAdmin = () => {
           <label>Lọc Theo Vai Trò:</label>
           <select value={filter} onChange={handleFilterChange}>
             <option value="all">Tất cả</option>
-            <option value="staff">Staff</option>
-            <option value="evdriver">EVDriver</option>
-            <option value="admin">Admin</option>
+            <option value="staff">Nhân Viên</option>
+            <option value="evdriver">Tài Xế</option>
+            <option value="admin">Quản Trị Viên</option>
           </select>
         </div>
       </div>
@@ -138,14 +150,14 @@ const ReportAdmin = () => {
         <table className="booking-table">
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Type</th>
-              <th>Severity</th>
-              <th>Created At</th>
-              <th>Role Name</th>
-              <th>Station</th>
-              <th>Post Name/ID</th>
-              <th>Description</th>
+              <th>Tiêu Đề</th>
+              <th>Loại</th>
+              <th>Mức độ nghiêm trọng</th>
+              <th>Thời gian tạo báo cáo</th>
+              <th>Vài trò</th>
+              <th>Trạm</th>
+              <th>Tên trụ/ID</th>
+              <th>Mô tả</th>
               
             </tr>
           </thead>
@@ -156,8 +168,8 @@ const ReportAdmin = () => {
                   <td>{report.title || "-"}</td>
                   <td>{report.reportType || "-"}</td>
                   <td>{report.severity || "-"}</td>
-                  <td>{formatDate(report.createdAt)}</td> {/* hiển thị createdAt */}
-                  <td>{report.roleName || "-"}</td>
+                  <td>{formatDate(report.createdAt)}</td> 
+                  <td>{translateRole(report.roleName)}</td>
                   <td>{report.stationName || "-"}</td>
                   <td>
                     {report.postName || report.postId
@@ -171,7 +183,7 @@ const ReportAdmin = () => {
             ) : (
               <tr>
                 <td colSpan="8" style={{ textAlign: "center", padding: "16px" }}>
-                  Không có report nào
+                  Không có báo cáo nào
                 </td>
               </tr>
             )}

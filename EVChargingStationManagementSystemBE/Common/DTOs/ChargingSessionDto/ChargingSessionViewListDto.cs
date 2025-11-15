@@ -6,19 +6,13 @@ namespace Common.DTOs.ChargingSessionDto
 {
     public class ChargingSessionViewListDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
-        //[JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ChargingSessionStatus Status { get; set; } = ChargingSessionStatus.Unknown;
-        public string ConnectorType { get; set; } = null!;
-        public string EnergyProvider { get; set; } = null!;
-
-        //[JsonConverter(typeof(JsonStringEnumConverter))]
-        public VehicleTypeEnum VehicleType { get; set; } = VehicleTypeEnum.Unknown;
-        //public string? StationName { get; set; }
-        //public decimal? TotalEnergyConsumedKWh { get; set; }
-        //public decimal? TotalCost { get; set; }
+        public string EnergyDeliveredKWh { get; set; } = string.Empty;
+        public decimal? Cost { get; set; }
     }
 }

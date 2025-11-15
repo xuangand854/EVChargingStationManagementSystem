@@ -325,10 +325,32 @@ namespace BusinessLogic.Services
             {
                 var chargingStation = await _unitOfWork.ChargingStationRepository.GetQueryable()
                     .Where(c => c.Id == stationId)
+                        .Include(c => c.OperatorNavigation)
+                        .Include(c => c.ChargingPosts)
+                            .ThenInclude(c => c.Connectors)
                     .FirstOrDefaultAsync();
                 if (chargingStation == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trạm sạc không tồn tại");
 
+                if (!chargingStation.Status.Equals(ChargingStationStatus.Maintenance.ToString()))
+                    return new ServiceResult(Const.FAIL_DELETE_CODE, "Trạm phải trong trạng thái bảo trì mới được phép xóa");
+
+                
+                foreach(var post in chargingStation.ChargingPosts)
+                {
+                    if (!post.Status.Equals(ChargingPostStatus.InActive.ToString()))
+                        return new ServiceResult(Const.FAIL_DELETE_CODE, "Toàn bộ trụ phải tắt trước khi xóa trạm");
+                    post.IsDeleted = true;
+                    post.UpdatedAt = DateTime.Now;
+                    foreach(var connector in post.Connectors)
+                    {
+                        connector.IsDeleted = true;
+                        connector.UpdatedAt = DateTime.Now;
+                    }
+                }
+
+                chargingStation.OperatorNavigation.Status = UserStatus.Active.ToString();
+                chargingStation.OperatorId = null;
                 chargingStation.IsDeleted = true;
                 chargingStation.UpdatedAt = DateTime.UtcNow;
 

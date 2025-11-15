@@ -8,7 +8,7 @@ namespace BusinessLogic.IServices
         Task<string> ProcessVNPayIPN(Dictionary<string, string> queryParams);
         Task<IServiceResult> CreatePaymentOfflineRecord(Guid sessionId);
         Task<IServiceResult> UpdatePaymentOfflineRecord(Guid paymentId, Guid userId);
-        Task<IServiceResult> GetList();
+        Task<IServiceResult> GetList(Guid userId);
         Task<IServiceResult> GetById(Guid paymentId);
     }
 }

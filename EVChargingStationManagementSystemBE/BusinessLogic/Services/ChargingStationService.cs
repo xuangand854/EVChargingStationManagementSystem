@@ -93,11 +93,7 @@ namespace BusinessLogic.Services
                         "Không tìm thấy trạm sạc nào"
                     );
 
-                else
-                {
-                    //var response = chargingStation.Adapt<ChargingStationsViewDetailDto>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingStation);
-                }
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingStation);
             }
             catch (Exception ex)
             {

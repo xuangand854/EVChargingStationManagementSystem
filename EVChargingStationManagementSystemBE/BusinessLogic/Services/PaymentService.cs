@@ -1,7 +1,6 @@
 ﻿using BusinessLogic.Base;
 using BusinessLogic.IServices;
 using Common;
-using Common.DTOs.ChargingStationDto;
 using Common.DTOs.PaymentDto;
 using Common.Enum.ChargingSession;
 using Common.Enum.Payment;
@@ -332,7 +331,7 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
-        public async Task<IServiceResult> GetList()
+        public async Task<IServiceResult> GetList(Guid userId)
         {
 
             try
@@ -340,6 +339,7 @@ namespace BusinessLogic.Services
                 var payment = await _unitOfWork.PaymentRepository.GetQueryable()
                     .AsNoTracking()
                     .Where(c => !c.IsDeleted)
+                    .Where(p => p.ChargingSessionNavigation.ChargingPost.ChargingStationNavigation.OperatorId == userId)
                     .OrderByDescending(c => c.CreatedAt)
                     .ProjectToType<PaymentViewDetailDto>()
                     .ToListAsync();

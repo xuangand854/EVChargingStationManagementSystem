@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // import Layout from "./pages/Layout";
 
 import Layout from "./components/pages/Layout";
@@ -80,115 +82,126 @@ import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.j
 export default function App() {
   return (
     <NotificationProvider>
-    <BrowserRouter>
+      <BrowserRouter>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        <Routes>
 
-      <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
+            {/* LOGIN */}
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="login" element={<Login />} />
+            <Route path="sign-up" element={<Signup />} />
+            <Route path="forgot-password" element={<Forgotpassword />} />
 
-        <Route path="/" element={<Layout />}>
-          <Route index element={<AdminCheckLogin><Home /></AdminCheckLogin>} />
-          {/* LOGIN */}
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="login" element={<Login />} />
-          <Route path="sign-up" element={<Signup />} />
-          <Route path="forgot-password" element={<Forgotpassword />} />
+            {/* // */}
+            {/* Profile */}
+            <Route path="profile-page" element={<ProfilePage />} />
+            <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="Logout" element={<Logout />} />
+            <Route path="orders" element={<Order />} />
+            <Route path="car" element={<Car />} />
+            <Route path="report-page" element={<ReportPage />} />
+            <Route path="rating-page" element={<RatingPage />} />
+            <Route path="user-report" element={<UserReport />} />
 
-          {/* // */}
-          {/* Profile */}
-          <Route path="profile-page" element={<ProfilePage />} />
-          <Route path="profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="Logout" element={<Logout />} />
-          <Route path="orders" element={<Order />} />
-          <Route path="car" element={<Car />} />
-          <Route path="report-page" element={<ReportPage />} />
-          <Route path="rating-page" element={<RatingPage />} />
-          <Route path="user-report" element={<UserReport />} />
+            {/* // */}
+            {/* Trạm Sạc */}
+            <Route path="order-charging" element={<OrderChargingST />} />
+            <Route path="charging-post" element={<ChargingPost />} />
+            <Route path="admin-pannel" element={<AdminStationPanel />} />
+            <Route path="" element={<RoutingMachine />} />
+            <Route path="" element={<Booking />} />
+            <Route path="booking-order" element={<BookingOrder />} />
+            {/* // */}
+            {/* IOTChargingSystem */}
+            <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
+            {/* // */}
+            {/* Pay */}
+            <Route path="Payment" element={<PaymentPage />} />
+            <Route path="Pay" element={<Pay />} />
+            {/* reset password*/}
+            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="confirm-email" element={<ConfirmEmail />} />
 
-          {/* // */}
-          {/* Trạm Sạc */}
-          <Route path="order-charging" element={<OrderChargingST />} />
-          <Route path="charging-post" element={<ChargingPost />} />
-          <Route path="admin-pannel" element={<AdminStationPanel />} />
-          <Route path="" element={<RoutingMachine />} />
-          <Route path="" element={<Booking />} />
-          <Route path="booking-order" element={<BookingOrder />} />
-          {/* // */}
-          {/* IOTChargingSystem */}
-          <Route path="iot-chargingsystem" element={<IOTChargingSystem />} />
-          {/* // */}
-          {/* Pay */}
-          <Route path="Payment" element={<PaymentPage />} />
-          <Route path="Pay" element={<Pay />} />
-          {/* reset password*/}
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="confirm-email" element={<ConfirmEmail />} />
-
-          {/* // */}
-        </Route>
-        {/* Demo Charge */}
-        <Route path="station-list" element={<StationList />} />
-        <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
-        <Route path="station-list/:stationID/posts/:postID/connector" element={<ConnectorList />} />
-        <Route path="station-list/:stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
-
-        {/* Payment method selection */}
-        <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
-
-        Shortcut route to session by connectorID
-        <Route path="session/:connectorID" element={<Session />} />
-
-        {/* // */}
-        <Route path="payment-status/success" element={<Success />} />
-        <Route path="payment-status/failed" element={<Fail />} />
-        <Route path="payment-status/error" element={<Error />} />
-        <Route path="payment-status/invalid" element={<Invalid />} />
-
-        {/* Admin Routes */}
-
-        <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="station" element={<AdminStations />} />
-
-          <Route path="staff" element={<AdminStaff />} />
-          <Route path="admin-reportcontainer" element={<AdminReportContainer />} />
-
-          <Route path="map-station" element={<AdminMapStation />} />
-          <Route path="admin-session" element={<AdminSession />}>
-            <Route path=":stationID/posts" element={<ChargingPostList />} />
-            <Route path=":stationID/posts/:postID/connector" element={<ConnectorList />} />
-            <Route path=":stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
+            {/* // */}
           </Route>
-          <Route path="admin-map" element={<AdminStationMap />} />
-          <Route path="admin-feedback" element={<AdminFeedbackPage/>} />
+          {/* Demo Charge */}
+          <Route path="station-list" element={<StationList />} />
+          <Route path="station-list/:stationID/posts" element={<ChargingPostList />} />
+          <Route path="station-list/:stationID/posts/:postID/connector" element={<ConnectorList />} />
+          <Route path="station-list/:stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
 
-          <Route path="vehicles" element={<AdminVehicles />} />
-          <Route path="vouchers" element={<AdminVouchers />} />
-          <Route path="system-configuration" element={<SystemConfigEditor />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="station/:stationId" element={<AdminStationDetail />} />
-          <Route path="stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
-          <Route path="revenue-statistics" element={<RevenueStatistics />} />
-          <Route path="transaction-history" element={<TransactionHistory />} />
-          <Route path="/admin/station/:stationId" element={<AdminStationDetail />} />
-          <Route path="/admin/stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
+          {/* Payment method selection */}
+          <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
+
+          Shortcut route to session by connectorID
+          <Route path="session/:connectorID" element={<Session />} />
+
+          {/* // */}
+          <Route path="payment-status/success" element={<Success />} />
+          <Route path="payment-status/failed" element={<Fail />} />
+          <Route path="payment-status/error" element={<Error />} />
+          <Route path="payment-status/invalid" element={<Invalid />} />
+
+          {/* Admin Routes */}
+
+          <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="station" element={<AdminStations />} />
+
+            <Route path="staff" element={<AdminStaff />} />
+            <Route path="admin-reportcontainer" element={<AdminReportContainer />} />
+
+            <Route path="map-station" element={<AdminMapStation />} />
+            <Route path="admin-session" element={<AdminSession />}>
+              <Route path=":stationID/posts" element={<ChargingPostList />} />
+              <Route path=":stationID/posts/:postID/connector" element={<ConnectorList />} />
+              <Route path=":stationID/posts/:postID/connector/:connectorID/session" element={<Session />} />
+            </Route>
+            <Route path="admin-map" element={<AdminStationMap />} />
+            <Route path="admin-feedback" element={<AdminFeedbackPage />} />
+
+            <Route path="vehicles" element={<AdminVehicles />} />
+            <Route path="vouchers" element={<AdminVouchers />} />
+            <Route path="system-configuration" element={<SystemConfigEditor />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="station/:stationId" element={<AdminStationDetail />} />
+            <Route path="stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
+            <Route path="revenue-statistics" element={<RevenueStatistics />} />
+            <Route path="transaction-history" element={<TransactionHistory />} />
+            <Route path="/admin/station/:stationId" element={<AdminStationDetail />} />
+            <Route path="/admin/stations/:stationId/posts/:postId/connectors" element={<AdminConnector />} />
 
 
-        </Route>
-        {/* Staff Routes */}
-        <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
-          <Route index element={<StaffLayout />} />
-          <Route path="stations" element={<StaffStation />} />
-          <Route path="staff-report" element={<StaffReport />} />
-          <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
-          <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
-          <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
-          <Route path="/staff/booking-order" element={<StaffBookingOrder />} />
-        </Route>
+          </Route>
+          {/* Staff Routes */}
+          <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
+            <Route index element={<StaffLayout />} />
+            <Route path="stations" element={<StaffStation />} />
+            <Route path="staff-report" element={<StaffReport />} />
+            <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
+            <Route path="/staff/stations/:stationId/posts/:postId/connectors" element={<StaffConnector />} />
+            <Route path="/staff/confirm-payment-offline" element={<ConfirmPaymentOffline />} />
+            <Route path="/staff/booking-order" element={<StaffBookingOrder />} />
+          </Route>
 
-      </Routes>
-      <NotificationBubble />
+        </Routes>
+        <NotificationBubble />
 
-    </BrowserRouter>
+      </BrowserRouter>
     </NotificationProvider>
   );
 }

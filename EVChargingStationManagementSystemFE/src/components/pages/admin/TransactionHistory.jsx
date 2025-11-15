@@ -241,20 +241,16 @@ const TransactionHistory = () => {
     ];
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                        📜 Lịch Sử Giao Dịch
-                    </h1>
-                    <p className="text-gray-600">
-                        Quản lý và theo dõi tất cả giao dịch trong hệ thống
-                    </p>
-                </div>
+        <div className="admin-transaction-history">
+            {/* Header */}
+            <div className="header">
+                <h1>Lịch Sử Giao Dịch</h1>
+                <p>Quản lý và theo dõi tất cả giao dịch trong hệ thống</p>
+            </div>
 
-                {/* Statistics */}
-                <Row gutter={[16, 16]} className="mb-6">
+            {/* Statistics */}
+            <div className="stats-container">
+                <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card>
                             <Statistic
@@ -296,135 +292,131 @@ const TransactionHistory = () => {
                         </Card>
                     </Col>
                 </Row>
+            </div>
 
-                {/* Filters */}
-                <Card className="mb-6">
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} md={8}>
-                            <Input
-                                placeholder="Tìm kiếm theo mã giao dịch..."
-                                prefix={<Search size={16} />}
-                                value={searchText}
-                                onChange={(e) => setSearchText(e.target.value)}
-                                allowClear
+            {/* Filters */}
+            <div className="actions-card">
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} md={8}>
+                        <Input
+                            placeholder="Tìm kiếm theo mã giao dịch..."
+                            prefix={<Search size={16} />}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            allowClear
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={5}>
+                        <Select
+                            value={statusFilter}
+                            onChange={setStatusFilter}
+                            className="w-full"
+                        >
+                            <Option value="all">Tất cả trạng thái</Option>
+                            <Option value="Completed">Hoàn thành</Option>
+                            <Option value="Pending">Đang xử lý</Option>
+                            <Option value="Failed">Thất bại</Option>
+                            <Option value="Cancelled">Đã hủy</Option>
+                        </Select>
+                    </Col>
+                    <Col xs={24} sm={12} md={5}>
+                        <Select
+                            value={typeFilter}
+                            onChange={setTypeFilter}
+                            className="w-full"
+                        >
+                            <Option value="all">Tất cả loại</Option>
+                            <Option value="OnlinePayment">Thanh toán trực tuyến</Option>
+                            <Option value="OfflinePayment">Thanh toán trực tiếp</Option>
+                            <Option value="Refund">Hoàn tiền</Option>
+                        </Select>
+                    </Col>
+                    <Col xs={24} md={6}>
+                        <Space>
+                            <RangePicker
+                                value={dateRange}
+                                onChange={setDateRange}
+                                format="DD/MM/YYYY"
                             />
-                        </Col>
-                        <Col xs={24} sm={12} md={5}>
-                            <Select
-                                value={statusFilter}
-                                onChange={setStatusFilter}
-                                className="w-full"
+                            <Button
+                                type="primary"
+                                icon={<Download size={16} />}
+                                onClick={handleExport}
                             >
-                                <Option value="all">Tất cả trạng thái</Option>
-                                <Option value="Completed">Hoàn thành</Option>
-                                <Option value="Pending">Đang xử lý</Option>
-                                <Option value="Failed">Thất bại</Option>
-                                <Option value="Cancelled">Đã hủy</Option>
-                            </Select>
-                        </Col>
-                        <Col xs={24} sm={12} md={5}>
-                            <Select
-                                value={typeFilter}
-                                onChange={setTypeFilter}
-                                className="w-full"
-                            >
-                                <Option value="all">Tất cả loại</Option>
-                                <Option value="OnlinePayment">Thanh toán trực tuyến</Option>
-                                <Option value="OfflinePayment">Thanh toán trực tiếp</Option>
-                                <Option value="Refund">Hoàn tiền</Option>
-                            </Select>
-                        </Col>
-                        <Col xs={24} md={6}>
-                            <Space>
-                                <RangePicker
-                                    value={dateRange}
-                                    onChange={setDateRange}
-                                    format="DD/MM/YYYY"
-                                />
-                                <Button
-                                    type="primary"
-                                    icon={<Download size={16} />}
-                                    onClick={handleExport}
-                                >
-                                    Xuất Excel
-                                </Button>
-                            </Space>
-                        </Col>
-                    </Row>
-                </Card>
+                                Xuất Excel
+                            </Button>
+                        </Space>
+                    </Col>
+                </Row>
+            </div>
 
-                {/* Table */}
-                <Card>
-                    <Table
-                        columns={columns}
-                        dataSource={filteredTransactions}
-                        rowKey="id"
-                        loading={loading}
-                        pagination={{
-                            pageSize: 20,
-                            showSizeChanger: true,
-                            showTotal: (total) => `Tổng ${total} giao dịch`,
-                            pageSizeOptions: ['10', '20', '50', '100']
-                        }}
-                        scroll={{ x: 1000 }}
-                    />
-                </Card>
+            {/* Table */}
+            <div className="table-card">
+                <Table
+                    columns={columns}
+                    dataSource={filteredTransactions}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={false}
+                    scroll={{ x: 1000, y: 500 }}
+                    sticky
+                />
+            </div>
 
-                {/* Detail Modal */}
-                <Modal
-                    title="Chi tiết giao dịch"
-                    open={detailModalVisible}
-                    onCancel={() => setDetailModalVisible(false)}
-                    footer={[
-                        <Button key="close" onClick={() => setDetailModalVisible(false)}>
-                            Đóng
-                        </Button>
-                    ]}
-                    width={600}
-                >
-                    {selectedTransaction && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-600 text-sm">Mã giao dịch</p>
-                                    <p className="font-semibold">{selectedTransaction.id}</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-600 text-sm">Mã tham chiếu</p>
-                                    <p className="font-mono text-sm">{selectedTransaction.referenceCode}</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-600 text-sm">Loại giao dịch</p>
-                                    <p className="font-semibold">
-                                        {selectedTransaction.transactionType === 'OnlinePayment' ? 'Thanh toán trực tuyến' :
-                                            selectedTransaction.transactionType === 'OfflinePayment' ? 'Thanh toán trực tiếp' :
-                                                selectedTransaction.transactionType === 'Refund' ? 'Hoàn tiền' :
-                                                    selectedTransaction.transactionType}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-600 text-sm">Trạng thái</p>
-                                    <Tag color={selectedTransaction.status === 'Completed' ? 'success' :
-                                        selectedTransaction.status === 'Pending' ? 'processing' :
-                                            selectedTransaction.status === 'Failed' ? 'error' : 'default'}>
-                                        {selectedTransaction.status === 'Completed' ? 'Hoàn thành' :
-                                            selectedTransaction.status === 'Pending' ? 'Đang xử lý' :
-                                                selectedTransaction.status === 'Failed' ? 'Thất bại' :
-                                                    selectedTransaction.status === 'Cancelled' ? 'Đã hủy' :
-                                                        selectedTransaction.status}
-                                    </Tag>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-gray-600 text-sm">Số tiền</p>
-                                    <p className="text-2xl font-bold text-green-600">
-                                        {selectedTransaction.amount?.toLocaleString('vi-VN')} VNĐ
-                                    </p>
-                                </div>
+            {/* Detail Modal */}
+            <Modal
+                title="Chi tiết giao dịch"
+                open={detailModalVisible}
+                onCancel={() => setDetailModalVisible(false)}
+                footer={[
+                    <Button key="close" onClick={() => setDetailModalVisible(false)}>
+                        Đóng
+                    </Button>
+                ]}
+                width={600}
+            >
+                {selectedTransaction && (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-gray-600 text-sm">Mã giao dịch</p>
+                                <p className="font-semibold">{selectedTransaction.id}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-sm">Mã tham chiếu</p>
+                                <p className="font-mono text-sm">{selectedTransaction.referenceCode}</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-sm">Loại giao dịch</p>
+                                <p className="font-semibold">
+                                    {selectedTransaction.transactionType === 'OnlinePayment' ? 'Thanh toán trực tuyến' :
+                                        selectedTransaction.transactionType === 'OfflinePayment' ? 'Thanh toán trực tiếp' :
+                                            selectedTransaction.transactionType === 'Refund' ? 'Hoàn tiền' :
+                                                selectedTransaction.transactionType}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-gray-600 text-sm">Trạng thái</p>
+                                <Tag color={selectedTransaction.status === 'Completed' ? 'success' :
+                                    selectedTransaction.status === 'Pending' ? 'processing' :
+                                        selectedTransaction.status === 'Failed' ? 'error' : 'default'}>
+                                    {selectedTransaction.status === 'Completed' ? 'Hoàn thành' :
+                                        selectedTransaction.status === 'Pending' ? 'Đang xử lý' :
+                                            selectedTransaction.status === 'Failed' ? 'Thất bại' :
+                                                selectedTransaction.status === 'Cancelled' ? 'Đã hủy' :
+                                                    selectedTransaction.status}
+                                </Tag>
+                            </div>
+                            <div className="col-span-2">
+                                <p className="text-gray-600 text-sm">Số tiền</p>
+                                <p className="text-2xl font-bold text-green-600">
+                                    {selectedTransaction.amount?.toLocaleString('vi-VN')} VNĐ
+                                </p>
                             </div>
                         </div>
-                    )}
-                </Modal>
-            </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

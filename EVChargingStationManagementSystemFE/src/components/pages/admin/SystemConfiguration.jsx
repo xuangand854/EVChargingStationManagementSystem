@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { GetList, Update } from "../../../API/SystemConfiguration";
 import "./SystemConfiguration.css";
 
@@ -19,7 +20,8 @@ export default function SystemConfigEditor() {
                     : res?.data ?? res?.data?.data ?? [];
                 setItems(list);
             } catch (err) {
-                console.error(err);
+                const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+                toast.error(`Không tải được cấu hình: ${errorMsg}`);
                 setError("Không tải được cấu hình.");
             } finally {
                 setLoading(false);
@@ -64,8 +66,10 @@ export default function SystemConfigEditor() {
             };
             await Update(id, payload);
             setItems(prev => prev.map(x => x.id === id ? { ...x, _savedAt: new Date().toISOString(), ...payload } : x));
+            toast.success(`Cập nhật cấu hình "${it.name}" thành công!`);
         } catch (err) {
-            console.error(err);
+            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+            toast.error(`Cập nhật thất bại cho "${it.name}": ${errorMsg}`);
             setError(`Cập nhật thất bại cho id=${id}`);
         } finally {
             setSavingIds(s => s.filter(x => x !== id));

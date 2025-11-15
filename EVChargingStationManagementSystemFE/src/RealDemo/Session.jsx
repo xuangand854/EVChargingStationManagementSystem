@@ -194,52 +194,58 @@ const Session = () => {
     }, [isCharging, pricingData]);
 
     const handleCheckin = async () => {
+        console.log("🎫 ===== BẮT ĐẦU CHECK-IN =====");
+
         // Ghép 4 ô thành mã
         const checkinCode = otpValues.join("");
+        console.log("📝 Mã check-in đã nhập:", checkinCode);
+        console.log("📝 Độ dài mã:", checkinCode.length);
 
         // Validate mã 4 số
         if (checkinCode.length !== 4) {
+            console.log("❌ Validation fail: Chưa nhập đủ 4 số");
             setOtpError(true);
             message.error("Vui lòng nhập đủ 4 số!");
-            // Reset error sau 1 giây
             setTimeout(() => setOtpError(false), 1000);
             return;
         }
 
         setOtpError(false);
         setLoading(true);
+
         try {
-            // Lấy danh sách booking của user để tìm booking theo mã
-            const res = await MyBooking();
-            const bookings = res?.data || [];
+            console.log("🔄 Đang gọi API BookCheckin với mã:", checkinCode);
 
-            // Tìm booking có connector hiện tại và mã check-in khớp
-            const matchedBooking = bookings.find(b =>
-                String(b.connectorId) === String(connectorID) &&
-                String(b.checkinCode || "").slice(-4) === checkinCode
-            );
-
-            if (!matchedBooking) {
-                message.error("Mã check-in không đúng!");
-                return;
-            }
-
-            // Gọi API check-in
-            const response = await BookCheckin(matchedBooking.id);
+            // Gọi API check-in trực tiếp với mã 4 số
+            const response = await BookCheckin(checkinCode);
             console.log("✅ Check-in response:", response);
 
             message.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
             setShowCheckinModal(false);
             setOtpValues(["", "", "", ""]);
 
+            console.log("🔄 Đang refresh connector status...");
             // Refresh connector status
             const connectorResponse = await GetConnectorId(connectorID);
             const newStatus = connectorResponse?.data?.status || connectorResponse?.status;
+            console.log("📊 Status mới của connector:", newStatus);
             setConnectorStatus(newStatus);
 
+            console.log("🎉 ===== CHECK-IN HOÀN TẤT =====\n");
+
         } catch (error) {
-            console.error("❌ Lỗi khi check-in:", error);
-            message.error("Không thể check-in! Vui lòng thử lại.");
+            console.log("\n❌ ===== LỖI CHECK-IN =====");
+            console.error("❌ Error object:", error);
+            console.error("❌ Error message:", error.message);
+            console.error("❌ Error response:", error.response);
+            console.error("❌ Error data:", error.response?.data);
+            console.error("❌ Error stack:", error.stack);
+
+            // Hiển thị error với hiệu ứng
+            setOtpError(true);
+            const errorMsg = error.response?.data?.message || "Mã check-in không đúng!";
+            message.error(errorMsg);
+            setTimeout(() => setOtpError(false), 1000);
         } finally {
             setLoading(false);
         }

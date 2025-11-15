@@ -45,10 +45,10 @@ export const getBookingId = async (id) => {
 };
 
 // Check-in Booking // check
-export const BookCheckin = async (bookingId) => {
+export const BookCheckin = async (checkInCode) => {
   try {
-    const response = await api.patch(`${BASE_URL}/${bookingId}/checkin`);
-    console.log('CheckinBooking', response.data);
+    const response = await api.patch(`${BASE_URL}/checkin`, { checkInCode });
+    console.log('checkInCode', response.data);
     return response.data;
   } catch (error) {
     console.error('ErrorCheckin', error);
@@ -117,13 +117,13 @@ export const AutoLock = async () => {
     throw error;
   }
 };
-export const MyBooking = async ()=>{
+export const MyBooking = async () => {
   try {
     const response = await api.get(`${BASE_URL}/my-bookings`);
-    console.log('MyBooking',response.data);
+    console.log('MyBooking', response.data);
     return response.data;
   } catch (error) {
-    console.log('ErrorToGetMyBooking',error);
+    console.log('ErrorToGetMyBooking', error);
     throw error;
   }
 }

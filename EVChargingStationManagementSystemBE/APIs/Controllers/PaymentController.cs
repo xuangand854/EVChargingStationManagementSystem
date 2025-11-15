@@ -1,5 +1,4 @@
 ﻿using BusinessLogic.IServices;
-using BusinessLogic.Services;
 using Common;
 using Common.Helper;
 using Microsoft.AspNetCore.Authorization;
@@ -130,7 +129,16 @@ namespace APIs.Controllers
         [Authorize(Roles = "Admin, Staff")]
         public async Task<IActionResult> GetList()
         {
-            var result = await _service.GetList();
+            Guid userId;
+            try
+            {
+                userId = User.GetUserId();
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+            var result = await _service.GetList(userId);
 
             if (result.Status == Const.SUCCESS_READ_CODE)
                 return Ok(new { data = result.Data, message = result.Message });

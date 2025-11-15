@@ -106,12 +106,12 @@ namespace BusinessLogic.Services
                 }
 
 
-                // --- BR09: EndTime mặc định = StartTime + 90 phút ---
+                // --- BR09: EndTime mặc định = StartTime + 60 phút ---
                 var booking = dto.Adapt<Booking>();
                 booking.Id = Guid.NewGuid();
                 booking.BookedBy = userId;
                 booking.Status = "Scheduled";
-                booking.EndTime = dto.StartTime.AddMinutes(90);
+                booking.EndTime = dto.StartTime.AddMinutes(60);
                 booking.CreatedAt = DateTime.Now;
                 booking.UpdatedAt = DateTime.Now;
                 //  Sinh mã check-in 4 số duy nhất qua service
@@ -140,7 +140,8 @@ namespace BusinessLogic.Services
                 var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
                  b => b.CheckInCode == request.CheckInCode &&
                  !b.IsDeleted,
-                include: b => b.Include(x => x.ConnectorNavigation),
+                include: b => b.Include(x => x.ConnectorNavigation)
+                .Include(x => x.BookedByNavigation),
                 asNoTracking: false
 
 );
@@ -415,7 +416,8 @@ namespace BusinessLogic.Services
          .Include(x => x.ChargingStationNavigation)
          .Include(x => x.BookedByNavigation)
          .Include(x => x.ConnectorNavigation)
-             .ThenInclude(c => c.ChargingPost),
+             .ThenInclude(c => c.ChargingPost)
+              .Include(x => x.BookedByNavigation),
      orderBy: q => q.OrderByDescending(b => b.CreatedAt)
  );
 

@@ -87,17 +87,18 @@
 }
 
 .order-history-info .completed {
-  background-color: #16a34a;
+
   font-weight: 600;
   font-size: 15px;
-  border-radius: 8px;
+  color:#16a34a;;
+
 }
 
 .order-history-info .cancelled {
-  background-color: #ef4444;
   font-weight: 600;
   font-size: 15px;
-  border-radius: 8px;
+  color:#ef4444;;
+
 }
 
 

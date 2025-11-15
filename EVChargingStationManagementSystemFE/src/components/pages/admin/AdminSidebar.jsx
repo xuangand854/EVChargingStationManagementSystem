@@ -12,6 +12,7 @@ const AdminSidebar = () => {
         { name: "Nhân viên", path: "/admin/staff", icon: <Users size={20} /> },
         { name: "Xe điện", path: "/admin/vehicles", icon: <Car size={20} /> },
         { name: "Quản Lý Report", path: "/admin/admin-reportcontainer", icon: <Users size={20} /> },
+        { name: "Quản Lý Đánh Giá ", path: "/admin/admin-feedback", icon: <Users size={20} /> },
         { name: "Cấu hình hệ thống", path: "/admin/system-configuration", icon: <Settings size={20} /> },
         { name: "Thống kê doanh thu", path: "/admin/revenue-statistics", icon: <BarChart3 size={20} /> },
         { name: "Lịch sử giao dịch", path: "/admin/transaction-history", icon: <Receipt size={20} /> }

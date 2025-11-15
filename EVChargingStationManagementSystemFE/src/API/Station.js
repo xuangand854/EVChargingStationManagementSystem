@@ -93,6 +93,16 @@ export const updateChargingStationStatus = async (id, status) => {
     throw error;
   }
 };
+export const getStaffWorkingStation = async() =>{
+  try {
+    const response = await api.get(`${BASE_URL}/staff`);
+    console.log('GetStaffWorkingStationSuccess',response)
+    return response.data
+  } catch (error) {
+    console.log('ErrorGetStaffWorkingStation',error);
+    throw error
+  }
+}
 
 export default {
   getChargingStation,
@@ -101,4 +111,5 @@ export default {
   updateChargingStation,
   getChargingStationId,
   updateChargingStationStatus,
+  getStaffWorkingStation
 };

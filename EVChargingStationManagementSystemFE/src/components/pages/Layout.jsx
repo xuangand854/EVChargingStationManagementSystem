@@ -52,7 +52,7 @@ const Layout = () => {
             <nav>
                 <ul>
                     <li>
-                        <Link to="/">Home</Link>
+                        <Link to="/">Trang Chủ</Link>
                     </li>
                     {/* <li>
                         <Link to="/about">About</Link>
@@ -74,7 +74,7 @@ const Layout = () => {
 
                     {!isAuthenticated && (
                         <li>
-                            <Link to="/login">Login</Link>
+                            <Link to="/login">Đăng Nhập</Link>
                         </li>
                     )}
 
@@ -82,14 +82,14 @@ const Layout = () => {
                     {/* Admin */}
                     {role === "Admin" && (
                         <li>
-                            <Link to="/admin">Admin Dashboard</Link>
+                            <Link to="/admin">Trang Quản Lý</Link>
                         </li>
                     )}
 
                     {/* Staff (và Admin nếu muốn) */}
-                    {(role === "Admin"  ) && (
+                    {(role === "Staff"  ||  role === "Admin") && (
                         <li>
-                            <Link to="/staff">Staff Page</Link>
+                            <Link to="/staff">Trang Nhân Viên</Link>
                         </li>
                     )}
                     {isAuthenticated && (

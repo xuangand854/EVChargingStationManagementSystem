@@ -87,14 +87,14 @@ const Signup = () => {
 
   return (
     <div className="Signup-container">
-      <h2 className="form-title">Create an Account</h2>
+      <h2 className="form-title">Tạo Tài Khoản</h2>
 
       <form className="Signup-form" onSubmit={handleSubmit}>
         <div className="input-wrapper">
           <input
             name="name"
             type="text"
-            placeholder="Full Name"
+            placeholder="Họ Tên Đầy Đủ"
             className="input-field"
             value={formValues.name}
             onChange={handleChange}
@@ -106,7 +106,7 @@ const Signup = () => {
           <input
             name="email"
             type="email"
-            placeholder="Email address"
+            placeholder="Địa Chỉ Email"
             className="input-field"
             value={formValues.email}
             onChange={handleChange}
@@ -118,7 +118,7 @@ const Signup = () => {
           <input
             name="phone"
             type="tel"
-            placeholder="Phone (optional)"
+            placeholder="Số Điện Thoại(bắt buộc)"
             className="input-field"
             value={formValues.phone}
             onChange={handleChange}
@@ -130,7 +130,7 @@ const Signup = () => {
           <input
             name="password"
             type="password"
-            placeholder="Password"
+            placeholder="Mật Khẩu"
             className="input-field"
             value={formValues.password}
             onChange={handleChange}
@@ -143,7 +143,7 @@ const Signup = () => {
           <input
             name="confirmPassword"
             type="password"
-            placeholder="Confirm Password"
+            placeholder="Xác Nhận Mật Khẩu"
             className="input-field"
             value={formValues.confirmPassword}
             onChange={handleChange}

@@ -114,14 +114,14 @@ const handleCancel = async (orderId) => {
                     <strong>Trạng thái:</strong>{" "}
                     {order.status === "Scheduled" && <span className={"scheduled"}>Chờ Hoàn Thành </span>}
                     {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thành</span>}
-                    {order.status === "Cancelled" && <span className={"cancelled"}>Giao Dịch Của Bạn Đã Bị Hủy </span>}
+                    {order.status === "Cancelled" && <span className={"cancelled"}>Yêu Cầu Đặt Lịch Sạc Của Bạn Đã Hủy  </span>}
                   </p>
                   {order.status === "Scheduled" && (
                     <button
                       className="link-btn"
                       onClick={() => handleCancel(order.id)} // <-- dùng arrow function
                     >
-                      Hủy đặt hàng
+                      Hủy Đặt Lịch
                     </button>
                   )}
                 </div>

@@ -10,7 +10,7 @@ const StaffPrivateRoute = ({ children }) => {
         return <Navigate to="/login" replace />;
     }
 
-    if (userRole !== "Admin") {
+    if (userRole !== "Staff" && userRole !== "Admin") {
         return <Navigate to="/" replace />;
     }
 

@@ -8,7 +8,6 @@ const ReportAdmin = () => {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,7 +22,8 @@ const ReportAdmin = () => {
         setFilteredReports(data);
       } catch (err) {
         console.error(err);
-        setError("Không thể tải danh sách report");
+        setReports([]); // giữ bảng hiển thị khung, nếu lỗi
+        setFilteredReports([]);
       } finally {
         setLoading(false);
       }
@@ -73,7 +73,7 @@ const ReportAdmin = () => {
     setFilter(value);
     const newFiltered = applyFilters(reports, value, search);
     setFilteredReports(newFiltered);
-    setCurrentPage(1); // reset page
+    setCurrentPage(1);
   };
 
   const handleSearchChange = (e) => {
@@ -81,7 +81,7 @@ const ReportAdmin = () => {
     setSearch(value);
     const newFiltered = applyFilters(reports, filter, value);
     setFilteredReports(newFiltered);
-    setCurrentPage(1); // reset page
+    setCurrentPage(1);
   };
 
   const totalPages = Math.ceil(filteredReports.length / PAGE_SIZE);
@@ -93,6 +93,16 @@ const ReportAdmin = () => {
   const goToPage = (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(
+      date.getMinutes()
+    ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
   };
 
   if (loading) return <p>Đang tải danh sách...</p>;
@@ -131,10 +141,12 @@ const ReportAdmin = () => {
               <th>Title</th>
               <th>Type</th>
               <th>Severity</th>
+              <th>Created At</th>
               <th>Role Name</th>
               <th>Station</th>
               <th>Post Name/ID</th>
               <th>Description</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -144,6 +156,7 @@ const ReportAdmin = () => {
                   <td>{report.title || "-"}</td>
                   <td>{report.reportType || "-"}</td>
                   <td>{report.severity || "-"}</td>
+                  <td>{formatDate(report.createdAt)}</td> {/* hiển thị createdAt */}
                   <td>{report.roleName || "-"}</td>
                   <td>{report.stationName || "-"}</td>
                   <td>
@@ -152,11 +165,12 @@ const ReportAdmin = () => {
                       : "-"}
                   </td>
                   <td>{report.description || "-"}</td>
+                  
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" style={{ textAlign: "center", padding: "16px" }}>
+                <td colSpan="8" style={{ textAlign: "center", padding: "16px" }}>
                   Không có report nào
                 </td>
               </tr>
@@ -167,25 +181,25 @@ const ReportAdmin = () => {
 
       {/* Pagination */}
       <div className="pagination">
-      {totalPages > 1 && (
-        <div style={{ marginTop: "16px", display: "flex", justifyContent: "center", gap: "8px" }}>
-          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
-            Prev
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => goToPage(i + 1)}
-              style={{ fontWeight: currentPage === i + 1 ? "bold" : "normal" }}
-            >
-              {i + 1}
+        {totalPages > 1 && (
+          <div style={{ marginTop: "16px", display: "flex", justifyContent: "center", gap: "8px" }}>
+            <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+              Prev
             </button>
-          ))}
-          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
-            Next
-          </button>
-        </div>
-      )}
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => goToPage(i + 1)}
+                style={{ fontWeight: currentPage === i + 1 ? "bold" : "normal" }}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

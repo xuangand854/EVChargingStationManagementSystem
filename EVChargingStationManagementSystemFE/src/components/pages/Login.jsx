@@ -66,24 +66,24 @@ const Login = () => {
 
     <div className="Login-container">
       <h2 className="form-title">
-        <a href="#">Login in with</a>
+        <a href="#">Đăng Nhập</a>
       </h2>
       <SocialLogin />
 
       <p className="separator">
-        <span>or</span>
+        <span>Hoặc</span>
       </p>
 
       <form className="Login-form" onSubmit={handleSubmit}>
         <InputField name="email" value={formValues.email} onChange={handleChange} type="email" placeholder="Email address" icon="mail" />
         <InputField name="password" value={formValues.password} onChange={handleChange} type="password" placeholder="Password" icon="lock" />
 
-        <a href="/forgot-password" className="forgot-pass-link">Forgot Password?</a>
+        <a href="/forgot-password" className="forgot-pass-link">Quên Mật Khẩu?</a>
         <button className="login-button" disabled={submitting}>{submitting ? 'Logging in...' : 'Log In'}</button>
       </form>
       {error && <p style={{ color: '#d00', marginTop: '10px' }}>{error}</p>}
       <p className="signup-text">
-        Don&apos;t have an account? <Link to="/sign-up">Sign up now</Link>
+        Bạn Không Có Tài Khoảng? <Link to="/sign-up">Đăng Ký Ngay!</Link>
       </p>
     </div>
   );

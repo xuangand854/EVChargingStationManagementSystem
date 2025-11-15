@@ -259,6 +259,55 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+        // Admin xem tất cả voucher (kể cả Inactive)
+        public async Task<IServiceResult> GetAllVouchersForAdmin()
+        {
+            try
+            {
+                var vouchers = await _unitOfWork.VoucherRepository.GetQueryable()
+                    .AsNoTracking()
+                    .OrderByDescending(v => v.ValidFrom)
+                    .ProjectToType<VoucherDto>()
+                    .ToListAsync();
+
+                if (vouchers.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy voucher nào.");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách voucher thành công.", vouchers);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+        // EVDriver xem voucher của mình
+        public async Task<IServiceResult> GetMyVouchers(Guid evDriverId)
+        {
+            try
+            {
+                var now = DateTime.Now;
+
+                var userVouchers = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .Include(uv => uv.Voucher)
+                    .Where(uv => uv.EVDriverId == evDriverId
+                                 && uv.Voucher.IsActive
+                                 && uv.Voucher.ValidFrom <= now
+                                 && uv.Voucher.ValidTo >= now)
+                    .OrderByDescending(uv => uv.AssignedDate)
+                    .ProjectToType<UserVoucherDto>()
+                    .ToListAsync();
+
+                if (userVouchers.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy voucher nào.");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách voucher thành công.", userVouchers);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
 
 
         // 8) EXPIRE ALL EXPIRED VOUCHERS (Background Job)

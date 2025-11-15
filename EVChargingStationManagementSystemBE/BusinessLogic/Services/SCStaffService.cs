@@ -18,7 +18,7 @@ namespace BusinessLogic.Services
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly UserManager<UserAccount> _userManager = userManager;
 
-        //  Lấy danh sách tất cả Staff
+        // Lấy danh sách tất cả Staff
         public async Task<IServiceResult> GetAll()
         {
             try
@@ -32,13 +32,13 @@ namespace BusinessLogic.Services
                     .ToListAsync();
 
                 if (staffs == null || staffs.Count == 0)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào.");
 
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staffs);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách nhân viên thành công.", staffs);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
@@ -55,16 +55,17 @@ namespace BusinessLogic.Services
                     .ToListAsync();
 
                 if (staffs == null || staffs.Count == 0)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào");
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staffs);
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên nào.");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách nhân viên thành công.", staffs);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //  Lấy chi tiết nhân viên theo Id
+        // Lấy thông tin chi tiết nhân viên
         public async Task<IServiceResult> GetById(Guid id)
         {
             try
@@ -77,39 +78,63 @@ namespace BusinessLogic.Services
                     .FirstOrDefaultAsync();
 
                 if (staff == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
 
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, staff);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy thông tin nhân viên thành công.", staff);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //  Tạo tài khoản + hồ sơ nhân viên
+        // Tạo tài khoản + hồ sơ nhân viên
         public async Task<IServiceResult> CreateAccountForStaff(StaffAccountCreateDto dto)
         {
             try
             {
-                // Tạo UserAccount
+                // 1. Kiểm tra mật khẩu xác nhận
+                if (dto.Password != dto.ConfirmPassword)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Mật khẩu xác nhận không khớp.");
+
+                // 2. Kiểm tra email đã tồn tại
+                var existedEmail = await _userManager.FindByEmailAsync(dto.Email.ToLowerInvariant());
+                if (existedEmail != null)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Email đã tồn tại trong hệ thống.");
+
+                // 3. Kiểm tra số điện thoại đã tồn tại
+                var normalizedPhone = NormalizePhone(dto.PhoneNumber);
+                var existedPhone = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .FirstOrDefaultAsync(x => NormalizePhone(x.PhoneNumber) == normalizedPhone && !x.IsDeleted);
+                if (existedPhone != null)
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Số điện thoại đã tồn tại trong hệ thống.");
+
+                // 4. Tạo UserAccount
                 var user = dto.Adapt<UserAccount>();
-                user.UserName = dto.Email;
+                user.Email = dto.Email.ToLowerInvariant();
+                user.UserName = dto.Email.ToLowerInvariant();
+                user.PhoneNumber = normalizedPhone;
                 user.RegistrationDate = DateTime.Now;
                 user.Status = "Active";
                 user.CreatedAt = DateTime.Now;
                 user.UpdatedAt = DateTime.Now;
 
-                var result = await _userManager.CreateAsync(user, dto.Password);
-                if (!result.Succeeded)
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể tạo tài khoản", result.Errors);
+                var createResult = await _userManager.CreateAsync(user, dto.Password);
+                if (!createResult.Succeeded)
+                {
+                    var errors = createResult.Errors.Select(e => e.Description).ToList();
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể tạo tài khoản.", errors);
+                }
 
-                // Gán role Staff
+                // 5. Gán role Staff
                 var roleResult = await _userManager.AddToRoleAsync(user, "Staff");
                 if (!roleResult.Succeeded)
-                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể gán quyền cho nhân viên", roleResult.Errors);
+                {
+                    var errors = roleResult.Errors.Select(e => e.Description).ToList();
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể gán quyền Staff.", errors);
+                }
 
-                // Tạo hồ sơ Staff
+                // 6. Tạo hồ sơ nhân viên
                 var staff = dto.Adapt<SCStaffProfile>();
                 staff.Id = Guid.NewGuid();
                 staff.AccountId = user.Id;
@@ -120,16 +145,28 @@ namespace BusinessLogic.Services
 
                 await _unitOfWork.SCStaffRepository.CreateAsync(staff);
                 await _unitOfWork.SaveChangesAsync();
+
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công", response);
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công.", response);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //  Admin cập nhật hồ sơ nhân viên
+        // Hàm chuẩn hóa số điện thoại
+        private string NormalizePhone(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return phone;
+            phone = phone.Replace(" ", "").Replace("-", "");
+            if (phone.StartsWith("+84"))
+                phone = "0" + phone.Substring(3);
+            return phone;
+        }
+
+
+        // Admin cập nhật nhân viên
         public async Task<IServiceResult> UpdateProfileByAdmin(StaffUpdateAdminDto dto)
         {
             try
@@ -140,13 +177,11 @@ namespace BusinessLogic.Services
                     .FirstOrDefaultAsync();
 
                 if (staff == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
 
-                // Map vào SCStaff
                 dto.Adapt(staff);
                 staff.UpdatedAt = DateTime.Now;
 
-                // Map vào UserAccount
                 if (staff.UserAccountNavigation != null)
                 {
                     dto.Adapt(staff.UserAccountNavigation);
@@ -155,18 +190,18 @@ namespace BusinessLogic.Services
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cập nhật thông tin nhân viên thất bại.");
 
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Cập nhật thông tin nhân viên thành công.", response);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //   Nhân viên tự cập nhật hồ sơ
+        // Nhân viên tự cập nhật hồ sơ
         public async Task<IServiceResult> UpdateProfileByStaff(StaffUpdateDto dto)
         {
             try
@@ -177,7 +212,7 @@ namespace BusinessLogic.Services
                     .FirstOrDefaultAsync();
 
                 if (staff == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
 
                 dto.Adapt(staff);
                 staff.UpdatedAt = DateTime.Now;
@@ -190,18 +225,18 @@ namespace BusinessLogic.Services
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cập nhật thông tin thất bại.");
 
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Cập nhật thông tin thành công.", response);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //   Cập nhật trạng thái nhân viên
+        // Cập nhật trạng thái nhân viên
         public async Task<IServiceResult> UpdateStaffStatus(StaffUpdateStatusDto dto)
         {
             try
@@ -211,25 +246,25 @@ namespace BusinessLogic.Services
                     .FirstOrDefaultAsync();
 
                 if (staff == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
 
                 staff.Status = dto.Status;
                 staff.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cập nhật trạng thái thất bại.");
 
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Cập nhật trạng thái thành công.", response);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
-        //   Xóa mềm nhân viên
+        // Xóa mềm nhân viên
         public async Task<IServiceResult> Delete(Guid staffId)
         {
             try
@@ -239,7 +274,7 @@ namespace BusinessLogic.Services
                     .FirstOrDefaultAsync();
 
                 if (staff == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên");
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy nhân viên.");
 
                 staff.IsDeleted = true;
                 staff.Status = "Inactive";
@@ -247,13 +282,13 @@ namespace BusinessLogic.Services
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result <= 0)
-                    return new ServiceResult(Const.FAIL_DELETE_CODE, Const.FAIL_DELETE_MSG);
+                    return new ServiceResult(Const.FAIL_DELETE_CODE, "Xóa nhân viên thất bại.");
 
-                return new ServiceResult(Const.SUCCESS_DELETE_CODE, Const.SUCCESS_DELETE_MSG);
+                return new ServiceResult(Const.SUCCESS_DELETE_CODE, "Xóa nhân viên thành công.");
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
 
@@ -272,12 +307,11 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE,
                         "Không tìm thấy hồ sơ nhân viên tương ứng với tài khoản này.");
 
-                var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy thông tin nhân viên thành công.", staff);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
         }
     }

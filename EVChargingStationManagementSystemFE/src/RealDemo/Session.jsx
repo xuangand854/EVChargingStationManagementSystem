@@ -212,19 +212,19 @@ const Session = () => {
             const checkinData = response?.data || response;
             console.log("🔍 checkinData:", checkinData);
             console.log("🔍 checkinData.bookingId:", checkinData?.bookingId);
-            console.log("🔍 checkinData.phone:", checkinData?.phone);
-            console.log("🔍 checkinData.phoneNumber:", checkinData?.phoneNumber);
+            // console.log("🔍 checkinData.phone:", checkinData?.phone);
+            // console.log("🔍 checkinData.phoneNumber:", checkinData?.phoneNumber);
 
             // Lấy thông tin từ response theo Swagger:
             // - id → bookingId
             // - phone → driverPhone
             // - vehicleModelId → vehicleModelId
             const bookingIdValue = checkinData?.id || checkinData?.bookingId;
-            const phoneValue = checkinData?.phone || checkinData?.phoneNumber;
+            const driverPhone = checkinData?.phone || checkinData?.driverPhone;
             const vehicleModelIdValue = checkinData?.vehicleModelId;
 
             console.log("🔍 bookingIdValue (id):", bookingIdValue);
-            console.log("🔍 phoneValue (phone):", phoneValue);
+            console.log("🔍 phoneValue (phone):", driverPhone);
             console.log("🔍 vehicleModelIdValue:", vehicleModelIdValue);
 
             if (bookingIdValue) {
@@ -234,9 +234,9 @@ const Session = () => {
                 toast.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
             }
 
-            if (phoneValue) {
-                setPhoneNumber(phoneValue);
-                toast.info(`📱 Số điện thoại: ${phoneValue}`);
+            if (driverPhone) {
+                setPhoneNumber(driverPhone);
+                toast.info(`📱 Số điện thoại: ${driverPhone}`);
             }
 
             if (vehicleModelIdValue) {

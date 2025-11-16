@@ -101,11 +101,6 @@ namespace BusinessLogic.Services
                 if (connector == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy cổng sạc được chọn");
 
-                //var chargingPost = await _unitOfWork.ChargingPostRepository.GetByIdAsync(
-                //    predicate: p => !p.IsDeleted && p.Id == connector.ChargingPost.Id,
-                //    include: c => c.Include(p => p.ChargingStationNavigation),
-                //    asNoTracking: false
-                //);
                 if (connector.ChargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trụ sạc được chọn");
 

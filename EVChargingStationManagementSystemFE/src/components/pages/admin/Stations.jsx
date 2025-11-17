@@ -8,6 +8,7 @@ import {
     Space,
     Card,
     Tooltip,
+    Empty,
 } from "antd";
 import {
     PlusOutlined,
@@ -28,6 +29,8 @@ const AdminStation = () => {
     const [stations, setStations] = useState([]);
     const [filteredStations, setFilteredStations] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [form] = Form.useForm();
@@ -41,9 +44,29 @@ const AdminStation = () => {
             const data = response.data || response;
             setStations(data);
             setFilteredStations(data);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể tải danh sách trạm sạc: ${errorMsg}`);
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có trạm sạc nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(`Không thể tải danh sách trạm sạc: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
+            setStations([]);
+            setFilteredStations([]);
         } finally {
             setLoading(false);
         }
@@ -192,15 +215,21 @@ const AdminStation = () => {
                 </Space>
             }
         >
-            <Table
-                columns={columns}
-                dataSource={filteredStations}
-                rowKey="stationId"
-                loading={loading}
-                pagination={false}
-                scroll={{ x: 1000, y: 760 }}
-                sticky
-            />
+            {hasError ? (
+                <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+            ) : noData || filteredStations.length === 0 ? (
+                <Empty description="Không có trạm sạc nào" />
+            ) : (
+                <Table
+                    columns={columns}
+                    dataSource={filteredStations}
+                    rowKey="stationId"
+                    loading={loading}
+                    pagination={false}
+                    scroll={{ x: 1000, y: 760 }}
+                    sticky
+                />
+            )}
 
             {/* Modal thêm trạm */}
             <Modal

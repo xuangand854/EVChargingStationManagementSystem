@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Modal, Input, Form, Select, Space, Tooltip } from "antd";
+import { Button, Table, Modal, Input, Form, Select, Space, Tooltip, Empty } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import {
@@ -19,6 +19,8 @@ const AdminVehicles = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingModel, setEditingModel] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [deletingId, setDeletingId] = useState(null);
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -58,9 +60,27 @@ const AdminVehicles = () => {
 
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể tải danh sách mẫu xe: ${errorMsg}`);
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có mẫu xe nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(`Không thể tải danh sách mẫu xe: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
             setModels([]);
             setFilteredModels([]);
         } finally {
@@ -477,15 +497,21 @@ const AdminVehicles = () => {
 
             {/* Table Card */}
             <div className="table-card">
-                <Table
-                    dataSource={filteredModels}
-                    columns={columns}
-                    rowKey={(r) => r.vehicleModelId ?? r.id}
-                    loading={loading}
-                    pagination={false}
-                    scroll={{ x: 1200, y: 600 }}
-                    sticky
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || filteredModels.length === 0 ? (
+                    <Empty description="Không có mẫu xe nào" />
+                ) : (
+                    <Table
+                        dataSource={filteredModels}
+                        columns={columns}
+                        rowKey={(r) => r.vehicleModelId ?? r.id}
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 600 }}
+                        sticky
+                    />
+                )}
             </div>
 
             <Modal

@@ -5,12 +5,13 @@ const BASE_URL = "/Transaction";
 export const GetTransaction = async () => {
     try {
         const response = await api.get(`${BASE_URL}`);
-        return response.data;
+        return response; // Trả về toàn bộ response, không chỉ response.data
     } catch (error) {
         console.error('Lỗi khi lấy danh sách transaction:', error);
-        throw error;
+        throw error; // Giữ nguyên object lỗi từ axios
     }
-}
+};
+
 
 export const GetEVDriverTransaction = async () => {
     try {

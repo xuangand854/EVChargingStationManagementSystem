@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
     Button, Table, Modal, Input, Form,
-    Space, Tooltip, Select
+    Space, Tooltip, Select, Empty
 } from "antd";
 import {
     EditOutlined, DeleteOutlined, PlusOutlined,
@@ -18,6 +18,8 @@ import "./Staff.css";
 const AdminStaff = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [staffList, setStaffList] = useState([]);
     const [filteredStaff, setFilteredStaff] = useState([]);
     const [searchText, setSearchText] = useState("");
@@ -32,9 +34,29 @@ const AdminStaff = () => {
             const list = Array.isArray(res.data) ? res.data : [];
             setStaffList(list);
             setFilteredStaff(list);
+            setNoData(false);
+            setHasError(false);
         } catch (err) {
-            const errorMsg = err.response?.data?.message || err.message || "Lỗi tải danh sách nhân viên";
-            toast.error(errorMsg);
+            console.log('Full error:', err);
+
+            const status = err?.response?.status;
+            const errorMsg = err?.customMessage || err?.response?.data?.message || err?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có nhân viên nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(errorMsg); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
+            setStaffList([]);
+            setFilteredStaff([]);
         } finally {
             setLoading(false);
         }
@@ -227,15 +249,21 @@ const AdminStaff = () => {
             </div>
 
             <div className="table-card">
-                <Table
-                    columns={columns}
-                    dataSource={filteredStaff}
-                    rowKey="id"
-                    loading={loading}
-                    pagination={false}
-                    scroll={{ x: 1200, y: 600 }}
-                    sticky
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || filteredStaff.length === 0 ? (
+                    <Empty description="Không có nhân viên nào" />
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={filteredStaff}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 600 }}
+                        sticky
+                    />
+                )}
             </div>
 
             {/* Modal thêm/sửa */}

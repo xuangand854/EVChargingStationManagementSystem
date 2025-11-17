@@ -24,6 +24,7 @@ import {
     Modal,
     Input,
     Form,
+    Empty,
 } from "antd";
 import {
     ArrowLeftOutlined,
@@ -42,6 +43,8 @@ const AdminStationDetail = () => {
     const [station, setStation] = useState(null);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingPost, setEditingPost] = useState(null);
     const [staffModalVisible, setStaffModalVisible] = useState(false);
@@ -60,9 +63,26 @@ const AdminStationDetail = () => {
 
             const postRes = await getAllChargingPost(stationId);
             setPosts(Array.isArray(postRes) ? postRes : postRes?.data || []);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể tải dữ liệu trạm sạc: ${errorMsg}`);
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có dữ liệu trạm sạc');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(`Không thể tải dữ liệu trạm sạc: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
         } finally {
             setLoading(false);
         }
@@ -305,13 +325,19 @@ const AdminStationDetail = () => {
                         className="mt-4"
                         extra={<Button icon={<PlusOutlined />} onClick={handleAddPost}>Thêm trụ</Button>}
                     >
-                        <Table
-                            rowKey="id"
-                            loading={loading}
-                            dataSource={posts}
-                            columns={columns}
-                            pagination={{ pageSize: 5 }}
-                        />
+                        {hasError ? (
+                            <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                        ) : noData || posts.length === 0 ? (
+                            <Empty description="Không có trụ sạc nào" />
+                        ) : (
+                            <Table
+                                rowKey="id"
+                                loading={loading}
+                                dataSource={posts}
+                                columns={columns}
+                                pagination={{ pageSize: 5 }}
+                            />
+                        )}
                     </Card>
 
                     {/* Modal thêm/sửa trụ */}

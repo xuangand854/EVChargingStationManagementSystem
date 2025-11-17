@@ -68,8 +68,8 @@ namespace BusinessLogic.Services
                         ConnectorName = $"C{i + 1}",
                         Status = "OutOfService",
                         ChargingPostId = chargingPost.Id,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
                     };
                     await _unitOfWork.ConnectorRepository.CreateAsync(connector);
                 }
@@ -104,7 +104,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Trụ sạc phải có trạng thái là bảo trì mới được phép cập nhật");
 
                 chargingPost = dto.Adapt(chargingPost);
-                chargingPost.UpdatedAt = DateTime.UtcNow;
+                chargingPost.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -137,7 +137,7 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_DELETE_CODE, "Trụ sạc phải có trạng thái là bảo trì mới được phép xóa");
 
                 chargingPost.IsDeleted = true;
-                chargingPost.UpdatedAt = DateTime.UtcNow;
+                chargingPost.UpdatedAt = DateTime.Now;
 
 
                 if (chargingPost.ChargingStationNavigation == null)
@@ -254,17 +254,12 @@ namespace BusinessLogic.Services
                         chargingPost.ChargingStationNavigation.AvailableBikeChargingPosts += 1;
                         chargingPost.ChargingStationNavigation.AvailableBikeConnectors += chargingPost.TotalConnectors;
                     }
-
-                    // Chuyển toàn bộ trạng thái các connector từ OutOfService sang Available
-                    //var connectors = await _unitOfWork.ConnectorRepository.GetAllAsync(
-                    //    predicate: c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.OutOfService.ToString())
-                    //    , asNoTracking: false);
                     var connectors = chargingPost.Connectors.ToList().
                         Where(c => !c.IsDeleted && c.ChargingPostId == chargingPost.Id && c.Status.Equals(ConnectorStatus.OutOfService.ToString()));
                     foreach (var connector in connectors)
                     {
                         connector.Status = ConnectorStatus.Available.ToString();
-                        connector.UpdatedAt = DateTime.UtcNow;
+                        connector.UpdatedAt = DateTime.Now;
                     }
                 }
                 else if (chargingPost.Status.Equals(ChargingPostStatus.Available.ToString()) && !status.Equals(ChargingPostStatus.Available))
@@ -289,13 +284,13 @@ namespace BusinessLogic.Services
                     foreach (var connector in connectors)
                     {
                         connector.Status = ConnectorStatus.OutOfService.ToString();
-                        connector.UpdatedAt = DateTime.UtcNow;
+                        connector.UpdatedAt = DateTime.Now;
                     }
                 }
                 else chargingPost.AvailableConnectors = 0;
 
                 chargingPost.Status = status.ToString();
-                chargingPost.UpdatedAt = DateTime.UtcNow;
+                chargingPost.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)

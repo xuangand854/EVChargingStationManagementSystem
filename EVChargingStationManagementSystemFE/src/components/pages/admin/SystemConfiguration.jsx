@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Card, Button, Input, Spin, Empty } from "antd";
+import { SaveOutlined, UndoOutlined, SettingOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { GetList, Update } from "../../../API/SystemConfiguration";
 import "./SystemConfiguration.css";
@@ -6,6 +8,8 @@ import "./SystemConfiguration.css";
 export default function SystemConfigEditor() {
     const [items, setItems] = useState([]); // mảng các cấu hình
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [savingIds, setSavingIds] = useState([]); // id đang lưu
     const [error, setError] = useState("");
 
@@ -19,18 +23,54 @@ export default function SystemConfigEditor() {
                     ? res
                     : res?.data ?? res?.data?.data ?? [];
                 setItems(list);
+                setNoData(false);
+                setHasError(false);
             } catch (err) {
-                const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
-                toast.error(`Không tải được cấu hình: ${errorMsg}`);
+                console.log('Full error:', err);
+
+                const status = err?.response?.status;
+                const errorMsg = err?.customMessage || err?.response?.data?.message || err?.message || "Đã xảy ra lỗi";
+
+                // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+                const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+                if (isNoDataError) {
+                    console.log('Không có cấu hình nào');
+                    setNoData(true);
+                    setHasError(false);
+                } else {
+                    toast.error(`Không tải được cấu hình: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                    setHasError(true);
+                    setNoData(false);
+                }
+
                 setError("Không tải được cấu hình.");
+                setItems([]);
             } finally {
                 setLoading(false);
             }
         })();
     }, []);
 
-    if (loading) return <div className="syscfg-loading">Đang tải...</div>;
-    if (!items || items.length === 0) return <div className="syscfg-empty">Không có cấu hình để hiển thị.</div>;
+    if (loading) return (
+        <div className="syscfg-container">
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <Spin size="large" tip="Đang tải cấu hình..." />
+            </div>
+        </div>
+    );
+
+    if (hasError) return (
+        <div className="syscfg-container">
+            <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+        </div>
+    );
+
+    if (noData || !items || items.length === 0) return (
+        <div className="syscfg-container">
+            <Empty description="Không có cấu hình để hiển thị" />
+        </div>
+    );
 
     const toDateTimeLocal = (iso) => {
         if (!iso) return "";
@@ -77,97 +117,84 @@ export default function SystemConfigEditor() {
     };
 
     return (
-        <div className="syscfg-container">
-            <div className="syscfg-card">
-                <div className="syscfg-card-header">
-                    <h3 className="syscfg-title">System Configuration</h3>
-                    <p className="syscfg-sub">Toàn bộ thông tin cấu hình hệ thống — xem & chỉnh sửa</p>
+        <div className="syscfg-wrapper">
+            <div className="syscfg-header-fixed">
+                <div className="syscfg-header">
+                    <div>
+                        <h1 className="syscfg-main-title">
+                            <SettingOutlined style={{ marginRight: 8 }} />
+                            Cấu Hình Hệ Thống
+                        </h1>
+                        <p className="syscfg-subtitle">Quản lý và chỉnh sửa các thông số cấu hình hệ thống</p>
+                    </div>
                 </div>
 
-                {error && <div className="syscfg-error">{error}</div>}
+                {error && (
+                    <Card className="syscfg-error-card">
+                        <div className="syscfg-error">{error}</div>
+                    </Card>
+                )}
+            </div>
 
-                <div style={{ display: "grid", gap: 12 }}>
+            <div className="syscfg-content-scroll">
+                <div className="syscfg-grid">
                     {items.map((it) => (
-                        <div key={it.id ?? it.Id} className="syscfg-item" style={{
-                            border: "1px solid rgba(15,23,42,0.04)",
-                            padding: 14,
-                            borderRadius: 8,
-                            display: "grid",
-                            gridTemplateColumns: "1fr 420px",
-                            gap: 12,
-                            alignItems: "start",
-                            background: "#fff"
-                        }}>
-                            {/* Left: full read-only info */}
-                            <div style={{ lineHeight: 1.5 }}>
-                                <div style={{ fontWeight: 700, fontSize: 16 }}>{it.name} <span style={{ color: "var(--muted)", fontSize: 13 }}>#{it.id}</span></div>
-                                <div style={{ color: "var(--muted)", marginBottom: 10 }}>
-                                    {it.description}
-                                    {it.unit ? (
-                                        <>
-                                            <br />
-                                            <span>Đơn vị: <span style={{ fontWeight: 600 }}>{it.unit}</span></span>
-                                        </>
-                                    ) : null}
+                        <Card
+                            key={it.id ?? it.Id}
+                            className="syscfg-card-item"
+                            hoverable
+                        >
+                            <div className="syscfg-card-content">
+                                {/* Left: Info */}
+                                <div className="syscfg-info">
+                                    <div className="syscfg-name">
+                                        {it.name}
+                                        <span className="syscfg-id">#{it.id}</span>
+                                    </div>
+                                    <div className="syscfg-description">
+                                        {it.description}
+                                    </div>
+                                    {it.unit && (
+                                        <div className="syscfg-unit">
+                                            Đơn vị: <strong>{it.unit}</strong>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-                                    <div><strong>Unit</strong><div className="muted-text">{it.unit ?? "-"}</div></div>
-                                    <div><strong>Version</strong><div className="muted-text">{it.versionNo ?? "-"}</div></div>
-                                </div>
+                                {/* Right: Form */}
+                                <div className="syscfg-form-section">
+                                    <div className="syscfg-form-group">
+                                        <label className="syscfg-label">Giá trị</label>
+                                        <Input
+                                            type="number"
+                                            value={it.minValue ?? ""}
+                                            onChange={(e) => handleChange(it.id, "minValue", e.target.value)}
+                                            placeholder="Nhập giá trị"
+                                        />
+                                    </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                                    <div><strong>Created At</strong><div className="muted-text">{toDisplay(it.createdAt)}</div></div>
-                                    <div><strong>Updated At</strong><div className="muted-text">{toDisplay(it.updatedAt)}</div></div>
-                                </div>
+                                    <div className="syscfg-form-group">
+                                        <label className="syscfg-label">Hiệu lực từ</label>
+                                        <Input
+                                            type="datetime-local"
+                                            value={toDateTimeLocal(it.effectedDateFrom)}
+                                            onChange={(e) => handleChange(it.id, "effectedDateFrom", e.target.value)}
+                                        />
+                                    </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-                                    <div><strong>Created By</strong><div className="muted-text">{it.createdBy ?? "-"}</div></div>
-                                    <div><strong>Updated By</strong><div className="muted-text">{it.updatedBy ?? "-"}</div></div>
-                                </div>
-                            </div>
+                                    <div className="syscfg-form-group">
+                                        <label className="syscfg-label">Hiệu lực đến</label>
+                                        <Input
+                                            type="datetime-local"
+                                            value={toDateTimeLocal(it.effectedDateTo)}
+                                            onChange={(e) => handleChange(it.id, "effectedDateTo", e.target.value)}
+                                        />
+                                    </div>
 
-                            {/* Right: editable fields + save */}
-                            <div>
-                                <div style={{ display: "grid", gap: 8 }}>
-                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>Giá trị</label>
-                                    <input
-                                        className="form-input"
-                                        type="number"
-                                        value={it.minValue ?? ""}
-                                        onChange={(e) => handleChange(it.id, "minValue", e.target.value)}
-                                    />
-
-
-                                    {/* <label style={{ fontSize: 13, color: "var(--muted)" }}>maxValue</label>
-                                    <input
-                                        className="form-input"
-                                        type="number"
-                                        value={it.maxValue ?? ""}
-                                        onChange={(e) => handleChange(it.id, "maxValue", e.target.value)}
-                                    /> */}
-
-                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>effectedDateFrom</label>
-                                    <input
-                                        className="form-input"
-                                        type="datetime-local"
-                                        value={toDateTimeLocal(it.effectedDateFrom)}
-                                        onChange={(e) => handleChange(it.id, "effectedDateFrom", e.target.value)}
-                                    />
-
-                                    <label style={{ fontSize: 13, color: "var(--muted)" }}>effectedDateTo</label>
-                                    <input
-                                        className="form-input"
-                                        type="datetime-local"
-                                        value={toDateTimeLocal(it.effectedDateTo)}
-                                        onChange={(e) => handleChange(it.id, "effectedDateTo", e.target.value)}
-                                    />
-
-                                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 6 }}>
-                                        <button
-                                            className="btn btn-secondary"
+                                    <div className="syscfg-actions">
+                                        <Button
+                                            icon={<UndoOutlined />}
                                             onClick={() => {
-                                                // reset local edits by reloading from server for this item
                                                 (async () => {
                                                     try {
                                                         setLoading(true);
@@ -181,24 +208,29 @@ export default function SystemConfigEditor() {
                                             disabled={savingIds.includes(it.id)}
                                         >
                                             Hủy
-                                        </button>
+                                        </Button>
 
-                                        <button
-                                            className="btn btn-primary"
+                                        <Button
+                                            type="primary"
+                                            icon={<SaveOutlined />}
                                             onClick={(e) => { e.preventDefault(); handleSave(it); }}
+                                            loading={savingIds.includes(it.id)}
                                             disabled={savingIds.includes(it.id)}
                                         >
                                             {savingIds.includes(it.id) ? "Đang lưu..." : "Lưu"}
-                                        </button>
+                                        </Button>
                                     </div>
 
-                                    {it._savedAt && <div style={{ fontSize: 12, color: "#16a34a", textAlign: "right" }}>Đã lưu {new Date(it._savedAt).toLocaleString()}</div>}
+                                    {it._savedAt && (
+                                        <div className="syscfg-saved-time">
+                                            ✓ Đã lưu lúc {new Date(it._savedAt).toLocaleString('vi-VN')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
-
             </div>
         </div>
     );

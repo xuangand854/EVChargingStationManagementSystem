@@ -155,12 +155,12 @@ const Signup = () => {
         {success && <p style={{ color: "#0a0", marginBottom: "12px" }}>{success}</p>}
 
         <button type="submit" className="login-button" disabled={submitting}>
-          {submitting ? "Signing Up..." : "Sign Up"}
+          {submitting ? "Đăng kí..." : "Đăng kí"}
         </button>
       </form>
 
       <p className="signup-text">
-        Already have an account? <Link to="/login">Log in</Link>
+        Bạn đã có tài khoản? <Link to="/login">Đăng nhập</Link>
       </p>
     </div>
   );

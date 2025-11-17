@@ -602,7 +602,7 @@ namespace BusinessLogic.Services
             var upcomingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
                 predicate: b => !b.IsDeleted &&
                          b.Status == "Scheduled" &&
-                         b.StartTime <= now.AddMinutes(5) &&
+                         b.StartTime <= now.AddMinutes(7) &&
                          b.StartTime > now,
                 include: b => b.Include(x => x.ChargingStationNavigation)
                                .ThenInclude(s => s.ChargingPosts)
@@ -693,8 +693,8 @@ namespace BusinessLogic.Services
             var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
                 b => !b.IsDeleted &&
                      (b.Status == BookingStatus.Scheduled.ToString() ||
-                      b.Status == BookingStatus.InProgress.ToString()) &&
-                     b.EndTime <= now,
+                      b.Status == BookingStatus.InProgress.ToString()),
+
                 asNoTracking: false
             );
 

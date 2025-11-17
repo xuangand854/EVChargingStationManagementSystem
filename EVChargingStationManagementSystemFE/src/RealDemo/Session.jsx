@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, message, Card, Space, Progress, Row, Col, Divider, Modal, Input } from "antd";
+import { toast } from "react-toastify";
 import { StartSession, Stop } from "../API/ChargingSession";
 import { getChargingPostId } from "../API/ChargingPost";
 import { PatchConnectorToggle, GetConnectorId } from "../API/Connector";
 import { GetVAT, GetPrice } from "../API/SystemConfiguration";
-import { MyBooking, BookCheckin } from "../API/Booking";
+import { BookCheckin } from "../API/Booking";
 
 import {
     PlugZap,
@@ -29,6 +30,8 @@ const Session = () => {
     const [isPaid, setIsPaid] = useState(false);
     const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [bookingId, setBookingId] = useState(null);
+    const [vehicleModelId, setVehicleModelId] = useState(null);
     const [showCheckinModal, setShowCheckinModal] = useState(false);
     const [otpValues, setOtpValues] = useState(["", "", "", ""]);
     const [otpError, setOtpError] = useState(false);
@@ -75,22 +78,14 @@ const Session = () => {
     useEffect(() => {
         const checkConnectorStatus = async () => {
             try {
-                // Lấy thông tin connector để check status
                 const connectorResponse = await GetConnectorId(connectorID);
-                console.log("🔌 Thông tin connector:", connectorResponse);
-
                 const status = connectorResponse?.data?.status || connectorResponse?.status;
-                console.log("📊 Status của connector:", status);
 
-                // Nếu connector status là Reserved, hiển thị modal yêu cầu nhập mã check-in
                 if (status === "Reserved") {
-                    console.log("🎫 Connector đang Reserved - Yêu cầu nhập mã check-in 4 số");
                     setShowCheckinModal(true);
-                } else {
-                    console.log("ℹ️ Connector không ở trạng thái Reserved, status:", status);
                 }
             } catch (error) {
-                console.error("❌ Lỗi khi kiểm tra connector:", error);
+                toast.error("Không thể kiểm tra trạng thái connector");
             }
         };
 
@@ -194,18 +189,11 @@ const Session = () => {
     }, [isCharging, pricingData]);
 
     const handleCheckin = async () => {
-        console.log("🎫 ===== BẮT ĐẦU CHECK-IN =====");
-
-        // Ghép 4 ô thành mã
         const checkinCode = otpValues.join("");
-        console.log("📝 Mã check-in đã nhập:", checkinCode);
-        console.log("📝 Độ dài mã:", checkinCode.length);
 
-        // Validate mã 4 số
         if (checkinCode.length !== 4) {
-            console.log("❌ Validation fail: Chưa nhập đủ 4 số");
             setOtpError(true);
-            message.error("Vui lòng nhập đủ 4 số!");
+            toast.error("Vui lòng nhập đủ 4 số!");
             setTimeout(() => setOtpError(false), 1000);
             return;
         }
@@ -214,37 +202,59 @@ const Session = () => {
         setLoading(true);
 
         try {
-            console.log("🔄 Đang gọi API BookCheckin với mã:", checkinCode);
-
-            // Gọi API check-in trực tiếp với mã 4 số
             const response = await BookCheckin(checkinCode);
-            console.log("✅ Check-in response:", response);
 
-            message.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
+            // Debug: Log toàn bộ response để xem cấu trúc
+            console.log("🔍 Full BookCheckin response:", response);
+            console.log("🔍 response.data:", response?.data);
+
+            // Tự động import bookingId và phone từ response
+            const checkinData = response?.data || response;
+            console.log("🔍 checkinData:", checkinData);
+            console.log("🔍 checkinData.bookingId:", checkinData?.bookingId);
+            console.log("🔍 checkinData.phone:", checkinData?.phone);
+            console.log("🔍 checkinData.phoneNumber:", checkinData?.phoneNumber);
+
+            // Lấy thông tin từ response theo Swagger:
+            // - id → bookingId
+            // - phone → driverPhone
+            // - vehicleModelId → vehicleModelId
+            const bookingIdValue = checkinData?.id || checkinData?.bookingId;
+            const phoneValue = checkinData?.phone || checkinData?.phoneNumber;
+            const vehicleModelIdValue = checkinData?.vehicleModelId;
+
+            console.log("🔍 bookingIdValue (id):", bookingIdValue);
+            console.log("🔍 phoneValue (phone):", phoneValue);
+            console.log("🔍 vehicleModelIdValue:", vehicleModelIdValue);
+
+            if (bookingIdValue) {
+                setBookingId(bookingIdValue);
+                toast.success(`✅ Check-in thành công! Booking ID: ${bookingIdValue}`);
+            } else {
+                toast.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
+            }
+
+            if (phoneValue) {
+                setPhoneNumber(phoneValue);
+                toast.info(`📱 Số điện thoại: ${phoneValue}`);
+            }
+
+            if (vehicleModelIdValue) {
+                setVehicleModelId(vehicleModelIdValue);
+                toast.info(`🚗 Thông tin xe đã được tự động điền`);
+            }
+
             setShowCheckinModal(false);
             setOtpValues(["", "", "", ""]);
 
-            console.log("🔄 Đang refresh connector status...");
-            // Refresh connector status
             const connectorResponse = await GetConnectorId(connectorID);
             const newStatus = connectorResponse?.data?.status || connectorResponse?.status;
-            console.log("📊 Status mới của connector:", newStatus);
             setConnectorStatus(newStatus);
 
-            console.log("🎉 ===== CHECK-IN HOÀN TẤT =====\n");
-
         } catch (error) {
-            console.log("\n❌ ===== LỖI CHECK-IN =====");
-            console.error("❌ Error object:", error);
-            console.error("❌ Error message:", error.message);
-            console.error("❌ Error response:", error.response);
-            console.error("❌ Error data:", error.response?.data);
-            console.error("❌ Error stack:", error.stack);
-
-            // Hiển thị error với hiệu ứng
             setOtpError(true);
-            const errorMsg = error.response?.data?.message || "Mã check-in không đúng!";
-            message.error(errorMsg);
+            const errorMsg = error.response?.data?.message || error.response?.data?.title || "Mã check-in không đúng!";
+            toast.error(errorMsg);
             setTimeout(() => setOtpError(false), 1000);
         } finally {
             setLoading(false);
@@ -274,19 +284,25 @@ const Session = () => {
     };
 
     const handleStartSession = async () => {
-
-        setIsPhoneModalVisible(true);
+        // Nếu đã có số điện thoại từ check-in, bỏ qua modal và bắt đầu luôn
+        if (phoneNumber) {
+            await handleConfirmPhone();
+        } else {
+            setIsPhoneModalVisible(true);
+        }
     };
 
     const handleConfirmPhone = async () => {
         setLoading(true);
         try {
             const response = await StartSession(
-                80,  // batteryCapacityKWh
-                20,  // initialBatteryLevelPercent
-                100, // expectedEnergiesKWh
-                connectorID,
-                phoneNumber // Gửi số điện thoại kèm theo
+                bookingId,          // bookingId (từ check-in, null nếu không booking)
+                80,                 // batteryCapacityKWh
+                20,                 // initialBatteryLevelPercent
+                100,                // expectedEnergiesKWh
+                phoneNumber,        // phone (từ check-in hoặc nhập thủ công)
+                connectorID,        // connectorId
+                vehicleModelId      // vehicleModelId (từ check-in, null nếu không booking)
             );
 
             const id = response?.data?.id || response?.id;
@@ -306,14 +322,18 @@ const Session = () => {
                 cost: 0
             }));
 
-            message.success("Phiên sạc đã bắt đầu!");
+            if (bookingId) {
+                toast.success(`✅ Phiên sạc đã bắt đầu! Booking ID: ${bookingId}`);
+            } else {
+                toast.success("✅ Phiên sạc đã bắt đầu!");
+            }
         } catch (error) {
-            console.error("Lỗi khi bắt đầu phiên sạc:", error);
-            message.error("Không thể bắt đầu phiên sạc!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể bắt đầu phiên sạc: ${errorMsg}`);
         } finally {
             setLoading(false);
             setIsPhoneModalVisible(false);
-            setPhoneNumber("");
+            // Không reset phoneNumber để giữ lại cho lần sau
         }
     };
 
@@ -490,13 +510,46 @@ const Session = () => {
                     okText="Xác nhận"
                     cancelText="Không"
                 >
-                    <p>Bạn có muốn nhập số điện thoại để tích điểm không?</p>
+                    {phoneNumber ? (
+                        <div style={{ marginBottom: '16px' }}>
+                            <div style={{
+                                padding: '12px',
+                                backgroundColor: '#e6f7f5',
+                                borderRadius: '8px',
+                                border: '1px solid #00b09b',
+                                marginBottom: '12px'
+                            }}>
+                                <p style={{ margin: 0, color: '#00b09b', fontWeight: '600' }}>
+                                    ✅ Số điện thoại đã được tự động điền từ booking
+                                </p>
+                            </div>
+                            <p style={{ marginBottom: '8px' }}>Số điện thoại của bạn:</p>
+                        </div>
+                    ) : (
+                        <p style={{ marginBottom: '8px' }}>Bạn có muốn nhập số điện thoại để tích điểm không?</p>
+                    )}
                     <Input
                         placeholder="Nhập số điện thoại"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         maxLength={10}
+                        style={{
+                            borderColor: phoneNumber ? '#00b09b' : undefined,
+                            borderWidth: phoneNumber ? '2px' : '1px'
+                        }}
                     />
+                    {bookingId && (
+                        <div style={{
+                            marginTop: '12px',
+                            padding: '8px',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            color: '#6b7280'
+                        }}>
+                            📋 Booking ID: <strong>{bookingId}</strong>
+                        </div>
+                    )}
                 </Modal>
 
                 {/* Modal Check-in */}
@@ -780,7 +833,7 @@ const Session = () => {
                                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                             <span className="text-gray-600">Tiền điện: </span>
                                             <span className="font-semibold text-gray-800">
-                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toLocaleString()} VNĐ
+                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
                                             </span>
                                         </div>
                                     )}

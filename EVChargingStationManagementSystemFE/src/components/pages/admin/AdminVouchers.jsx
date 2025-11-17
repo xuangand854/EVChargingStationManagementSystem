@@ -243,12 +243,9 @@ const AdminVouchers = () => {
                     dataSource={vouchers}
                     rowKey="id"
                     loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng ${total} voucher`
-                    }}
-                    scroll={{ x: 1200 }}
+                    pagination={false}
+                    scroll={{ x: 1200, y: 500 }}
+                    sticky
                 />
             </Card>
 

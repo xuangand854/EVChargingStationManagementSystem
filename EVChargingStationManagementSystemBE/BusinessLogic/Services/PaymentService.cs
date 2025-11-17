@@ -11,6 +11,7 @@ using Infrastructure.Models;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client;
 using System.Web;
 
 namespace BusinessLogic.Services
@@ -127,10 +128,7 @@ namespace BusinessLogic.Services
 
                 if (connector == null)
                     return JsonResponse("01", "Không tìm thấy cổng sạc");
-
-                //Tích điểm cho tài xế
-                if (chargingSession.UserId != null && chargingSession.UserId != Guid.Empty)
-                    UpdatePoint(chargingSession.UserId ?? Guid.Empty, chargingSession.EnergyDeliveredKWh);
+                    //UpdatePoint(chargingSession.UserId ?? Guid.Empty, chargingSession.EnergyDeliveredKWh);
 
                 if (bankCode != null)
                     payment.BankCode = bankCode;
@@ -142,6 +140,30 @@ namespace BusinessLogic.Services
                 if (responseCode == "00" && transactionStatus == "00")
                 {
                     payment.Status = PaymentStatus.Successed.ToString();
+
+                    //Tích điểm cho tài xế
+                    if (chargingSession.UserId != null || chargingSession.UserId != Guid.Empty)
+                    {
+                        var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                            .AsNoTracking()
+                            .Where(c => !c.IsDeleted && c.Name == "POINT_PER_KWH")
+                            .FirstOrDefaultAsync();
+
+                        decimal pointValue = 0;
+                        if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
+                            pointValue = config.MinValue ?? 0;
+
+                        var user = await _unitOfWork.UserAccountRepository.GetQueryable()
+                            .Where(u => !u.IsDeleted && u.Id == chargingSession.UserId)
+                            .Include(u => u.EVDriverProfile)
+                            .FirstOrDefaultAsync();
+
+                        if (user != null && user.EVDriverProfile != null)
+                        {
+                            user.EVDriverProfile.Point = (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
+                            user.EVDriverProfile.UpdatedAt = DateTime.Now;
+                        }
+                    }
 
                     var transaction = new Transaction
                     {
@@ -203,10 +225,6 @@ namespace BusinessLogic.Services
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
-
-                //Tích điểm cho tài xế
-                if (chargingSession.UserId != null && chargingSession.UserId != Guid.Empty)
-                    UpdatePoint(chargingSession.UserId ?? Guid.Empty, chargingSession.EnergyDeliveredKWh);
 
                 var txnRef = PaymentHelper.GenerateTxnRef(sessionId);
 
@@ -291,6 +309,30 @@ namespace BusinessLogic.Services
 
                 if (chargingSession.Status.Equals(ChargingSessionStatus.Paid.ToString()))
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Phiên sạc này đã được thanh toán rồi");
+
+                //Tích điểm cho tài xế
+                if (chargingSession.UserId != null || chargingSession.UserId != Guid.Empty)
+                {
+                    var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
+                        .AsNoTracking()
+                        .Where(c => !c.IsDeleted && c.Name == "POINT_PER_KWH")
+                        .FirstOrDefaultAsync();
+
+                    decimal pointValue = 0;
+                    if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
+                        pointValue = config.MinValue ?? 0;
+
+                    var user = await _unitOfWork.UserAccountRepository.GetQueryable()
+                        .Where(u => !u.IsDeleted && u.Id == chargingSession.UserId)
+                        .Include(u => u.EVDriverProfile)
+                        .FirstOrDefaultAsync();
+
+                    if (user != null && user.EVDriverProfile != null)
+                    {
+                        user.EVDriverProfile.Point = (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
+                        user.EVDriverProfile.UpdatedAt = DateTime.Now;
+                    }
+                }
 
                 payment.Status = PaymentStatus.Successed.ToString();
                 payment.UpdatedAt = DateTime.Now;
@@ -377,29 +419,6 @@ namespace BusinessLogic.Services
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
 
-        }
-
-        public async void UpdatePoint(Guid accountId, double EnergyDeliveredKWh)
-        {
-            var config = await _unitOfWork.SystemConfigurationRepository.GetQueryable()
-                .AsNoTracking()
-                .Where(c => !c.IsDeleted && c.Name == "POINT_PER_KWH")
-                .FirstOrDefaultAsync();
-
-            decimal pointValue = 0;
-            if (config != null && _unitOfWork.SystemConfigurationRepository.Validate(config))
-                pointValue = config.MinValue ?? 0;
-
-            var user = await _unitOfWork.UserAccountRepository.GetQueryable()
-                .Where(u => !u.IsDeleted && u.Id == accountId)
-                .Include(u => u.EVDriverProfile)
-                .FirstOrDefaultAsync();
-
-            if (user != null && user.EVDriverProfile != null)
-            {
-                user.EVDriverProfile.Point = (int)((decimal)EnergyDeliveredKWh * pointValue);
-                user.EVDriverProfile.UpdatedAt = DateTime.Now;
-            }
         }
 
         private static string JsonResponse(string rspCode, string message)

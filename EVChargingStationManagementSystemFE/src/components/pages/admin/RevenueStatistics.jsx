@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Statistic, DatePicker, Select, Table, Spin, Empty } from "antd";
+import { Card, Row, Col, Statistic, DatePicker, Select, Table, Spin, Empty, Input } from "antd";
 import {
     DollarSign,
     TrendingUp,
-    Zap,
     Users,
     Calendar,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    Search
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { GetTransaction } from "../../../API/Transaction";
 import dayjs from "dayjs";
+import "./RevenueStatistics.css";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -20,6 +22,7 @@ const RevenueStatistics = () => {
     const [loading, setLoading] = useState(false);
     const [dateRange, setDateRange] = useState([dayjs().subtract(30, 'days'), dayjs()]);
     const [filterPeriod, setFilterPeriod] = useState('30days');
+    const [searchText, setSearchText] = useState('');
     const [statistics, setStatistics] = useState({
         totalRevenue: 0,
         totalEnergy: 0,
@@ -42,14 +45,13 @@ const RevenueStatistics = () => {
         setLoading(true);
         try {
             const response = await GetTransaction();
-            console.log("Transactions:", response);
-
             const data = Array.isArray(response.data) ? response.data :
                 Array.isArray(response) ? response : [];
 
             setTransactions(data);
         } catch (error) {
-            console.error("Lỗi khi lấy transactions:", error);
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Lỗi khi lấy giao dịch: ${errorMsg}`);
             setTransactions([]);
         } finally {
             setLoading(false);
@@ -194,14 +196,30 @@ const RevenueStatistics = () => {
     ];
 
     const filteredTransactions = transactions.filter(t => {
-        if (!t.referenceCode) return true;
-        try {
-            const dateStr = t.referenceCode.split('-')[1];
-            const transDate = dayjs(dateStr, 'YYYYMMDD');
-            return transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
-        } catch {
-            return true;
+        // Filter by date range
+        let matchDate = true;
+        if (t.referenceCode) {
+            try {
+                const dateStr = t.referenceCode.split('-')[1];
+                const transDate = dayjs(dateStr, 'YYYYMMDD');
+                matchDate = transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
+            } catch {
+                matchDate = true;
+            }
         }
+
+        // Filter by search text
+        let matchSearch = true;
+        if (searchText) {
+            const search = searchText.toLowerCase();
+            matchSearch = (
+                t.referenceCode?.toLowerCase().includes(search) ||
+                t.id?.toLowerCase().includes(search) ||
+                t.transactionType?.toLowerCase().includes(search)
+            );
+        }
+
+        return matchDate && matchSearch;
     });
 
     if (loading) {
@@ -213,54 +231,16 @@ const RevenueStatistics = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">📊 Thống Kê Doanh Thu</h1>
-                    <p className="text-gray-600">Tổng quan về doanh thu và hoạt động sạc xe</p>
-                </div>
+        <div className="admin-revenue-statistics">
+            {/* Header */}
+            <div className="header">
+                <h1>Thống Kê Doanh Thu</h1>
+                <p>Tổng quan về doanh thu và hoạt động sạc xe</p>
+            </div>
 
-                {/* Filters */}
-                <Card className="mb-6">
-                    <Row gutter={16} align="middle">
-                        <Col xs={24} sm={12} md={8}>
-                            <div className="mb-2">
-                                <label className="text-sm text-gray-600">Khoảng thời gian:</label>
-                                <Select
-                                    value={filterPeriod}
-                                    onChange={handlePeriodChange}
-                                    className="w-full mt-1"
-                                >
-                                    <Option value="today">Hôm nay</Option>
-                                    <Option value="7days">7 ngày qua</Option>
-                                    <Option value="30days">30 ngày qua</Option>
-                                    <Option value="90days">90 ngày qua</Option>
-                                    <Option value="year">1 năm qua</Option>
-                                </Select>
-                            </div>
-                        </Col>
-                        <Col xs={24} sm={12} md={10}>
-                            <div className="mb-2">
-                                <label className="text-sm text-gray-600">Hoặc chọn ngày cụ thể:</label>
-                                <RangePicker
-                                    value={dateRange}
-                                    onChange={(dates) => {
-                                        if (dates) {
-                                            setDateRange(dates);
-                                            setFilterPeriod('custom');
-                                        }
-                                    }}
-                                    format="DD/MM/YYYY"
-                                    className="w-full mt-1"
-                                />
-                            </div>
-                        </Col>
-                    </Row>
-                </Card>
-
-                {/* Statistics Cards */}
-                <Row gutter={[16, 16]} className="mb-6">
+            {/* Statistics Cards */}
+            <div className="stats-container">
+                <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} lg={8}>
                         <Card className="h-full">
                             <Statistic
@@ -304,8 +284,52 @@ const RevenueStatistics = () => {
                         </Card>
                     </Col>
                 </Row>
+            </div>
 
-                {/* Transactions Table */}
+            {/* Filters */}
+            <div className="actions-card">
+                <Row gutter={16} align="middle">
+                    <Col xs={24} md={8}>
+                        <Input
+                            placeholder="Tìm kiếm theo mã giao dịch..."
+                            prefix={<Search size={16} />}
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            allowClear
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Select
+                            value={filterPeriod}
+                            onChange={handlePeriodChange}
+                            className="w-full"
+                            placeholder="Khoảng thời gian"
+                        >
+                            <Option value="today">Hôm nay</Option>
+                            <Option value="7days">7 ngày qua</Option>
+                            <Option value="30days">30 ngày qua</Option>
+                            <Option value="90days">90 ngày qua</Option>
+                            <Option value="year">1 năm qua</Option>
+                        </Select>
+                    </Col>
+                    <Col xs={24} sm={12} md={10}>
+                        <RangePicker
+                            value={dateRange}
+                            onChange={(dates) => {
+                                if (dates) {
+                                    setDateRange(dates);
+                                    setFilterPeriod('custom');
+                                }
+                            }}
+                            format="DD/MM/YYYY"
+                            className="w-full"
+                        />
+                    </Col>
+                </Row>
+            </div>
+
+            {/* Transactions Table */}
+            <div className="table-card">
                 <Card
                     title={
                         <div className="flex items-center gap-2">
@@ -319,12 +343,9 @@ const RevenueStatistics = () => {
                             columns={columns}
                             dataSource={filteredTransactions}
                             rowKey="id"
-                            pagination={{
-                                pageSize: 10,
-                                showSizeChanger: true,
-                                showTotal: (total) => `Tổng ${total} giao dịch`
-                            }}
-                            scroll={{ x: 800 }}
+                            pagination={false}
+                            scroll={{ x: 800, y: 400 }}
+                            sticky
                         />
                     ) : (
                         <Empty description="Không có giao dịch nào trong khoảng thời gian này" />

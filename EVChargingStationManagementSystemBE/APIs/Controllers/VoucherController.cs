@@ -143,8 +143,52 @@
 
             return StatusCode(500, new { message = result.Message });
         }
-        
-            // XOÁ VOUCHER (soft delete)
+        // ADMIN LẤY TẤT CẢ VOUCHER (kể cả Inactive)
+        // GET: api/voucher/admin (Admin, Staff)
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> GetAllVouchersForAdmin()
+        {
+            var result = await _voucherService.GetAllVouchersForAdmin();
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+
+        // EVDRIVER LẤY VOUCHER CỦA MÌNH
+        // GET: api/voucher/my (EVDriver)
+        [HttpGet("my")]
+        [Authorize(Roles = "EVDriver")]
+        public async Task<IActionResult> GetMyVouchers()
+        {
+            Guid userId;
+            try
+            {
+                userId = User.GetUserId(); // lấy từ token
+            }
+            catch
+            {
+                return Unauthorized(new { message = "Không xác định được userId từ token." });
+            }
+
+            var result = await _voucherService.GetMyVouchers(userId);
+
+            if (result.Status == Const.SUCCESS_READ_CODE)
+                return Ok(new { data = result.Data, message = result.Message });
+
+            if (result.Status == Const.WARNING_NO_DATA_CODE)
+                return NotFound(new { message = result.Message });
+
+            return StatusCode(500, new { message = result.Message });
+        }
+
+        // XOÁ VOUCHER (soft delete)
         // DELETE: api/voucher/{id} (Admin, Staff)
         [HttpDelete("{id}")]
                 [Authorize(Roles = "Admin,Staff")]

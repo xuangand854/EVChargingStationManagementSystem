@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Button, Table, Modal, Input, Form, Tag,
-    Space, message, Tooltip, Select
+    Button, Table, Modal, Input, Form,
+    Space, Tooltip, Select, Empty
 } from "antd";
 import {
     EditOutlined, DeleteOutlined, PlusOutlined,
     SearchOutlined, UserOutlined, MailOutlined,
     PhoneOutlined, HomeOutlined, LockOutlined
 } from "@ant-design/icons";
+import { toast } from "react-toastify";
 import {
     getAllStaff, createStaffAccount, updateStaffInfo,
     updateStaffStatus, deleteStaff
@@ -17,6 +18,8 @@ import "./Staff.css";
 const AdminStaff = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [staffList, setStaffList] = useState([]);
     const [filteredStaff, setFilteredStaff] = useState([]);
     const [searchText, setSearchText] = useState("");
@@ -31,8 +34,29 @@ const AdminStaff = () => {
             const list = Array.isArray(res.data) ? res.data : [];
             setStaffList(list);
             setFilteredStaff(list);
+            setNoData(false);
+            setHasError(false);
         } catch (err) {
-            message.error(err.response?.data?.message || "Lỗi tải danh sách nhân viên");
+            console.log('Full error:', err);
+
+            const status = err?.response?.status;
+            const errorMsg = err?.customMessage || err?.response?.data?.message || err?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có nhân viên nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(errorMsg); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
+            setStaffList([]);
+            setFilteredStaff([]);
         } finally {
             setLoading(false);
         }
@@ -66,7 +90,7 @@ const AdminStaff = () => {
                     workingLocation: values.workingLocation || "",
                 };
                 const res = await updateStaffInfo(payload);
-                message.success(res.message || "Cập nhật nhân viên thành công");
+                toast.success(res.message || "Cập nhật nhân viên thành công");
             } else {
                 // 🟢 Thêm mới nhân viên
                 const payload = {
@@ -80,12 +104,13 @@ const AdminStaff = () => {
                     workingLocation: values.workingLocation || "",
                 };
                 const res = await createStaffAccount(payload);
-                message.success(res.message || "Tạo tài khoản nhân viên thành công");
+                toast.success(res.message || "Tạo tài khoản nhân viên thành công");
             }
             closeModal();
             fetchStaff();
         } catch (err) {
-            message.error(err.response?.data?.message || "Thao tác thất bại");
+            const errorMsg = err.response?.data?.message || err.message || "Thao tác thất bại";
+            toast.error(errorMsg);
         }
     };
 
@@ -99,10 +124,11 @@ const AdminStaff = () => {
     const handleChangeStatus = async (staffId, status) => {
         try {
             const res = await updateStaffStatus(staffId, status);
-            message.success(res.message || "Cập nhật trạng thái thành công");
+            toast.success(res.message || "Cập nhật trạng thái thành công");
             fetchStaff();
         } catch (err) {
-            message.error(err.response?.data?.message || "Cập nhật thất bại");
+            const errorMsg = err.response?.data?.message || err.message || "Cập nhật thất bại";
+            toast.error(errorMsg);
         }
     };
 
@@ -110,10 +136,11 @@ const AdminStaff = () => {
         if (!window.confirm("Xóa nhân viên này?")) return;
         try {
             await deleteStaff(staffId);
-            message.success("Xóa thành công");
+            toast.success("Xóa nhân viên thành công");
             fetchStaff();
         } catch (err) {
-            message.error(err.response?.data?.message || "Xóa thất bại");
+            const errorMsg = err.response?.data?.message || err.message || "Xóa thất bại";
+            toast.error(errorMsg);
         }
     };
 
@@ -128,13 +155,6 @@ const AdminStaff = () => {
             workingLocation: record.workingLocation,
         });
         setIsModalOpen(true);
-    };
-
-    /* ==================== UI HELPERS ==================== */
-    const getStatusColor = (s) => {
-        return s === "Active" ? "green"
-            : s === "Inactive" ? "red"
-                : "default";
     };
 
     const columns = [
@@ -157,10 +177,17 @@ const AdminStaff = () => {
         {
             title: "Trạng thái",
             dataIndex: "status",
-            render: s => (
-                <Tag color={getStatusColor(s)}>
-                    {s === "Active" ? "Hoạt động" : s === "Inactive" ? "Không hoạt động" : s}
-                </Tag>
+            render: (s, r) => (
+                <Select
+                    size="small"
+                    value={s}
+                    style={{ width: 150 }}
+                    onChange={v => handleChangeStatus(r.id, v)}
+                    options={[
+                        { value: "Active", label: "Hoạt động" },
+                        { value: "Inactive", label: "Không hoạt động" },
+                    ]}
+                />
             ),
         },
         {
@@ -176,24 +203,12 @@ const AdminStaff = () => {
                     <Tooltip title="Sửa">
                         <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(r)} />
                     </Tooltip>
-                    <Tooltip title="Đổi trạng thái">
-                        <Select
-                            size="small"
-                            value={r.status}
-                            style={{ width: 110 }}
-                            onChange={v => handleChangeStatus(r.id, v)} // 🟢 id = profileId
-                            options={[
-                                { value: "Active", label: "Hoạt động" },
-                                { value: "Inactive", label: "Không hoạt động" },
-                            ]}
-                        />
-                    </Tooltip>
                     <Tooltip title="Xóa">
                         <Button
                             danger
                             size="small"
                             icon={<DeleteOutlined />}
-                            onClick={() => handleDelete(r.id)} // 🟢 id = profileId
+                            onClick={() => handleDelete(r.id)}
                         />
                     </Tooltip>
                 </Space>
@@ -234,13 +249,21 @@ const AdminStaff = () => {
             </div>
 
             <div className="table-card">
-                <Table
-                    columns={columns}
-                    dataSource={filteredStaff}
-                    rowKey="id"
-                    loading={loading}
-                    pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true }}
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || filteredStaff.length === 0 ? (
+                    <Empty description="Không có nhân viên nào" />
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={filteredStaff}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 600 }}
+                        sticky
+                    />
+                )}
             </div>
 
             {/* Modal thêm/sửa */}

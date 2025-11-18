@@ -1,6 +1,4 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
-import { User } from "lucide-react";
 import AdminSidebar from "./AdminSidebar";
 import "./AdminLayout.css";
 
@@ -12,7 +10,7 @@ const AdminLayout = () => {
                 <AdminSidebar />
             </div>
 
-            CONTENT LỆCH SANG PHẢI
+            {/* CONTENT LỆCH SANG PHẢI */}
             <div className="admin-content">
                 {/* Nội dung chính */}
                 <main className="flex-1 p-2 bg-gray-50">

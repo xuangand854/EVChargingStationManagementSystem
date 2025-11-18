@@ -64,7 +64,7 @@ export const register = async (email, password, name, phone) => { // đăng kí 
     );
     return response.data;
   } catch (error) {
-    console.error('Error during registration:', error);
+    console.error;
     throw error;
   }
 }

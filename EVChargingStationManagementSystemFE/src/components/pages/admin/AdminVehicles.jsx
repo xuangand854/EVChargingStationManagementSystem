@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Button, Table, Modal, Input, Form, Select, Space, message, Tooltip, Tag } from "antd";
+import { useEffect, useState } from "react";
+import { Button, Table, Modal, Input, Form, Select, Space, Tooltip, Empty } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
 import {
     GetVehicleModel,
     GetVehicleModelById,
@@ -18,6 +19,8 @@ const AdminVehicles = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingModel, setEditingModel] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [deletingId, setDeletingId] = useState(null);
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -48,7 +51,8 @@ const AdminVehicles = () => {
                             status: statusRes?.status ?? statusRes?.data?.status ?? 2 // mặc định Inactive
                         };
                     } catch (statusError) {
-                        console.warn(`Could not fetch status for ${m.vehicleModelId ?? m.id}:`, statusError);
+                        const errorMsg = statusError?.response?.data?.message || statusError?.message || "Không thể lấy trạng thái";
+                        toast.warning(`Không thể lấy trạng thái cho xe ${m.vehicleModelId ?? m.id}: ${errorMsg}`);
                         return { ...m, status: 2 }; // mặc định Inactive
                     }
                 })
@@ -56,9 +60,27 @@ const AdminVehicles = () => {
 
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            console.error("Error fetching vehicle models:", error);
-            message.error("Không thể tải danh sách mẫu xe");
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có mẫu xe nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(`Không thể tải danh sách mẫu xe: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
             setModels([]);
             setFilteredModels([]);
         } finally {
@@ -90,7 +112,7 @@ const AdminVehicles = () => {
                 const vehicle = await GetVehicleModelById(id);
 
                 if (!vehicle) {
-                    message.error("Không tìm thấy xe để cập nhật!");
+                    toast.error("Không tìm thấy xe để cập nhật!");
                     return;
                 }
 
@@ -109,7 +131,7 @@ const AdminVehicles = () => {
                     imageUrl: values.imageUrl ?? null,
                     status: statusValue
                 });
-                message.success("Cập nhật mẫu xe thành công!");
+                toast.success("Cập nhật mẫu xe thành công!");
             } else {
                 // Chuyển đổi vehicleType cho tạo mới
                 const vehicleTypeValue = values.vehicleType === "Car" ? 1 : values.vehicleType === "Bike" ? 0 : Number(values.vehicleType);
@@ -124,7 +146,7 @@ const AdminVehicles = () => {
                     values.imageUrl ?? null,
                     statusValue
                 );
-                message.success("Thêm mẫu xe thành công!");
+                toast.success("Thêm mẫu xe thành công!");
             }
 
             setIsModalOpen(false);
@@ -132,8 +154,18 @@ const AdminVehicles = () => {
             setEditingModel(null);
             fetchModels();
         } catch (error) {
-            console.error("Lỗi khi lưu mẫu xe:", error);
-            message.error("Có lỗi xảy ra khi lưu mẫu xe!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            const statusCode = error?.response?.status;
+
+            if (statusCode === 404) {
+                toast.error("Không tìm thấy mẫu xe để cập nhật!");
+            } else if (statusCode === 400) {
+                toast.error(`Dữ liệu không hợp lệ: ${errorMsg}`);
+            } else if (statusCode === 500) {
+                toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+            } else {
+                toast.error(`Lỗi khi lưu mẫu xe: ${errorMsg}`);
+            }
         }
     };
 
@@ -141,34 +173,31 @@ const AdminVehicles = () => {
         if (window.confirm(`Bạn có chắc chắn muốn xóa mẫu xe "${modelName}"? Hành động này không thể hoàn tác.`)) {
             setDeletingId(id);
             try {
-                // console.log(`Attempting to delete vehicle with ID: ${id}`);
-                const response = await DeleteVehicleModel(id);
-                // console.log("Delete response:", response);
-
-                message.success("Xóa mẫu xe thành công!");
+                await DeleteVehicleModel(id);
+                toast.success("Xóa mẫu xe thành công!");
                 fetchModels();
             } catch (error) {
-                console.error("Lỗi khi xóa mẫu xe:", error);
                 if (error.response) {
                     const status = error.response.status;
                     const msg = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
                     switch (status) {
                         case 404:
-                            message.error("Không tìm thấy mẫu xe để xóa!");
+                            toast.error("Không tìm thấy mẫu xe để xóa!");
                             break;
                         case 400:
-                            message.error("Dữ liệu không hợp lệ!");
+                            toast.error(`Dữ liệu không hợp lệ: ${msg}`);
                             break;
                         case 500:
-                            message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                            toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                             break;
                         default:
-                            message.error(`Lỗi ${status}: ${msg}`);
+                            toast.error(`Lỗi ${status}: ${msg}`);
                     }
                 } else if (error.request) {
-                    message.error("Không thể kết nối đến máy chủ!");
+                    toast.error("Không thể kết nối đến máy chủ!");
                 } else {
-                    message.error("Có lỗi xảy ra khi xóa mẫu xe!");
+                    const errorMsg = error?.message || "Lỗi không xác định";
+                    toast.error(`Có lỗi xảy ra khi xóa mẫu xe: ${errorMsg}`);
                 }
             } finally {
                 setDeletingId(null);
@@ -180,14 +209,10 @@ const AdminVehicles = () => {
     const handleUpdateStatus = async (id, newStatus) => {
         setUpdatingStatusId(id);
         try {
-            const response = await UpdateVehicleModelStatus(id, newStatus);
-            // console.log("Update status response:", response);
-
-            message.success("Cập nhật trạng thái thành công!");
+            await UpdateVehicleModelStatus(id, newStatus);
+            toast.success("Cập nhật trạng thái thành công!");
             fetchModels();
         } catch (error) {
-            console.error("Lỗi khi cập nhật trạng thái:", error);
-
             // Xử lý các loại lỗi khác nhau
             if (error.response) {
                 const status = error.response.status;
@@ -195,21 +220,22 @@ const AdminVehicles = () => {
 
                 switch (status) {
                     case 404:
-                        message.error("Không tìm thấy mẫu xe để cập nhật!");
+                        toast.error("Không tìm thấy mẫu xe để cập nhật!");
                         break;
                     case 400:
-                        message.error("Dữ liệu không hợp lệ!");
+                        toast.error(`Dữ liệu không hợp lệ: ${errorMessage}`);
                         break;
                     case 500:
-                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                         break;
                     default:
-                        message.error(`Lỗi ${status}: ${errorMessage}`);
+                        toast.error(`Lỗi ${status}: ${errorMessage}`);
                 }
             } else if (error.request) {
-                message.error("Không thể kết nối đến máy chủ!");
+                toast.error("Không thể kết nối đến máy chủ!");
             } else {
-                message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
+                const errorMsg = error?.message || "Lỗi không xác định";
+                toast.error(`Có lỗi xảy ra khi cập nhật trạng thái: ${errorMsg}`);
             }
         } finally {
             setUpdatingStatusId(null);
@@ -351,24 +377,19 @@ const AdminVehicles = () => {
                 }
 
                 return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Tag color={getStatusColor(status)} style={{ margin: 0 }}>
-                            {getStatusLabel(status)}
-                        </Tag>
-                        <Select
-                            value={normalizedStatus}
-                            onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
-                            loading={isUpdating}
-                            disabled={isUpdating}
-                            style={{ minWidth: 150 }}
-                            size="small"
-                            placeholder="Thay đổi"
-                        >
-                            <Select.Option value={0}>Ngừng hoạt động</Select.Option>
-                            <Select.Option value={1}>Hoạt động</Select.Option>
-                            <Select.Option value={2}>Ngừng sản xuất</Select.Option>
-                        </Select>
-                    </div>
+                    <Select
+                        value={normalizedStatus}
+                        onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
+                        loading={isUpdating}
+                        disabled={isUpdating}
+                        style={{ minWidth: 150 }}
+                        size="small"
+                        placeholder="Thay đổi"
+                    >
+                        <Select.Option value={0}>Ngừng hoạt động</Select.Option>
+                        <Select.Option value={1}>Hoạt động</Select.Option>
+                        <Select.Option value={2}>Ngừng sản xuất</Select.Option>
+                    </Select>
                 );
             }
         },
@@ -476,13 +497,21 @@ const AdminVehicles = () => {
 
             {/* Table Card */}
             <div className="table-card">
-                <Table
-                    dataSource={filteredModels}
-                    columns={columns}
-                    rowKey={(r) => r.vehicleModelId ?? r.id}
-                    loading={loading}
-                    pagination={{ pageSize: 10 }}
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || filteredModels.length === 0 ? (
+                    <Empty description="Không có mẫu xe nào" />
+                ) : (
+                    <Table
+                        dataSource={filteredModels}
+                        columns={columns}
+                        rowKey={(r) => r.vehicleModelId ?? r.id}
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 600 }}
+                        sticky
+                    />
+                )}
             </div>
 
             <Modal

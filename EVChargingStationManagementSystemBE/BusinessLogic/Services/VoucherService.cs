@@ -32,11 +32,12 @@ namespace BusinessLogic.Services
                 if (vouchers.Count == 0)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy voucher nào còn hiệu lực");
 
-                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, vouchers);
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách voucher thành công", vouchers);
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -53,11 +54,11 @@ namespace BusinessLogic.Services
                 await _unitOfWork.VoucherRepository.CreateAsync(voucher);
                 await _unitOfWork.SaveChangesAsync();
 
-                return new ServiceResult(Const.SUCCESS_CREATE_CODE, Const.SUCCESS_CREATE_MSG, voucher.Adapt<VoucherDto>());
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo voucher thành công", voucher.Adapt<VoucherDto>());
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -79,11 +80,11 @@ namespace BusinessLogic.Services
 
                 await _unitOfWork.SaveChangesAsync();
 
-                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, voucher.Adapt<VoucherDto>());
+                return new ServiceResult(Const.SUCCESS_UPDATE_CODE, "Cập nhật voucher thành công", voucher.Adapt<VoucherDto>());
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -138,7 +139,7 @@ namespace BusinessLogic.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -159,7 +160,7 @@ namespace BusinessLogic.Services
                 if (userVoucher.Status != "Redeemed")
                     return new ServiceResult(Const.FAIL_UPDATE_CODE, "Voucher chưa được redeem hoặc đã hết hạn");
 
-                // 2️⃣ Lấy thông tin phiên sạc
+                // 2️ Lấy thông tin phiên sạc
                 var session = await _unitOfWork.ChargingSessionRepository.GetQueryable()
                     .FirstOrDefaultAsync(s => s.Id == sessionId);
 
@@ -206,7 +207,7 @@ namespace BusinessLogic.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -233,7 +234,7 @@ namespace BusinessLogic.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
 
@@ -256,9 +257,58 @@ namespace BusinessLogic.Services
             }
             catch (Exception ex)
             {
-                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
+        // Admin xem tất cả voucher (kể cả Inactive)
+        public async Task<IServiceResult> GetAllVouchersForAdmin()
+        {
+            try
+            {
+                var vouchers = await _unitOfWork.VoucherRepository.GetQueryable()
+                    .AsNoTracking()
+                    .OrderByDescending(v => v.ValidFrom)
+                    .ProjectToType<VoucherDto>()
+                    .ToListAsync();
+
+                if (vouchers.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy voucher nào.");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách voucher thành công.", vouchers);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
+            }
+        }
+        // EVDriver xem voucher của mình
+        public async Task<IServiceResult> GetMyVouchers(Guid evDriverId)
+        {
+            try
+            {
+                var now = DateTime.Now;
+
+                var userVouchers = await _unitOfWork.UserVoucherRepository.GetQueryable()
+                    .Include(uv => uv.Voucher)
+                    .Where(uv => uv.EVDriverId == evDriverId
+                                 && uv.Voucher.IsActive
+                                 && uv.Voucher.ValidFrom <= now
+                                 && uv.Voucher.ValidTo >= now)
+                    .OrderByDescending(uv => uv.AssignedDate)
+                    .ProjectToType<UserVoucherDto>()
+                    .ToListAsync();
+
+                if (userVouchers.Count == 0)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy voucher nào.");
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, "Lấy danh sách voucher thành công.", userVouchers);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, "Đã xảy ra lỗi: " + ex.Message);
+            }
+        }
+
 
 
         // 8) EXPIRE ALL EXPIRED VOUCHERS (Background Job)

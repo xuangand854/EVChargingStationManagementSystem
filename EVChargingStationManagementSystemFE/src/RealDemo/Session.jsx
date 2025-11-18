@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button, message, Card, Space, Progress, Row, Col, Divider, Modal, Input } from "antd";
+import { toast } from "react-toastify";
 import { StartSession, Stop } from "../API/ChargingSession";
 import { getChargingPostId } from "../API/ChargingPost";
 import { PatchConnectorToggle, GetConnectorId } from "../API/Connector";
 import { GetVAT, GetPrice } from "../API/SystemConfiguration";
-import { MyBooking, BookCheckin } from "../API/Booking";
+import { BookCheckin } from "../API/Booking";
 
 import {
     PlugZap,
@@ -17,8 +18,7 @@ import {
     Clock,
     Zap,
     Gauge,
-    Banknote,
-    ArrowLeft
+    Banknote
 } from "lucide-react";
 
 const Session = () => {
@@ -29,6 +29,8 @@ const Session = () => {
     const [isPaid, setIsPaid] = useState(false);
     const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [bookingId, setBookingId] = useState(null);
+    const [vehicleModelId, setVehicleModelId] = useState(null);
     const [showCheckinModal, setShowCheckinModal] = useState(false);
     const [otpValues, setOtpValues] = useState(["", "", "", ""]);
     const [otpError, setOtpError] = useState(false);
@@ -75,22 +77,14 @@ const Session = () => {
     useEffect(() => {
         const checkConnectorStatus = async () => {
             try {
-                // Lấy thông tin connector để check status
                 const connectorResponse = await GetConnectorId(connectorID);
-                console.log("🔌 Thông tin connector:", connectorResponse);
-
                 const status = connectorResponse?.data?.status || connectorResponse?.status;
-                console.log("📊 Status của connector:", status);
 
-                // Nếu connector status là Reserved, hiển thị modal yêu cầu nhập mã check-in
                 if (status === "Reserved") {
-                    console.log("🎫 Connector đang Reserved - Yêu cầu nhập mã check-in 4 số");
                     setShowCheckinModal(true);
-                } else {
-                    console.log("ℹ️ Connector không ở trạng thái Reserved, status:", status);
                 }
             } catch (error) {
-                console.error("❌ Lỗi khi kiểm tra connector:", error);
+                toast.error("Không thể kiểm tra trạng thái connector");
             }
         };
 
@@ -194,18 +188,11 @@ const Session = () => {
     }, [isCharging, pricingData]);
 
     const handleCheckin = async () => {
-        console.log("🎫 ===== BẮT ĐẦU CHECK-IN =====");
-
-        // Ghép 4 ô thành mã
         const checkinCode = otpValues.join("");
-        console.log("📝 Mã check-in đã nhập:", checkinCode);
-        console.log("📝 Độ dài mã:", checkinCode.length);
 
-        // Validate mã 4 số
         if (checkinCode.length !== 4) {
-            console.log("❌ Validation fail: Chưa nhập đủ 4 số");
             setOtpError(true);
-            message.error("Vui lòng nhập đủ 4 số!");
+            toast.error("Vui lòng nhập đủ 4 số!");
             setTimeout(() => setOtpError(false), 1000);
             return;
         }
@@ -214,37 +201,59 @@ const Session = () => {
         setLoading(true);
 
         try {
-            console.log("🔄 Đang gọi API BookCheckin với mã:", checkinCode);
-
-            // Gọi API check-in trực tiếp với mã 4 số
             const response = await BookCheckin(checkinCode);
-            console.log("✅ Check-in response:", response);
 
-            message.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
+            // Debug: Log toàn bộ response để xem cấu trúc
+            console.log("🔍 Full BookCheckin response:", response);
+            console.log("🔍 response.data:", response?.data);
+
+            // Tự động import bookingId và phone từ response
+            const checkinData = response?.data || response;
+            console.log("🔍 checkinData:", checkinData);
+            console.log("🔍 checkinData.bookingId:", checkinData?.bookingId);
+            // console.log("🔍 checkinData.phone:", checkinData?.phone);
+            // console.log("🔍 checkinData.phoneNumber:", checkinData?.phoneNumber);
+
+            // Lấy thông tin từ response theo Swagger:
+            // - id → bookingId
+            // - phone → driverPhone
+            // - vehicleModelId → vehicleModelId
+            const bookingIdValue = checkinData?.id || checkinData?.bookingId;
+            const driverPhone = checkinData?.phone || checkinData?.driverPhone;
+            const vehicleModelIdValue = checkinData?.vehicleModelId;
+
+            console.log("🔍 bookingIdValue (id):", bookingIdValue);
+            console.log("🔍 phoneValue (phone):", driverPhone);
+            console.log("🔍 vehicleModelIdValue:", vehicleModelIdValue);
+
+            if (bookingIdValue) {
+                setBookingId(bookingIdValue);
+                toast.success(`✅ Check-in thành công! Booking ID: ${bookingIdValue}`);
+            } else {
+                toast.success("✅ Check-in thành công! Bạn có thể bắt đầu sạc.");
+            }
+
+            if (driverPhone) {
+                setPhoneNumber(driverPhone);
+                toast.info(`📱 Số điện thoại: ${driverPhone}`);
+            }
+
+            if (vehicleModelIdValue) {
+                setVehicleModelId(vehicleModelIdValue);
+                toast.info(`🚗 Thông tin xe đã được tự động điền`);
+            }
+
             setShowCheckinModal(false);
             setOtpValues(["", "", "", ""]);
 
-            console.log("🔄 Đang refresh connector status...");
-            // Refresh connector status
             const connectorResponse = await GetConnectorId(connectorID);
             const newStatus = connectorResponse?.data?.status || connectorResponse?.status;
-            console.log("📊 Status mới của connector:", newStatus);
             setConnectorStatus(newStatus);
 
-            console.log("🎉 ===== CHECK-IN HOÀN TẤT =====\n");
-
         } catch (error) {
-            console.log("\n❌ ===== LỖI CHECK-IN =====");
-            console.error("❌ Error object:", error);
-            console.error("❌ Error message:", error.message);
-            console.error("❌ Error response:", error.response);
-            console.error("❌ Error data:", error.response?.data);
-            console.error("❌ Error stack:", error.stack);
-
-            // Hiển thị error với hiệu ứng
             setOtpError(true);
-            const errorMsg = error.response?.data?.message || "Mã check-in không đúng!";
-            message.error(errorMsg);
+            const errorMsg = error.response?.data?.message || error.response?.data?.title || "Mã check-in không đúng!";
+            toast.error(errorMsg);
             setTimeout(() => setOtpError(false), 1000);
         } finally {
             setLoading(false);
@@ -274,20 +283,44 @@ const Session = () => {
     };
 
     const handleStartSession = async () => {
-
-        setIsPhoneModalVisible(true);
+        // Nếu đã có số điện thoại từ check-in, bỏ qua modal và bắt đầu luôn
+        if (phoneNumber) {
+            await handleConfirmPhone();
+        } else {
+            setIsPhoneModalVisible(true);
+        }
     };
 
     const handleConfirmPhone = async () => {
         setLoading(true);
         try {
+            const params = {
+                connectorId: connectorID,
+                batteryCapacityKWh: 80,
+                initialBatteryLevelPercent: 20,
+                expectedEnergiesKWh: 100
+            };
+
+            if (phoneNumber?.trim()) {
+                params.phone = phoneNumber.trim();
+                if (bookingId) params.bookingId = bookingId;
+            }
+
+            if (vehicleModelId) {
+                params.vehicleModelId = vehicleModelId;
+            }
+
+            // Gọi API
             const response = await StartSession(
-                80,  // batteryCapacityKWh
-                20,  // initialBatteryLevelPercent
-                100, // expectedEnergiesKWh
-                connectorID,
-                phoneNumber // Gửi số điện thoại kèm theo
+                params.bookingId || null,
+                params.batteryCapacityKWh,
+                params.initialBatteryLevelPercent,
+                params.expectedEnergiesKWh,
+                params.phone || null,
+                params.connectorId,
+                params.vehicleModelId || null
             );
+
 
             const id = response?.data?.id || response?.id;
             if (id) setSessionId(id);
@@ -306,14 +339,18 @@ const Session = () => {
                 cost: 0
             }));
 
-            message.success("Phiên sạc đã bắt đầu!");
+            if (bookingId) {
+                toast.success(`✅ Phiên sạc đã bắt đầu! Booking ID: ${bookingId}`);
+            } else {
+                toast.success("✅ Phiên sạc đã bắt đầu!");
+            }
         } catch (error) {
-            console.error("Lỗi khi bắt đầu phiên sạc:", error);
-            message.error("Không thể bắt đầu phiên sạc!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Không thể bắt đầu phiên sạc: ${errorMsg}`);
         } finally {
             setLoading(false);
             setIsPhoneModalVisible(false);
-            setPhoneNumber("");
+            // Không reset phoneNumber để giữ lại cho lần sau
         }
     };
 
@@ -325,10 +362,13 @@ const Session = () => {
         setLoading(true);
         try {
             const response = await StartSession(
+                null,
                 80,
                 20,
                 100,
-                connectorID
+                null,
+                connectorID,
+                null
             );
 
             const id = response?.data?.id || response?.id;
@@ -441,22 +481,6 @@ const Session = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 md:p-8">
             <div className="max-w-6xl mx-auto">
-                {/* Back Button */}
-                <div className="mb-4">
-                    <Button
-                        icon={<ArrowLeft size={20} />}
-                        onClick={() => navigate(-1)}
-                        size="large"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }}
-                    >
-                        Quay lại
-                    </Button>
-                </div>
-
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div
@@ -490,13 +514,46 @@ const Session = () => {
                     okText="Xác nhận"
                     cancelText="Không"
                 >
-                    <p>Bạn có muốn nhập số điện thoại để tích điểm không?</p>
+                    {phoneNumber ? (
+                        <div style={{ marginBottom: '16px' }}>
+                            <div style={{
+                                padding: '12px',
+                                backgroundColor: '#e6f7f5',
+                                borderRadius: '8px',
+                                border: '1px solid #00b09b',
+                                marginBottom: '12px'
+                            }}>
+                                <p style={{ margin: 0, color: '#00b09b', fontWeight: '600' }}>
+                                    ✅ Số điện thoại đã được tự động điền từ booking
+                                </p>
+                            </div>
+                            <p style={{ marginBottom: '8px' }}>Số điện thoại của bạn:</p>
+                        </div>
+                    ) : (
+                        <p style={{ marginBottom: '8px' }}>Bạn có muốn nhập số điện thoại để tích điểm không?</p>
+                    )}
                     <Input
                         placeholder="Nhập số điện thoại"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         maxLength={10}
+                        style={{
+                            borderColor: phoneNumber ? '#00b09b' : undefined,
+                            borderWidth: phoneNumber ? '2px' : '1px'
+                        }}
                     />
+                    {bookingId && (
+                        <div style={{
+                            marginTop: '12px',
+                            padding: '8px',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            color: '#6b7280'
+                        }}>
+                            📋 Booking ID: <strong>{bookingId}</strong>
+                        </div>
+                    )}
                 </Modal>
 
                 {/* Modal Check-in */}
@@ -780,7 +837,7 @@ const Session = () => {
                                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                             <span className="text-gray-600">Tiền điện: </span>
                                             <span className="font-semibold text-gray-800">
-                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toLocaleString()} VNĐ
+                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
                                             </span>
                                         </div>
                                     )}
@@ -799,89 +856,165 @@ const Session = () => {
 
                     {/* Cột phải - Điều khiển */}
                     <Col xs={24} lg={8}>
-                        <Card className="shadow-lg border border-gray-200 sticky top-4">
-                            <div className="text-center mb-6">
-                                <Power
-                                    className="mx-auto mb-2"
-                                    size={32}
-                                    style={{ color: '#00b09b' }}
-                                />
-                                <h3 className="text-xl font-bold text-gray-800">Điều Khiển</h3>
-                            </div>
-                            <Space direction="vertical" className="w-full" size="middle">
+                        <Card
+                            className="shadow-xl border-2 sticky top-4"
+                            style={{
+                                borderColor: '#00b09b',
+                                background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)'
+                            }}
+                        >
+                            <Space direction="vertical" className="w-full" size="large">
                                 {/* Nút cắm sạc */}
                                 <Button
                                     type="primary"
+                                    size="large"
                                     onClick={handlePlugToCar}
                                     disabled={connectorStatus !== "Available" || loading}
-                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-                                    icon={<PlugZap size={22} />}
+                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
+                                    icon={<PlugZap size={24} />}
                                     style={{
-                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
-                                        border: 'none'
+                                        height: '64px',
+                                        fontSize: '16px',
+                                        background: connectorStatus === "Available" && !loading
+                                            ? 'linear-gradient(135deg, #00b09b 0%, #96c93d 100%)'
+                                            : undefined,
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
                                     }}
                                 >
-                                    🔌 Cắm sạc vào xe
+                                    <span style={{ fontSize: '20px' }}>🔌</span>
+                                    <span>Cắm sạc vào xe</span>
                                 </Button>
 
                                 {/* Nút bắt đầu phiên sạc */}
                                 <Button
                                     type="primary"
+                                    size="large"
                                     onClick={handleStartSession}
                                     disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading}
-                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-                                    icon={<Power size={22} />}
+                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
+                                    icon={<Power size={24} />}
                                     style={{
-                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
-                                        border: 'none'
+                                        height: '64px',
+                                        fontSize: '16px',
+                                        background: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading
+                                            ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
+                                            : undefined,
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
                                     }}
                                 >
-                                    {pricingData.loading ? '⏳ Đang tải...' : '⚡ Bắt đầu sạc'}
+                                    <span style={{ fontSize: '20px' }}>⚡</span>
+                                    <span>{pricingData.loading ? 'Đang tải...' : 'Bắt đầu sạc'}</span>
                                 </Button>
 
                                 {/* Nút dừng phiên sạc */}
                                 <Button
                                     danger
+                                    size="large"
                                     onClick={handleStopSession}
                                     disabled={connectorStatus !== "Charging" || loading}
-                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-                                    icon={<StopCircle size={22} />}
-                                    style={{ backgroundColor: '#ef4444', borderColor: '#ef4444' }}
+                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
+                                    icon={<StopCircle size={24} />}
+                                    style={{
+                                        height: '64px',
+                                        fontSize: '16px',
+                                        background: connectorStatus === "Charging" && !loading
+                                            ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                                            : undefined,
+                                        borderColor: '#ef4444',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
+                                    }}
                                 >
-                                    🛑 Dừng sạc
+                                    <span style={{ fontSize: '20px' }}>🛑</span>
+                                    <span>Dừng sạc</span>
                                 </Button>
 
-                                <Divider className="my-2" />
+                                <Divider style={{ margin: '12px 0', borderColor: '#d1d5db' }} />
 
                                 {/* Nút thanh toán */}
                                 <Button
                                     type="primary"
+                                    size="large"
                                     onClick={handlePayment}
                                     disabled={connectorStatus === "Charging" || loading || !sessionId}
-                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-                                    icon={<CreditCard size={22} />}
+                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
+                                    icon={<CreditCard size={24} />}
                                     style={{
-                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
-                                        border: 'none'
+                                        height: '64px',
+                                        fontSize: '16px',
+                                        background: connectorStatus !== "Charging" && !loading && sessionId
+                                            ? 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)'
+                                            : undefined,
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
                                     }}
                                 >
-                                    💳 Thanh toán
+                                    <span style={{ fontSize: '20px' }}>💳</span>
+                                    <span>Thanh toán</span>
                                 </Button>
 
-                                {/* Nút rút sạc - chỉ cho phép khi InUse và đã thanh toán */}
+                                {/* Nút rút sạc */}
                                 <Button
+                                    size="large"
                                     onClick={handleUnplugFromCar}
                                     disabled={connectorStatus !== "InUse" || (!isPaid && sessionId)}
-                                    className="w-full h-14 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-                                    icon={<Plug size={22} />}
+                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
+                                    icon={<Plug size={24} />}
                                     style={{
-                                        borderColor: '#00b09b',
-                                        color: (connectorStatus !== "InUse" || (!isPaid && sessionId)) ? undefined : '#00b09b'
+                                        height: '64px',
+                                        fontSize: '16px',
+                                        background: connectorStatus === "InUse" && (isPaid || !sessionId)
+                                            ? 'white'
+                                            : undefined,
+                                        borderWidth: '2px',
+                                        borderColor: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : undefined,
+                                        color: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : undefined,
+                                        borderRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
                                     }}
                                 >
-                                    🔋 Rút sạc khỏi xe
+                                    <span style={{ fontSize: '20px' }}>🔋</span>
+                                    <span>Rút sạc khỏi xe</span>
                                 </Button>
                             </Space>
+
+                            {/* Hướng dẫn nhanh */}
+                            <div
+                                className="mt-6 p-4 rounded-lg"
+                                style={{
+                                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                    border: '1px solid #bfdbfe'
+                                }}
+                            >
+                                <p className="text-xs text-gray-600 font-medium mb-2">📌 Hướng dẫn:</p>
+                                <ol className="text-xs text-gray-600 space-y-1 ml-4">
+                                    <li>1. Cắm sạc vào xe</li>
+                                    <li>2. Bắt đầu phiên sạc</li>
+                                    <li>3. Dừng sạc khi đủ pin</li>
+                                    <li>4. Thanh toán</li>
+                                    <li>5. Rút sạc khỏi xe</li>
+                                </ol>
+                            </div>
                         </Card>
                     </Col>
                 </Row>

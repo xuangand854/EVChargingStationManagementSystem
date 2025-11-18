@@ -7,7 +7,6 @@ namespace Common.DTOs.BookingDto
     {
         [Required(ErrorMessage = " Mã check in phải được nhập ")]
         public string CheckInCode { get; set; }
-   
 
     }
 }

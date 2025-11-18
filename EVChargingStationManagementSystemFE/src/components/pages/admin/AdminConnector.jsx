@@ -1,8 +1,9 @@
 // src/pages/admin/Station/AdminConnector.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    Table, Button, Modal, Form, Input, Select, message, Popconfirm
+    Table, Button, Modal, Form, Input, Select, Popconfirm
 } from "antd";
+import { toast } from "react-toastify";
 import { GetConnector, PostConnector } from "../../../API/Connector";
 import { useParams } from "react-router-dom";
 
@@ -17,10 +18,11 @@ const AdminConnector = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await getConnectors(postId);
+            const data = await GetConnector(postId);
             setConnectors(data);
         } catch (err) {
-            message.error("Không thể tải danh sách súng sạc!");
+            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+            toast.error(`Không thể tải danh sách súng sạc: ${errorMsg}`);
         } finally {
             setLoading(false);
         }
@@ -34,26 +36,28 @@ const AdminConnector = () => {
         try {
             const values = await form.validateFields();
             if (editingConnector) {
-                await updateConnector(editingConnector.id, { ...values, postId });
-                message.success("Cập nhật súng sạc thành công!");
+                // TODO: Cần thêm API UpdateConnector
+                toast.warning("Chức năng cập nhật chưa được triển khai!");
+                return;
             } else {
-                await addConnector({ ...values, postId });
-                message.success("Thêm súng sạc mới thành công!");
+                await PostConnector({ ...values, postId });
+                toast.success("Thêm súng sạc mới thành công!");
             }
             setIsModalOpen(false);
             fetchData();
         } catch (err) {
-            message.error("Lưu thất bại!");
+            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+            toast.error(`Lưu thất bại: ${errorMsg}`);
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            await deleteConnector(id);
-            message.success("Xóa súng sạc thành công!");
-            fetchData();
-        } catch {
-            message.error("Không thể xóa!");
+            // TODO: Cần thêm API DeleteConnector
+            toast.warning("Chức năng xóa chưa được triển khai!");
+        } catch (err) {
+            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+            toast.error(`Không thể xóa: ${errorMsg}`);
         }
     };
 

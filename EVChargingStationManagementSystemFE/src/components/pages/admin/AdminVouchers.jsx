@@ -12,7 +12,8 @@ import {
     Switch,
     message,
     Tag,
-    Tooltip
+    Tooltip,
+    Empty
 } from "antd";
 import {
     PlusOutlined,
@@ -30,6 +31,8 @@ const { RangePicker } = DatePicker;
 const AdminVouchers = () => {
     const [vouchers, setVouchers] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingVoucher, setEditingVoucher] = useState(null);
     const [form] = Form.useForm();
@@ -44,9 +47,32 @@ const AdminVouchers = () => {
             const response = await GetVoucher();
             const data = response?.data || [];
             setVouchers(data);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            console.error("Lỗi khi tải voucher:", error);
-            message.error("Không thể tải danh sách voucher!");
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMessage =
+                error?.customMessage ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Đã xảy ra lỗi';
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMessage.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có voucher nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                message.error(errorMessage); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
+            setVouchers([]);
         } finally {
             setLoading(false);
         }
@@ -238,18 +264,21 @@ const AdminVouchers = () => {
                     </Space>
                 }
             >
-                <Table
-                    columns={columns}
-                    dataSource={vouchers}
-                    rowKey="id"
-                    loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showTotal: (total) => `Tổng ${total} voucher`
-                    }}
-                    scroll={{ x: 1200 }}
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || vouchers.length === 0 ? (
+                    <Empty description="Không có voucher nào" />
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={vouchers}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1200, y: 500 }}
+                        sticky
+                    />
+                )}
             </Card>
 
             <Modal

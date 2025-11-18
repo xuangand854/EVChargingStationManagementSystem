@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Table,
     Modal,
@@ -6,17 +6,19 @@ import {
     Input,
     Button,
     Space,
-    message,
     Card,
     Tooltip,
+    Empty,
 } from "antd";
 import {
     PlusOutlined,
     DeleteOutlined,
     ReloadOutlined,
     InfoCircleOutlined,
+    SearchOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
     getChargingStation,
     addChargingStation,
@@ -25,8 +27,12 @@ import {
 
 const AdminStation = () => {
     const [stations, setStations] = useState([]);
+    const [filteredStations, setFilteredStations] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchText, setSearchText] = useState("");
     const [form] = Form.useForm();
     const navigate = useNavigate();
 
@@ -35,10 +41,32 @@ const AdminStation = () => {
         setLoading(true);
         try {
             const response = await getChargingStation();
-            setStations(response.data || response);
+            const data = response.data || response;
+            setStations(data);
+            setFilteredStations(data);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            console.error("Error loading stations:", error);
-            message.error("Không thể tải danh sách trạm sạc!");
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
+
+            if (isNoDataError) {
+                console.log('Không có trạm sạc nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(`Không thể tải danh sách trạm sạc: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
+            setStations([]);
+            setFilteredStations([]);
         } finally {
             setLoading(false);
         }
@@ -47,6 +75,20 @@ const AdminStation = () => {
     useEffect(() => {
         fetchStations();
     }, []);
+
+    // Filter stations based on search text
+    useEffect(() => {
+        if (searchText) {
+            const filtered = stations.filter(station =>
+                station.stationName?.toLowerCase().includes(searchText.toLowerCase()) ||
+                station.location?.toLowerCase().includes(searchText.toLowerCase()) ||
+                station.province?.toLowerCase().includes(searchText.toLowerCase())
+            );
+            setFilteredStations(filtered);
+        } else {
+            setFilteredStations(stations);
+        }
+    }, [searchText, stations]);
 
     // ➕ Mở modal thêm mới
     const openAddModal = () => {
@@ -65,13 +107,13 @@ const AdminStation = () => {
                 values.latitude,
                 values.longitude
             );
-            message.success("Thêm trạm mới thành công!");
+            toast.success("Thêm trạm mới thành công!");
             setIsModalOpen(false);
             form.resetFields();
             fetchStations();
         } catch (error) {
-            console.error("Error adding station:", error);
-            message.error("Có lỗi xảy ra khi thêm trạm!");
+            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
+            toast.error(`Có lỗi xảy ra khi thêm trạm: ${errorMsg}`);
         }
     };
 
@@ -79,17 +121,17 @@ const AdminStation = () => {
         if (window.confirm("Xác nhận xóa trạm này?")) {
             try {
                 await deleteChargingStation(id);
-                message.success("Xóa trạm thành công!");
+                toast.success("Xóa trạm thành công!");
                 fetchStations();
             } catch (err) {
-                console.error("Lỗi xóa:", err);
+                const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
+                toast.error(`Lỗi xóa trạm: ${errorMsg}`);
             }
         }
     };
 
     const handleViewDetail = (stationId) => {
-        console.log("Station ID:", stationId); // kiểm tra log
-        navigate(`/admin/station/${stationId}`); // 🔹 dùng đúng route bạn đã khai báo
+        navigate(`/admin/station/${stationId}`);
     };
 
 
@@ -148,6 +190,14 @@ const AdminStation = () => {
             title="Quản lý trạm sạc"
             extra={
                 <Space>
+                    <Input
+                        placeholder="Tìm kiếm trạm sạc..."
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        allowClear
+                        style={{ width: 250 }}
+                    />
                     <Button
                         icon={<ReloadOutlined />}
                         onClick={fetchStations}
@@ -165,13 +215,21 @@ const AdminStation = () => {
                 </Space>
             }
         >
-            <Table
-                columns={columns}
-                dataSource={stations}
-                rowKey="stationId"
-                loading={loading}
-                pagination={{ pageSize: 10 }}
-            />
+            {hasError ? (
+                <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+            ) : noData || filteredStations.length === 0 ? (
+                <Empty description="Không có trạm sạc nào" />
+            ) : (
+                <Table
+                    columns={columns}
+                    dataSource={filteredStations}
+                    rowKey="stationId"
+                    loading={loading}
+                    pagination={false}
+                    scroll={{ x: 1000, y: 760 }}
+                    sticky
+                />
+            )}
 
             {/* Modal thêm trạm */}
             <Modal

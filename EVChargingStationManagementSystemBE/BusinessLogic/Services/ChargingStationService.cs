@@ -257,7 +257,7 @@ namespace BusinessLogic.Services
                             if (connector.Status.Equals(ConnectorStatus.InUse.ToString()) || connector.Status.Equals(ConnectorStatus.Charging.ToString()))
                                 return new ServiceResult(Const.FAIL_UPDATE_CODE, "Đang có trụ được sử dụng, không thể đổi trạng thái trạm được");
                             connector.Status = ConnectorUpdateStatus.OutOfService.ToString();
-                            connector.UpdatedAt = DateTime.UtcNow;
+                            connector.UpdatedAt = DateTime.Now;
                         }
                         if (chargingPost.Status.Equals(ChargingPostStatus.Available.ToString()))
                         {
@@ -283,7 +283,7 @@ namespace BusinessLogic.Services
                             foreach (var connector in connectors)
                             {
                                 connector.Status = ConnectorUpdateStatus.Available.ToString();
-                                connector.UpdatedAt = DateTime.UtcNow;
+                                connector.UpdatedAt = DateTime.Now;
 
                                 chargingPost.AvailableConnectors += 1;
                                 if (chargingPost.VehicleTypeSupported.Equals(VehicleTypeEnum.Car.ToString()))
@@ -302,7 +302,7 @@ namespace BusinessLogic.Services
                 }
 
                 chargingStation.Status = status.ToString();
-                chargingStation.UpdatedAt = DateTime.UtcNow;
+                chargingStation.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
@@ -352,7 +352,7 @@ namespace BusinessLogic.Services
                 chargingStation.OperatorNavigation.Status = UserStatus.Active.ToString();
                 chargingStation.OperatorId = null;
                 chargingStation.IsDeleted = true;
-                chargingStation.UpdatedAt = DateTime.UtcNow;
+                chargingStation.UpdatedAt = DateTime.Now;
 
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)

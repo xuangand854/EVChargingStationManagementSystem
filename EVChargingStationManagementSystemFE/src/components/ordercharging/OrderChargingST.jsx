@@ -83,6 +83,11 @@ const OrderChargingST = () => {
       });
     }
   }, [userLocation]);
+  //locj tieng viet cho laoi xe sp
+  const vehicleTypeMap = {
+    Car: "Xe hơi",
+    Bike: "Xe máy",
+  };
 
 
   useEffect(() => {
@@ -655,7 +660,7 @@ const OrderChargingST = () => {
                           <div><ul>
                             <liv>
                             {Array.from(
-                              new Set(stationPosts[station.id]?.map(p => p.vehicleTypeSupported))
+                              new Set(stationPosts[station.id]?.map((p) => vehicleTypeMap[p.vehicleTypeSupported] || p.vehicleTypeSupported))
                             ).join(", ")}
                             </liv>
                             </ul>

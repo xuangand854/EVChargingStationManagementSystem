@@ -1,147 +1,224 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* Reset cơ bản */
-* {
+.signup-body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  overflow-x: hidden;
   font-family: "Montserrat", sans-serif;
 }
 
-/* Background body cho Signup */
-.signup-body {
+.signup-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.signup-page-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1200px;
+  width: 100%;
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.signup-branding {
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: #7519e0ff;
-  /* màu nền Signup */
-}
-
-/* Container form với animation */
-.Signup-container {
-  max-width: 410px;
-  margin: 80px auto 0;
-  /* thêm khoảng cách trên cùng */
-  border-radius: 0.5rem;
-  padding: 2rem 1.5rem;
-  background: white;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-
-  opacity: 0;
-  transform: translateY(-50px);
-  animation: fadeInUp 0.6s forwards;
-}
-
-/* Keyframes animation */
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Tiêu đề form */
-.Signup-container .form-title {
-  text-align: center;
-  font-size: 1.37rem;
-  font-weight: 600;
-  margin-bottom: 1.87rem;
-  color: #000000;
-  /* màu đen */
-}
-
-/* Form */
-.Signup-form .input-wrapper {
-  height: 54px;
-  width: 100%;
   position: relative;
-  margin-bottom: 1.5rem;
+  padding: 60px 40px;
+  overflow: hidden;
 }
 
-.Signup-form .input-wrapper .input-field {
-  height: 100%;
-  width: 100%;
-  outline: none;
-  font-size: 1.06rem;
-  border-radius: 0.31rem;
-  border: 1px solid #bfb3f2;
-  padding: 0 1.25rem 0 3.12rem;
-  transition: 0.2s ease;
+.signup-branding::before {
+  content:'';
+  position:absolute;
+  width:300px;
+  height:300px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  top:-100px;
+  right:-100px;
 }
 
-.Signup-form .input-wrapper .input-field:focus {
-  border-color: #983af5ff;
-  /* màu xanh riêng Signup */
+.signup-branding::after {
+  content:'';
+  position:absolute;
+  width:200px;
+  height:200px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  bottom:-50px;
+  left:-50px;
 }
 
-.Signup-form .input-wrapper .input-field::placeholder {
-  color: #a395e0;
+.branding-content {
+  text-align: center;
+  color:white;
+  z-index:1;
 }
 
-.Signup-form .input-wrapper i {
-  color: #a395e0;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: 0.2s ease;
+.brand-icon {
+  width: 120px;
+  height:120px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:0 auto 30px;
 }
 
-.Signup-form .input-wrapper i:not(.eye-icon) {
-  left: 0.9rem;
-  pointer-events: none;
+.brand-title {
+  font-size:36px;
+  font-weight:700;
+  margin-bottom:16px;
 }
 
-.Signup-form .input-wrapper .input-field:focus~i:not(.eye-icon) {
-  color: #a92df1ff;
+.brand-subtitle {
+  font-size:18px;
+  opacity:0.95;
+  margin-bottom:40px;
+  line-height:1.6;
 }
 
-.Signup-form .input-wrapper i.eye-icon {
-  font-size: 1.25rem;
-  cursor: pointer;
-  right: 0.9rem;
-  display: none;
+.signup-form-section {
+  padding: 60px 50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.Signup-form .input-wrapper .input-field:valid~i.eye-icon {
-  display: block;
+.signup-card {
+  width:100%;
+  max-width:450px;
+  border:none;
+  box-shadow:none;
+}
+
+.signup-header {
+  text-align:center;
+  margin-bottom:32px;
+}
+
+.signup-title {
+  font-size:32px;
+  font-weight:700;
+  margin-bottom:8px;
+  color:#1a1a1a;
+}
+
+.signup-subtitle {
+  font-size:16px;
+  color:#6b7280;
+}
+
+/* Separator */
+.separator {
+  margin:24px 0;
+  text-align:center;
+  position:relative;
+}
+.separator span {
+  position:relative;
+  z-index:1;
+  background:white;
+  padding:0 16px;
+  font-size:14px;
+  color:#9ca3af;
+  font-weight:500;
+}
+.separator::after {
+  content:'';
+  position:absolute;
+  left:0;
+  top:50%;
+  width:100%;
+  height:1px;
+  background:#e5e7eb;
+}
+
+/* Error & Success */
+.error-message, .input-hint {
+  color: #dc2626;
+  font-size:13px;
+  margin-top:4px;
+}
+
+.success-message {
+  color: green;
+  font-size:14px;
+  margin-bottom:12px;
 }
 
 /* Button */
-.Signup-form .login-button {
-  width: 100%;
-  height: 54px;
-  cursor: pointer;
-  outline: none;
-  border: none;
-  color: #fff;
-  font-weight: 500;
-  font-size: 1.125rem;
-  background: #9a35f3ff;
-  margin-top: 2.19rem;
-  border-radius: 0.31rem;
-  transition: 0.2s ease, transform 0.2s;
+.signup-button {
+  width:100%;
+  height:56px;
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  color:white;
+  font-weight:600;
+  font-size:16px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  transition: all 0.3s ease;
 }
 
-.Signup-form .login-button:hover {
-  background: #ab33e7ff;
+.signup-button:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow:0 6px 20px rgba(0,176,155,0.4);
 }
 
-/* Text dưới form */
-.Signup-container .signup-text {
-  text-align: center;
-  font-weight: 500;
-  margin: 1.75rem 0 0.31rem;
+.signup-button:disabled {
+  opacity:0.7;
+  cursor:not-allowed;
 }
 
-.Signup-container a {
-  color: #d230f3ff;
-  font-weight: 500;
-  text-decoration: none;
+/* Signup Text */
+.signup-section {
+  margin-top:32px;
+  text-align:center;
 }
 
-.Signup-container a:hover {
-  text-decoration: underline;
+.signup-text {
+  font-size:14px;
+  color:#6b7280;
+}
+
+.signup-text a {
+  color:#00b09b;
+  font-weight:600;
+  text-decoration:none;
+}
+
+.signup-text a:hover {
+  text-decoration:underline;
+}
+
+/* Responsive */
+@media (max-width:968px){
+  .signup-page-container { grid-template-columns:1fr; }
+  .signup-branding { display:none; }
+  .signup-form-section { padding:40px 30px; }
+}
+
+@media (max-width:480px){
+  .signup-form-section { padding:30px 20px; }
+  .signup-title { font-size:24px; }
+  .signup-button { height:48px; font-size:14px; }
 }

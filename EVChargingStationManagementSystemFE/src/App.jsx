@@ -134,7 +134,7 @@ export default function App() {
         {/* Payment method selection */}
         <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
 
-        Shortcut route to session by connectorID
+        
         <Route path="session/:connectorID" element={<Session />} />
 
         {/* // */}

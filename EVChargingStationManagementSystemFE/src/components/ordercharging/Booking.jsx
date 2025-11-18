@@ -134,6 +134,9 @@ console.log("Lấy Role:", role);
       </div>
     );
   }
+  const userVehicles = vehicleModels.filter(v =>
+    profile?.selectedVehicles?.includes(v.id)
+  );
 
   const normalize = (str = "") =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -150,12 +153,12 @@ console.log("Lấy Role:", role);
     : stations;
 
   const filteredVehicles = termVehicle
-    ? vehicleModels.filter(
+    ? userVehicles.filter(
         (v) =>
           normalize(v.modelName).includes(normalize(termVehicle)) ||
           normalize(v.vehicleType).includes(normalize(termVehicle))
       )
-    : vehicleModels;
+    : userVehicles;
 
   const handleSelectStation = (st) => {
     setTermStation(st.stationName);

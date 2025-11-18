@@ -1,15 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { useNotifications } from "./useNotifications";
+import { getAuthStatus } from "../../API/Auth"; // hàm lấy trạng thái login
 import "./NotificationBubble.css";
 
 const NotificationBubble = () => {
   const { notifications } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(getAuthStatus().isAuthenticated);
+
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      setLoggedIn(getAuthStatus().isAuthenticated);
+    };
+
+    window.addEventListener("auth-changed", handleAuthChanged);
+    // cleanup
+    return () => window.removeEventListener("auth-changed", handleAuthChanged);
+  }, []);
+
+  if (!loggedIn) return null;
 
   return (
     <div className="notification-wrapper">
-      {/* Bong bóng thông báo */}
       <div
         className="notification-bubble"
         onClick={() => setOpen((prev) => !prev)}
@@ -20,7 +33,6 @@ const NotificationBubble = () => {
         )}
       </div>
 
-      {/* Khung danh sách thông báo */}
       {open && (
         <div className="notification-panel">
           <h4>Thông báo</h4>

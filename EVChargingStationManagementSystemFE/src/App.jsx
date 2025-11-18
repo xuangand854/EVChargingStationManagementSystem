@@ -79,8 +79,11 @@ import UserReport from "./components/profile/UserReport.jsx"
 import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.jsx";
 
 
+
 export default function App() {
+  
   return (
+
     <NotificationProvider>
       <BrowserRouter>
         <ToastContainer
@@ -202,7 +205,8 @@ export default function App() {
         <NotificationBubble />
 
       </BrowserRouter>
-    </NotificationProvider>
+      </NotificationProvider>
+
   );
 }
 

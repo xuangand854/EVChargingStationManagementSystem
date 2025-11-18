@@ -41,6 +41,7 @@ const Login = () => {
 
       // lấy role từ kết quả hoặc localStorage
       const userRole = result?.user?.role || localStorage.getItem("user_role");
+      
 
       // điều hướng theo role
       if (userRole === "Admin") {
@@ -52,7 +53,9 @@ const Login = () => {
         navigate("/staff", { replace: true });
       } else {
         navigate("/", { replace: true });
+        
       }
+      window.dispatchEvent(new Event("auth-changed"));
 
     } catch (err) {
       const msg =

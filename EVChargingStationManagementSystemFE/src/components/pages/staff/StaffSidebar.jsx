@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Zap, Users, Car, LogOut, BarChart3, Settings, House, CreditCard } from "lucide-react";
+import { Zap, Users, Car, LogOut, BarChart3, Settings, House, CreditCard,ClipboardList } from "lucide-react";
 // import "./AdminSidebar.css";
 import "./StaffSidebar.css";
 
@@ -10,10 +10,10 @@ const StaffSidebar = () => {
         // { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/staff/stations", icon: <Zap size={20} /> },
         // { name: "Xe điện", path: "/staff/vehicles", icon: <Car size={20} /> },
-        { name: "Xác nhận thanh toán", path: "confirm-payment-offline", incon: <CreditCard size={20} /> },
+        { name: "Xác nhận thanh toán", path: "confirm-payment-offline", icon: <CreditCard size={20} /> },
 
         { name: "Quản Lý Đặt Lịch Sạc", path: "/staff/booking-order", icon: <Users size={20} /> },
-        { name: "Báo Cáo", path: "/staff/staff-report", icon: <Users size={20} /> }
+        { name: "Báo Cáo", path: "/staff/staff-report", icon: <BarChart3 size={20} /> }
 
 
     ];
@@ -25,7 +25,7 @@ const StaffSidebar = () => {
             <div className="logo-section">
                 <div className="logo-container">
                     <div className="logo-icon">
-                        <span>⚡</span>
+                        <span><ClipboardList size={20}  /></span>
                     </div>
                     <div className="logo-text">
                         <h1>Nhân Viên</h1>

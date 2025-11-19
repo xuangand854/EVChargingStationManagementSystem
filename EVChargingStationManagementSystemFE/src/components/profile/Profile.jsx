@@ -146,7 +146,6 @@ const handlePasswordChange = async () => {
 
   try {
     const res = await changePassword(oldPassword, newPassword, confirmPassword);
-    console.log("API response:", res); // log để xem dữ liệu
     toast.success("Đổi mật khẩu thành công!");
     setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
     setMode("view");

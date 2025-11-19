@@ -14,7 +14,7 @@ namespace BusinessLogic.IServices
         Task<IServiceResult> CompleteBookingAsync(Guid bookingId);
         Task<IServiceResult> CancelBooking(Guid bookingId, Guid userId);
         Task AutoCancelExpiredBookings();
-        Task AutoReassignBookingsForErrorStations();
+        //Task AutoReassignBookingsForErrorStations();
         Task<IServiceResult> GetBookingsByStaff(Guid staffId);
         Task AutoCompleteBookingsAsync();
         Task LockAccountsWithTooManyNoShows();

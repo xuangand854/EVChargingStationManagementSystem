@@ -30,7 +30,7 @@ namespace BusinessLogic.Jobs
 
                     await bookingService.LockAccountsWithTooManyNoShows();
                     await bookingService.AutoCancelExpiredBookings();
-                    await bookingService.AutoReassignBookingsForErrorStations();
+                    //await bookingService.AutoReassignBookingsForErrorStations();
                     await bookingService.AutoReserveConnectorBeforeStart();
                     await bookingService.AutoCompleteBookingsAsync();
 

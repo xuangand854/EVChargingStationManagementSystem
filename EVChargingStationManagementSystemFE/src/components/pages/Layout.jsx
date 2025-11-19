@@ -87,7 +87,7 @@ const Layout = () => {
                     )}
 
                     {/* Staff (và Admin nếu muốn) */}
-                    {(role === "Staff" || role === "Admin") && (
+                    {(role === "Staff") && (
                         <li>
                             <Link to="/staff">Trang Nhân Viên</Link>
                         </li>

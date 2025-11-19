@@ -199,15 +199,15 @@ const PaymentOptionPage = () => {
                     <div style={{ marginBottom: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <span>Tiền điện:</span>
-                            <span>{(invoiceDetails.energyDelivered * invoiceDetails.pricePerKWh).toLocaleString()} VNĐ</span>
+                            <span>{(invoiceDetails.energyDelivered * invoiceDetails.pricePerKWh).toFixed(0).toLocaleString()} VNĐ</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <span>VAT ({invoiceDetails.vatRate}%):</span>
-                            <span>{((invoiceDetails.energyDelivered * invoiceDetails.pricePerKWh) * (invoiceDetails.vatRate / 100)).toLocaleString()} VNĐ</span>
+                            <span>{((invoiceDetails.energyDelivered * invoiceDetails.pricePerKWh) * (invoiceDetails.vatRate / 100)).toFixed(0).toLocaleString()} VNĐ</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '600', color: '#00b09b' }}>
                             <span>Tổng cộng:</span>
-                            <span>{amount.toLocaleString()} VNĐ</span>
+                            <span>{amount.toFixed(0).toLocaleString()} VNĐ</span>
                         </div>
                     </div>
                 </Card>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getChargingStationId, updateChargingStationStatus, deleteChargingStation } from "../../../API/Station";
-import { getAllChargingPost, deleteChargingPost, addChargingPost, updateChargingPost,updateChargingPostStatus } from "../../../API/ChargingPost";
+import { getAllChargingPost, deleteChargingPost, addChargingPost, updateChargingPost, updateChargingPostStatus } from "../../../API/ChargingPost";
 import { Card, Table, Button, Space, message, Select, Modal, Input, Form } from "antd";
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 
@@ -102,7 +102,7 @@ const StaffStationDetail = () => {
             message.error("Lỗi khi lưu trụ sạc!");
         }
     };
-        const handleChangePostStatus = async (postId, newStatus) => {
+    const handleChangePostStatus = async (postId, newStatus) => {
         try {
             await updateChargingPostStatus(postId, newStatus);
             message.success("⚙️ Cập nhật trạng thái trụ sạc thành công!");
@@ -179,7 +179,14 @@ const StaffStationDetail = () => {
                     </Card>
 
                     <Card title="Danh sách trụ sạc" className="mt-4" >
-                        <Table rowKey="chargingPostId" loading={loading} dataSource={posts} columns={columns} pagination={{ pageSize: 5 }} />
+                        <Table
+                            rowKey="chargingPostId"
+                            loading={loading}
+                            dataSource={posts}
+                            columns={columns}
+                            pagination={{ pageSize: 5 }}
+                            locale={{ emptyText: "Không có dữ liệu" }}
+                        />
                     </Card>
 
                     <Modal

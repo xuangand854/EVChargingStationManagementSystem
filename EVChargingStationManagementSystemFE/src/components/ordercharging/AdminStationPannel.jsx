@@ -28,6 +28,12 @@ const AdminStationPanel = ({ onClose, onUpdated, onReloadAdminPannel }) => {
     status: "",
     operatorId: "",
   });
+  const statusVietnamese = {
+    Scheduled: "Đã lên lịch",
+    Charging: "Đang sạc",
+    Completed: "Hoàn thành",
+    Cancelled: "Đã hủy",
+  };
 
   // Load stations
   const loadStations = async () => {

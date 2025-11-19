@@ -1,25 +1,39 @@
-import React, { useState } from "react";
-import InputField from "../account/InputField";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Card } from "antd";
+import { Zap, Mail, ArrowLeft } from "lucide-react";
 import { forgotPassword } from "../../API/Auth";
+import InputField from "../account/InputField";
 import "./Forgotpassword.css";
+
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    document.body.className = "forgot-body";
+    return () => {
+      document.body.className = "";
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
       setMessage("Vui lòng nhập email.");
+      setIsSuccess(false);
       return;
     }
-    // Validate format email đơn giản
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setMessage("Email không đúng định dạng.");
+      setIsSuccess(false);
       return;
     }
+
     try {
       setLoading(true);
       setMessage("");
@@ -40,38 +54,96 @@ const ForgotPassword = () => {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
   return (
-    <div className="forgot-wrapper">
-      <div className="Forgot-container">
-        <h2 className="form-title">Forgot Password</h2>
+    <div className="forgot-page-wrapper">
+      <div className="forgot-page-container">
+        {/* Left Side - Branding */}
+        <div className="forgot-branding">
+          <div className="branding-content">
+            <div className="brand-icon">
+              <Zap size={64} color="white" />
+            </div>
+            <h1 className="brand-title">EV Charging Station</h1>
+            <p className="brand-subtitle">Hệ thống quản lý trạm sạc xe điện thông minh</p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <div className="feature-icon">🔒</div>
+                <span>Bảo mật cao</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">📧</div>
+                <span>Khôi phục nhanh chóng</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">✨</div>
+                <span>Hỗ trợ 24/7</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <form className="Forgot-form" onSubmit={handleSubmit}>
-          <InputField
-            type="email"
-            placeholder="Enter your email"
-            icon="mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        {/* Right Side - Forgot Password Form */}
+        <div className="forgot-form-section">
+          <Card className="forgot-card">
+            <div className="forgot-header">
+              <h2 className="forgot-title">Quên Mật Khẩu</h2>
+              <p className="forgot-subtitle">Nhập email để nhận liên kết đặt lại mật khẩu</p>
+            </div>
 
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? "Sending..." : "Send Reset Link"}
-          </button>
-        </form>
+            <form className="forgot-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">
+                  <Mail size={16} />
+                  <span>Email</span>
+                </label>
+                <InputField
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="Nhập địa chỉ email của bạn"
+                />
+              </div>
 
-        {message && (
-          <p className={`response-message ${isSuccess ? 'ok' : 'err'}`}>{message}</p>
-        )}
+              {message && (
+                <div className={`message ${isSuccess ? 'success-message' : 'error-message'}`}>
+                  <span>{isSuccess ? '✓' : '⚠️'}</span>
+                  <span>{message}</span>
+                </div>
+              )}
 
-        <p className="signup-text">
-          Remember your password? <Link to="/login">Log in</Link>
-        </p>
+              <button
+                className="forgot-button"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Đang gửi...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail size={20} />
+                    <span>Gửi liên kết đặt lại</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="back-section">
+              <Link to="/login" className="back-link">
+                <ArrowLeft size={16} />
+                <span>Quay lại đăng nhập</span>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
 };
-
-
 
 export default ForgotPassword;

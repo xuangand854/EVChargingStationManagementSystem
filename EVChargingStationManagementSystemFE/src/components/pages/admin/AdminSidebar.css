@@ -7,10 +7,36 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #00b09b 0%, #96c93d 100%);
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(180deg, #00b09b 0%, #008c7a 50%, #96c93d 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 4px 0 32px rgba(70, 120, 40, 0.2);
     z-index: 1000;
+    overflow: hidden;
+}
+
+/* Decorative background elements */
+.admin-sidebar::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -50px;
+    right: -50px;
+    pointer-events: none;
+}
+
+.admin-sidebar::after {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    bottom: 100px;
+    left: -30px;
+    pointer-events: none;
 }
 
 .content {
@@ -20,9 +46,12 @@
 }
 
 .admin-sidebar .logo-section {
-    padding: 1.75rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
 }
 
 .admin-sidebar .logo-container {
@@ -34,22 +63,23 @@
 .admin-sidebar .logo-icon {
     width: 3.5rem;
     height: 3.5rem;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
     border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.75rem;
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(70, 120, 40, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .admin-sidebar .logo-icon:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px) scale(1.05);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+    box-shadow: 0 12px 28px rgba(70, 120, 40, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .admin-sidebar .logo-text h1 {
@@ -58,7 +88,7 @@
     color: #ffffff;
     margin: 0;
     letter-spacing: -0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 2px 4px rgba(70, 120, 40, 0.15);
 }
 
 .admin-sidebar .logo-text p {
@@ -107,29 +137,55 @@
     display: flex;
     align-items: center;
     gap: 0.875rem;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.875rem 1.125rem;
+    border-radius: 14px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 500;
     font-size: 0.9375rem;
     position: relative;
     letter-spacing: -0.2px;
+    border: 1px solid transparent;
+}
+
+.admin-sidebar .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 60%;
+    background: white;
+    border-radius: 0 4px 4px 0;
+    transition: width 0.25s ease;
 }
 
 .admin-sidebar .nav-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.18);
     color: #ffffff;
-    transform: translateX(4px);
+    transform: translateX(6px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(70, 120, 40, 0.15);
+}
+
+.admin-sidebar .nav-item:hover::before {
+    width: 4px;
 }
 
 .admin-sidebar .nav-item.active {
-    background: rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateX(4px);
+    box-shadow: 0 6px 16px rgba(70, 120, 40, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateX(6px);
     backdrop-filter: blur(10px);
+    border-color: rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+}
+
+.admin-sidebar .nav-item.active::before {
+    width: 4px;
 }
 
 .admin-sidebar .nav-item .icon {
@@ -149,9 +205,12 @@
 }
 
 .admin-sidebar .user-section {
-    padding: 1.25rem 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
 }
 
 .admin-sidebar .user-info {
@@ -183,7 +242,7 @@
     color: white;
     font-size: 0.9375rem;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(70, 120, 40, 0.15);
     flex-shrink: 0;
     backdrop-filter: blur(10px);
 }
@@ -212,24 +271,31 @@
     justify-content: center;
     gap: 0.625rem;
     width: 100%;
-    padding: 0.75rem 1rem;
-    color: rgba(255, 255, 255, 0.85);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    transition: all 0.2s ease;
+    padding: 0.875rem 1rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    transition: all 0.25s ease;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.9375rem;
     letter-spacing: -0.2px;
     backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(70, 120, 40, 0.15);
 }
 
 .admin-sidebar .logout-btn:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(70, 120, 40, 0.2);
+}
+
+.admin-sidebar .logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(70, 120, 40, 0.15);
 }
 
 /* Responsive Design */

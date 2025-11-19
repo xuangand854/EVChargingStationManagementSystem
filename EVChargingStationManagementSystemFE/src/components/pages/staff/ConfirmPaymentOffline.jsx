@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, message, List, Select } from "antd";
 import { PatchPaymentOfflineStatus, getPaymentThatHaveSend } from "../../../API/Payment";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const { Option } = Select;
 
 const ConfirmPaymentOffline = () => {
@@ -30,6 +31,11 @@ const ConfirmPaymentOffline = () => {
         } finally {
             setLoading(false);
         }
+    };
+    const statusVietnamese = {
+        Successed: "Thành Công",
+        Failed: "Thất Bại",
+        Initiated: "Đang Chờ Xác Nhận",
     };
 
     useEffect(() => {
@@ -66,9 +72,11 @@ const ConfirmPaymentOffline = () => {
             setLoading(true);
             await PatchPaymentOfflineStatus(paymentId);
             message.success(`Cập nhật trạng thái thanh toán thành công!`);
+            toast.success("Xác Nhận Thanh Toán Thành Công");
             fetchPayments(); // Làm mới danh sách
         } catch (error) {
             message.error("❌ Lỗi khi cập nhật trạng thái thanh toán.");
+            toast.error("Xác Nhận Thất Bại");
             console.error(error);
         } finally {
             setLoading(false);
@@ -92,9 +100,9 @@ const ConfirmPaymentOffline = () => {
                         onChange={handleStatusChange}
                     >
                         <Option value="All">Tất cả trạng thái</Option>
-                        <Option value="Successed">Successed</Option>
-                        <Option value="Failed">Failed</Option>
-                        <Option value="Initiated">Initiated</Option>
+                        <Option value="Successed">Thành Công</Option>
+                        <Option value="Failed">Thất Bại</Option>
+                        <Option value="Initiated">Đang Chờ Xác Nhận</Option>
                     </Select>
                 </div>
 
@@ -120,19 +128,18 @@ const ConfirmPaymentOffline = () => {
                             }
                         >
                             <div>
-                                <p><b>Payment ID:</b> {item.id}</p>
-                                <p><b>Session ID:</b> {item.chargingSessionId}</p>
                                 <p><b>Số Tiền:</b> {item.amount}</p>
-                                <p><b>Before VAT:</b> {item.beforeVatAmount}</p>
+                                <p><b>Số Tiền Chưa Thuế:</b> {item.beforeVatAmount}</p>
                                 <p><b>Số Thuế:</b> {item.taxRate}%</p>
-                                <p><b>Payment Method:</b> {item.paymentMethod}</p>
-                                <p><b>Created At:</b> {new Date(item.createdAt).toLocaleString()}</p>
-                                <p><b>Status:</b> {item.status}</p>
+                                <p><b>Phương Thức Thanh Toán:</b> {item.paymentMethod}</p>
+                                <p><b>Tạo Ngày:</b> {new Date(item.createdAt).toLocaleString()}</p>
+                                <p><b>Trạng Thái:</b> {statusVietnamese[item.status] || item.status}</p>
                             </div>
                         </List.Item>
                     )}
                 />
             </Card>
+            <ToastContainer position="top-right" autoClose={2000} />
         </div>
     );
 };

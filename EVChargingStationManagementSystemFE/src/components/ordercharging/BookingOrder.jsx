@@ -12,6 +12,12 @@ const BookingOrder = () => {
   useEffect(() => {
     fetchBookings();
   }, []);
+  const statusVietnamese = {
+    Scheduled: "Đã lên lịch",
+    Charging: "Đang sạc",
+    Completed: "Hoàn thành",
+    Cancelled: "Đã hủy",
+  };
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -124,7 +130,7 @@ const BookingOrder = () => {
                       <span
                         className={`booking-status status-${b.status?.toLowerCase()}`}
                       >
-                        {b.status}
+                       {statusVietnamese[b.status] || b.status}
                       </span>
                     </td>
                     <td>{b.driverInfo?.name || b.driverName || "Không rõ"}</td>

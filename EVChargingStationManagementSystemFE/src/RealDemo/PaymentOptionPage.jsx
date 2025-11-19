@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle, CreditCard, Store, Banknote, Tag, Receipt } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { ArrowRight, CheckCircle, CreditCard, Store, Tag, Receipt } from "lucide-react";
 import "../components/Payment/PaymentPage.css";
 import { Modal, Select, Divider, Card, Row, Col } from "antd";
 import { message, Button } from "antd";
 import { PostPayment, PostPaymentOffline } from "../API/Payment";
-import { GetVoucher } from "../API/Voucher";
+import { GetVoucher, GetAdminVouchers } from "../API/Voucher";
 
 const { Option } = Select;
 
 const PaymentOptionPage = () => {
     const { sessionId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [selected, setSelected] = useState(null);
     const [loading, setLoading] = useState(false);
     const [paymentId, setPaymentId] = useState(null);
@@ -28,37 +29,58 @@ const PaymentOptionPage = () => {
         energyDelivered: 0,
         pricePerKWh: 0,
         vatRate: 0,
-        chargingTime: 0
+        chargingTime: '00:00:00'
     });
 
 
-    // Load dữ liệu từ sessionStorage và vouchers
+    // Load dữ liệu từ location.state (được truyền từ Session.jsx)
     useEffect(() => {
         try {
-            const storedAmount = parseFloat(sessionStorage.getItem('payment.amount') || 0);
-            const storedEnergy = parseFloat(sessionStorage.getItem('payment.energy') || 0);
-            const storedPrice = parseFloat(sessionStorage.getItem('payment.pricePerKWh') || 0);
-            const storedVat = parseFloat(sessionStorage.getItem('payment.vatRate') || 0);
-            const storedTime = sessionStorage.getItem('payment.chargingTime') || '0';
+            // Lấy data từ location.state
+            const paymentData = location.state;
 
-            setAmount(storedAmount);
-            setInvoiceDetails({
-                energyDelivered: storedEnergy,
-                pricePerKWh: storedPrice,
-                vatRate: storedVat,
-                chargingTime: storedTime
-            });
-        } catch {
+            if (paymentData) {
+                const totalAmount = paymentData.totalCost || 0;
+                const energy = paymentData.energyDelivered || 0;
+                const price = paymentData.pricePerKWh || 0;
+                const vat = paymentData.vatRate || 10;
+                const time = paymentData.chargingTime || '00:00:00';
+
+                setAmount(totalAmount);
+                setInvoiceDetails({
+                    energyDelivered: energy,
+                    pricePerKWh: price,
+                    vatRate: vat,
+                    chargingTime: time
+                });
+            } else {
+                // Fallback: thử lấy từ sessionStorage nếu không có location.state
+                const storedAmount = parseFloat(sessionStorage.getItem('payment.amount') || 0);
+                const storedEnergy = parseFloat(sessionStorage.getItem('payment.energy') || 0);
+                const storedPrice = parseFloat(sessionStorage.getItem('payment.pricePerKWh') || 0);
+                const storedVat = parseFloat(sessionStorage.getItem('payment.vatRate') || 10);
+                const storedTime = sessionStorage.getItem('payment.chargingTime') || '00:00:00';
+
+                setAmount(storedAmount);
+                setInvoiceDetails({
+                    energyDelivered: storedEnergy,
+                    pricePerKWh: storedPrice,
+                    vatRate: storedVat,
+                    chargingTime: storedTime
+                });
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy thông tin thanh toán:", error);
             message.error("Không thể lấy thông tin thanh toán");
         }
 
         // Load vouchers
         fetchVouchers();
-    }, []);
+    }, [location.state]);
 
     const fetchVouchers = async () => {
         try {
-            const response = await GetVoucher();
+            const response = await GetAdminVouchers();
             const allVouchers = response?.data || [];
             // Chỉ lấy voucher active và còn hiệu lực
             const activeVouchers = allVouchers.filter(v => {

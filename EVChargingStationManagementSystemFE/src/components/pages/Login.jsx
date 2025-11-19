@@ -58,8 +58,17 @@ const Login = () => {
       window.dispatchEvent(new Event("auth-changed"));
 
     } catch (err) {
-      const msg =
-        typeof err === "string" ? err : err?.message || "Đăng nhập thất bại";
+      let msg = "Đăng nhập thất bại"; // mặc định
+
+      if (err?.response?.status === 400) {
+        // nếu axios trả lỗi 400
+        msg = " Email Hoặc Mật Khẩu Không Đúng!";
+      } else if (typeof err === "string") {
+        msg = err;
+      } else if (err?.message) {
+        msg = err.message;
+      }
+
       setError(msg);
     } finally {
       setSubmitting(false);

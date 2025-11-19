@@ -15,37 +15,37 @@ const Layout = () => {
     const [auth, setAuth] = useState(getAuthStatus());
     const [role, setRole] = useState(localStorage.getItem("user_role") || null);
 
-  useEffect(() => {
-    const handleAuthChanged = () => {
-      const newAuth = getAuthStatus();
-      setAuth(newAuth);
+    useEffect(() => {
+        const handleAuthChanged = () => {
+            const newAuth = getAuthStatus();
+            setAuth(newAuth);
 
-      const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          if (decoded?.role) {
-            localStorage.setItem("user_role", decoded.role);
-            setRole(decoded.role);
-          }
-        } catch (err) {
-          console.error("Lỗi giải mã token:", err);
-          localStorage.removeItem("user_role");
-          setRole(null);
-        }
-      } else {
-        localStorage.removeItem("user_role");
-        setRole(null);
-      }
-    };
+            const token = localStorage.getItem("token");
+            if (token) {
+                try {
+                    const decoded = jwtDecode(token);
+                    if (decoded?.role) {
+                        localStorage.setItem("user_role", decoded.role);
+                        setRole(decoded.role);
+                    }
+                } catch (err) {
+                    console.error("Lỗi giải mã token:", err);
+                    localStorage.removeItem("user_role");
+                    setRole(null);
+                }
+            } else {
+                localStorage.removeItem("user_role");
+                setRole(null);
+            }
+        };
 
-    window.addEventListener("auth-changed", handleAuthChanged);
-    handleAuthChanged();
-    return () => window.removeEventListener("auth-changed", handleAuthChanged);
-  }, [location.pathname]);
+        window.addEventListener("auth-changed", handleAuthChanged);
+        handleAuthChanged();
+        return () => window.removeEventListener("auth-changed", handleAuthChanged);
+    }, [location.pathname]);
 
-  const { isAuthenticated, user } = auth;
-  console.log(" Auth Layout:", { isAuthenticated, user, role });
+    const { isAuthenticated, user } = auth;
+    console.log(" Auth Layout:", { isAuthenticated, user, role });
     return (
         <>
             {/* <AuthDebug /> */}
@@ -63,7 +63,7 @@ const Layout = () => {
                     {/* OrderCharging */}
                     {role !== "Admin" && role !== "Staff" && (
                         <li>
-                        <Link to="/order-charging">Đặt Trạm Sạc</Link>
+                            <Link to="/order-charging">Đặt Trạm Sạc</Link>
                         </li>
                     )}
                     {role === "EVDriver" && (
@@ -82,12 +82,12 @@ const Layout = () => {
                     {/* Admin */}
                     {role === "Admin" && (
                         <li>
-                            <Link to="/admin">Trang Quản Lý</Link>
+                            <Link to="/admin">Quản Lý Hệ Thống</Link>
                         </li>
                     )}
 
                     {/* Staff (và Admin nếu muốn) */}
-                    {(role === "Staff"  ||  role === "Admin") && (
+                    {(role === "Staff" || role === "Admin") && (
                         <li>
                             <Link to="/staff">Trang Nhân Viên</Link>
                         </li>

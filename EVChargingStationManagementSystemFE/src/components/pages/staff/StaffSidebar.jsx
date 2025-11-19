@@ -29,7 +29,6 @@ const StaffSidebar = () => {
                     </div>
                     <div className="logo-text">
                         <h1>Nhân Viên</h1>
-                        <p>Quản trị hệ thống</p>
                     </div>
                 </div>
             </div>
@@ -58,11 +57,10 @@ const StaffSidebar = () => {
             <div className="user-section">
                 <div className="user-info">
                     <div className="user-avatar">
-                        Làm thuê
+                        NV
                     </div>
                     <div className="user-details">
                         <div className="user-name">Staff User</div>
-                        <div className="user-role">Quản trị viên</div>
                     </div>
                 </div>
                 <button

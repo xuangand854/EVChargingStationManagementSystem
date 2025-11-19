@@ -121,7 +121,7 @@ const ReportAdmin = () => {
 
   return (
     <div className="booking-container">
-      <h1 className="booking-title">Danh sách Reports</h1>
+      <h1 className="booking-title">Danh sách Báo Cáo</h1>
 
       <div className="filter-container" style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
         <div>

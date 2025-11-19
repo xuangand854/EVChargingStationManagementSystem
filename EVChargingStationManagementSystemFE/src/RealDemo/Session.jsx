@@ -48,6 +48,33 @@ const Session = () => {
         maxPowerKw: 0,
         loading: true
     });
+    const [connectorInfo, setConnectorInfo] = useState({
+        id: null,
+        name: null,
+        type: null,
+        maxPower: null
+    });
+    const [stationInfo, setStationInfo] = useState({
+        name: "Trạm Sạc Xe Điện",
+        address: "123 Đường ABC, Quận XYZ, TP.HCM",
+        phone: "0123-456-789"
+    });
+    const [vehicleInfo, setVehicleInfo] = useState({
+        model: "Tesla Model 3",
+        licensePlate: "30A-12345",
+        batteryCapacity: "75 kWh"
+    });
+    const [sessionInfo, setSessionInfo] = useState({
+        startTime: null,
+        endTime: null,
+        duration: "00:00:00"
+    });
+    const [paymentInfo, setPaymentInfo] = useState({
+        subtotal: 0,
+        vat: 0,
+        total: 0,
+        vatRate: 10
+    });
     const [timer, setTimer] = useState(0);
     const { connectorID } = useParams();
     const navigate = useNavigate();
@@ -78,7 +105,16 @@ const Session = () => {
         const checkConnectorStatus = async () => {
             try {
                 const connectorResponse = await GetConnectorId(connectorID);
-                const status = connectorResponse?.data?.status || connectorResponse?.status;
+                const connectorData = connectorResponse?.data || connectorResponse;
+                const status = connectorData?.status;
+
+                // Lưu thông tin connector
+                setConnectorInfo({
+                    id: connectorData?.id || connectorID,
+                    name: connectorData?.connectorName || `Connector ${connectorID}`,
+                    type: connectorData?.type || "Type 2",
+                    maxPower: connectorData?.maxPower || "22 kW"
+                });
 
                 if (status === "Reserved") {
                     setShowCheckinModal(true);
@@ -103,8 +139,17 @@ const Session = () => {
                 const connectorResponse = await GetConnectorId(connectorID);
                 console.log("🔌 Thông tin connector:", connectorResponse);
 
-                const chargingPostId = connectorResponse?.data?.chargingPostId || connectorResponse?.chargingPostId;
-                const status = connectorResponse?.data?.status || connectorResponse?.status || "Available";
+                const connectorData = connectorResponse?.data || connectorResponse;
+                const chargingPostId = connectorData?.chargingPostId;
+                const status = connectorData?.status || "Available";
+
+                // Cập nhật thông tin connector
+                setConnectorInfo({
+                    id: connectorData?.id || connectorID,
+                    name: connectorData?.connectorName || `Connector ${connectorID}`,
+                    type: connectorData?.type || "Type 2",
+                    maxPower: connectorData?.maxPower || "22 kW"
+                });
 
                 // Cập nhật trạng thái connector
                 setConnectorStatus(status);
@@ -301,24 +346,30 @@ const Session = () => {
                 expectedEnergiesKWh: 100
             };
 
+            // Chỉ thêm phone nếu có giá trị
             if (phoneNumber?.trim()) {
                 params.phone = phoneNumber.trim();
-                if (bookingId) params.bookingId = bookingId;
             }
 
+            // Chỉ thêm bookingId nếu có giá trị
+            if (bookingId) {
+                params.bookingId = bookingId;
+            }
+
+            // Chỉ thêm vehicleModelId nếu có giá trị
             if (vehicleModelId) {
                 params.vehicleModelId = vehicleModelId;
             }
 
-            // Gọi API
+            // Gọi API - truyền undefined cho các field không có
             const response = await StartSession(
-                params.bookingId || null,
+                params.bookingId,
                 params.batteryCapacityKWh,
                 params.initialBatteryLevelPercent,
                 params.expectedEnergiesKWh,
-                params.phone || null,
+                params.phone,
                 params.connectorId,
-                params.vehicleModelId || null
+                params.vehicleModelId
             );
 
 
@@ -358,17 +409,18 @@ const Session = () => {
     const handleCancelPhone = async () => {
         setIsPhoneModalVisible(false);
         setPhoneNumber("");
-        // Bắt đầu sạc bình thường
+        // Bắt đầu sạc bình thường - không truyền phone, bookingId, vehicleModelId
         setLoading(true);
         try {
+            // Chỉ truyền các tham số bắt buộc, không truyền undefined cho các field optional
             const response = await StartSession(
-                null,
-                80,
-                20,
-                100,
-                null,
-                connectorID,
-                null
+                undefined, // bookingId
+                80,        // batteryCapacityKWh
+                20,        // initialBatteryLevelPercent
+                100,       // expectedEnergiesKWh
+                undefined, // phone - không gửi
+                connectorID, // connectorId
+                undefined  // vehicleModelId
             );
 
             const id = response?.data?.id || response?.id;
@@ -430,15 +482,35 @@ const Session = () => {
         }
         try {
             message.info("Đang chuyển đến trang thanh toán...");
+
+            // Chuẩn bị data để truyền qua state
+            const paymentData = {
+                sessionId: sessionId,
+                connectorId: connectorID,
+                totalCost: totalCost,
+                energyDelivered: energyDelivered,
+                pricePerKWh: pricePerKWh,
+                vatRate: paymentInfo.vatRate,
+                chargingTime: sessionInfo.duration,
+                stationInfo: stationInfo,
+                vehicleInfo: vehicleInfo,
+                connectorInfo: connectorInfo
+            };
+
+            // Backup vào sessionStorage
             try {
                 sessionStorage.setItem('payment.sessionId', String(sessionId));
                 sessionStorage.setItem('payment.connectorId', String(connectorID));
                 sessionStorage.setItem('payment.returnPath', window.location.pathname);
-                //
-                sessionStorage.setItem('payment.amount', String(chargingData.cost));
-
+                sessionStorage.setItem('payment.amount', String(totalCost));
+                sessionStorage.setItem('payment.energy', String(energyDelivered));
+                sessionStorage.setItem('payment.pricePerKWh', String(pricePerKWh));
+                sessionStorage.setItem('payment.vatRate', String(paymentInfo.vatRate));
+                sessionStorage.setItem('payment.chargingTime', sessionInfo.duration);
             } catch { }
-            navigate(`/payment-method/${sessionId}`); //  chuyển hướng đến trang chọn phương thức thanh toán
+
+            // Navigate với state
+            navigate(`/payment-method/${sessionId}`, { state: paymentData });
         } catch (error) {
             console.error("Lỗi khi điều hướng:", error);
         }
@@ -493,7 +565,7 @@ const Session = () => {
                         Trạm Sạc Xe Điện
                     </h1>
                     <div className="flex items-center justify-center gap-2 text-gray-600">
-                        <span>Connector</span>
+                        <span>Súng sạc: </span>
                         <span
                             className="px-3 py-1 rounded-full font-semibold"
                             style={{
@@ -501,7 +573,7 @@ const Session = () => {
                                 color: 'white'
                             }}
                         >
-                            #{connectorID}
+                            {connectorInfo.name || `#${connectorID}`}
                         </span>
                     </div>
                 </div>

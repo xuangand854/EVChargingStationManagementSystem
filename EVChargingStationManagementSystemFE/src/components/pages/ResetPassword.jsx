@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { Card } from "antd";
+import { Zap, Lock, ArrowLeft } from "lucide-react";
 import { resetPassword } from "../../API/Auth";
+import InputField from "../account/InputField";
 import "./ResetPassword.css";
 
 const ResetPassword = () => {
@@ -15,8 +18,13 @@ const ResetPassword = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    document.body.className = "reset-body";
+    return () => {
+      document.body.className = "";
+    };
+  }, []);
 
   //  Lấy userId bằng searchParams, token thì giữ nguyên gốc
   useEffect(() => {
@@ -117,83 +125,121 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="reset-container">
-      <div className="reset-card">
-        <h1 className="reset-title">Đặt lại mật khẩu</h1>
-        <p className="reset-subtitle">Nhập mật khẩu mới của bạn</p>
-
-        <form className="reset-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label className="input-label">Mật khẩu mới</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="newPassword"
-                className="reset-input"
-                placeholder="Nhập mật khẩu mới"
-                value={formData.newPassword}
-                onChange={handleChange}
-                required
-              />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? "👁️" : "👁️‍🗨️"}
-              </button>
+    <div className="reset-page-wrapper">
+      <div className="reset-page-container">
+        {/* Left Side - Branding */}
+        <div className="reset-branding">
+          <div className="branding-content">
+            <div className="brand-icon">
+              <Zap size={64} color="white" />
             </div>
-          </div>
-
-          <div className="input-group">
-            <label className="input-label">Xác nhận mật khẩu</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                className="reset-input"
-                placeholder="Nhập lại mật khẩu mới"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading || !userId || !token}
-            >
-              {loading ? "Đang xử lý..." : (!userId || !token) ? "Liên kết không hợp lệ" : "Đặt lại mật khẩu"}
-            </button>
-          </div>
-        </form>
-
-        {message && (
-          <div className={isSuccess ? "success" : "error"}>
-            {message}
-            {!isSuccess && message.includes("Token đặt lại mật khẩu không hợp lệ") && (
-              <div style={{ marginTop: "8px" }}>
-                <Link to="/forgot-password" style={{ color: "#2563eb", textDecoration: "underline" }}>
-                  Yêu cầu liên kết đặt lại mật khẩu mới
-                </Link>
+            <h1 className="brand-title">EV Charging Station</h1>
+            <p className="brand-subtitle">Hệ thống quản lý trạm sạc xe điện thông minh</p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <div className="feature-icon">🔐</div>
+                <span>Bảo mật tuyệt đối</span>
               </div>
-            )}
+              <div className="feature-item">
+                <div className="feature-icon">🔑</div>
+                <span>Đặt lại dễ dàng</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">✅</div>
+                <span>An toàn & Nhanh chóng</span>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
 
-        <Link to="/login" className="reset-link">
-          Quay lại đăng nhập
-        </Link>
+        {/* Right Side - Reset Password Form */}
+        <div className="reset-form-section">
+          <Card className="reset-card">
+            <div className="reset-header">
+              <h2 className="reset-title">Đặt Lại Mật Khẩu</h2>
+              <p className="reset-subtitle">Nhập mật khẩu mới của bạn</p>
+            </div>
+
+            <form className="reset-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">
+                  <Lock size={16} />
+                  <span>Mật khẩu mới</span>
+                </label>
+                <InputField
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Nhập mật khẩu mới"
+                />
+                <p className="password-hint">
+                  Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                </p>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Lock size={16} />
+                  <span>Xác nhận mật khẩu</span>
+                </label>
+                <InputField
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Nhập lại mật khẩu mới"
+                />
+              </div>
+
+              {message && (
+                <div className={`message ${isSuccess ? 'success-message' : 'error-message'}`}>
+                  <span>{isSuccess ? '✓' : '⚠️'}</span>
+                  <div>
+                    <span>{message}</span>
+                    {!isSuccess && message.includes("Token đặt lại mật khẩu không hợp lệ") && (
+                      <div style={{ marginTop: "8px" }}>
+                        <Link to="/forgot-password" className="inline-link">
+                          Yêu cầu liên kết đặt lại mật khẩu mới
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="reset-button"
+                type="submit"
+                disabled={loading || !userId || !token}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (!userId || !token) ? (
+                  <>
+                    <Lock size={20} />
+                    <span>Liên kết không hợp lệ</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={20} />
+                    <span>Đặt lại mật khẩu</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="back-section">
+              <Link to="/login" className="back-link">
+                <ArrowLeft size={16} />
+                <span>Quay lại đăng nhập</span>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

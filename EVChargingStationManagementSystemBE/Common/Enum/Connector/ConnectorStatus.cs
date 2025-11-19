@@ -8,6 +8,7 @@
         Charging,
         Reserved,
         Faulted,
-        Unknown
+        Unknown,
+        Preparing
     }
 }

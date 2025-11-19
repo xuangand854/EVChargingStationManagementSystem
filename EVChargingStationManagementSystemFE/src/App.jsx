@@ -77,11 +77,12 @@ import StaffReport from "./components/pages/staff/StaffReport.jsx";
 import AdminReportContainer from "./components/pages/admin/AdminReportContainer.jsx";
 import UserReport from "./components/profile/UserReport.jsx"
 import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.jsx";
+import AdminUser from "./components/pages/admin/Users.jsx"
 
 
 
 export default function App() {
-  
+
   return (
 
     <NotificationProvider>
@@ -150,8 +151,8 @@ export default function App() {
           {/* Payment method selection */}
           <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
 
-        
-        <Route path="session/:connectorID" element={<Session />} />
+
+          <Route path="session/:connectorID" element={<Session />} />
 
           {/* // */}
           <Route path="payment-status/success" element={<Success />} />
@@ -162,7 +163,7 @@ export default function App() {
           {/* Admin Routes */}
 
           <Route path="/admin" element={<AdminPrivateRoute><AdminLayout /></AdminPrivateRoute>}>
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<AdminStations />} />
             <Route path="station" element={<AdminStations />} />
 
             <Route path="staff" element={<AdminStaff />} />
@@ -178,6 +179,7 @@ export default function App() {
             <Route path="admin-feedback" element={<AdminFeedbackPage />} />
 
             <Route path="vehicles" element={<AdminVehicles />} />
+            <Route path="users" element={<AdminUser />} />
             <Route path="vouchers" element={<AdminVouchers />} />
             <Route path="system-configuration" element={<SystemConfigEditor />} />
             <Route path="settings" element={<AdminSettings />} />
@@ -192,7 +194,7 @@ export default function App() {
           </Route>
           {/* Staff Routes */}
           <Route path="/staff" element={<StaffPrivateRoute><StaffLayout /></StaffPrivateRoute>}>
-            <Route index element={<StaffLayout />} />
+            <Route index element={<StaffStation />} />
             <Route path="stations" element={<StaffStation />} />
             <Route path="staff-report" element={<StaffReport />} />
             <Route path="/staff/station/:stationId" element={<StaffStationDetail />} />
@@ -205,7 +207,7 @@ export default function App() {
         <NotificationBubble />
 
       </BrowserRouter>
-      </NotificationProvider>
+    </NotificationProvider>
 
   );
 }

@@ -6,7 +6,7 @@ import "./AdminSidebar.css";
 const AdminSidebar = () => {
     const menuItems = [
         { name: "Trang chủ", path: "/", icon: <House size={20} /> },
-        { name: "Map", path: "/admin/admin-map", icon: <BarChart3 size={20} /> },
+        { name: "Bản đồ", path: "/admin/admin-map", icon: <BarChart3 size={20} /> },
         { name: "Mô Phỏng Sạc", path: "/admin/admin-session", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/admin/station", icon: <Zap size={20} /> },
         { name: "Nhân viên", path: "/admin/staff", icon: <Users size={20} /> },
@@ -16,7 +16,8 @@ const AdminSidebar = () => {
         { name: "Cấu hình hệ thống", path: "/admin/system-configuration", icon: <Settings size={20} /> },
         { name: "Thống kê doanh thu", path: "/admin/revenue-statistics", icon: <BarChart3 size={20} /> },
         { name: "Lịch sử giao dịch", path: "/admin/transaction-history", icon: <Receipt size={20} /> },
-        { name: "Mã giảm giá", path: "/admin/vouchers", icon: <Ticket size={20} /> }
+        { name: "Mã giảm giá", path: "/admin/vouchers", icon: <Ticket size={20} /> },
+        { name: "Người dùng", path: "/admin/users", icon: <Users size={20} /> },
     ];
 
     return (
@@ -29,7 +30,7 @@ const AdminSidebar = () => {
                         <span>⚡</span>
                     </div>
                     <div className="logo-text">
-                        <h1>EV Admin</h1>
+                        <h1>EV </h1>
                         <p>Quản trị hệ thống</p>
                     </div>
                 </div>
@@ -63,7 +64,7 @@ const AdminSidebar = () => {
                     </div>
                     <div className="user-details">
                         <div className="user-name">Quản trị viên</div>
-                        
+
                     </div>
                 </div>
                 <button

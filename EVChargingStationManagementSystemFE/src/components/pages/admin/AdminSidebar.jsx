@@ -22,7 +22,7 @@ const AdminSidebar = () => {
             items: [
                 { name: "Bản đồ", path: "/admin/admin-map", icon: <MapPin size={18} /> },
                 { name: "Trạm sạc", path: "/admin/station", icon: <Zap size={18} /> },
-                { name: "Mô phỏng sạc", path: "/admin/admin-session", icon: <Battery size={18} /> },
+                // { name: "Mô phỏng sạc", path: "/admin/admin-session", icon: <Battery size={18} /> },
             ]
         },
         {

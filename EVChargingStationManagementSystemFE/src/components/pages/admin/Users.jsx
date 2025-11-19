@@ -229,12 +229,12 @@ const Users = () => {
                 </Tag>
             )
         },
-        {
-            title: "Số xe liên kết",
-            dataIndex: "vehicleModelIds",
-            key: "vehicleModelIds",
-            render: (ids) => ids?.length || 0
-        },
+        // {
+        //     title: "Số xe liên kết",
+        //     dataIndex: "vehicleModelIds",
+        //     key: "vehicleModelIds",
+        //     render: (ids) => ids?.length || 0
+        // },
         {
             title: "Ngày tạo",
             dataIndex: "createdAt",
@@ -275,7 +275,7 @@ const Users = () => {
         <div className="users-page">
             <div className="users-page__header">
                 <div>
-                    <h2>Quản lý người dùng EV Driver</h2>
+                    <h2>Quản lý người dùng</h2>
                     <p>Theo dõi và cập nhật thông tin tài xế sử dụng hệ thống</p>
                 </div>
                 <Button icon={<ReloadOutlined />} onClick={fetchDrivers} loading={loading}>
@@ -292,10 +292,10 @@ const Users = () => {
                     <p>Đang hoạt động</p>
                     <h3>{activeDrivers}</h3>
                 </div>
-                <div className="stat-card">
+                {/* <div className="stat-card">
                     <p>Đã liên kết xe</p>
                     <h3>{withVehicle}</h3>
-                </div>
+                </div> */}
             </div>
 
             <div className="users-page__filters">

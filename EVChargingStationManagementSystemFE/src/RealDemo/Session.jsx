@@ -1125,45 +1125,41 @@ const Session = () => {
 
                             {/* Thông tin chi tiết */}
                             <div className="mt-4">
-                                <h4 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: '#1f2937' }}>
-                                    <span>📋</span> Thông tin chi tiết
+                                <h4 className="text-base font-bold mb-3" style={{ color: '#1f2937' }}>
+                                    📋 Thông tin chi tiết
                                 </h4>
 
                                 {!pricingData.loading ? (
                                     <div className="space-y-2">
-                                        <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50">
-                                            <span className="text-sm text-gray-600">Giá điện: </span>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Giá điện</span>
                                             <span className="text-sm font-bold text-gray-800">
                                                 {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
                                             </span>
                                         </div>
-                                        <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50">
-                                            <span className="text-sm text-gray-600">Thuế VAT: </span>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Thuế VAT</span>
                                             <span className="text-sm font-bold text-gray-800">{pricingData.vatRate}%</span>
                                         </div>
-                                        <div className="flex justify-between items-center p-2 rounded-lg" style={{
-                                            background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-                                            border: '2px solid #6ee7b7'
-                                        }}>
-                                            <span className="text-sm font-medium" style={{ color: '#065f46' }}>Công suất tối đa: </span>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Công suất tối đa</span>
                                             <span className="text-base font-bold" style={{ color: '#00b09b' }}>
                                                 {pricingData.maxPowerKw} kW
                                             </span>
                                         </div>
                                         {chargingData.energyDelivered > 0 && (
-                                            <div className="flex justify-between items-center p-2 rounded-lg bg-gray-50">
-                                                <span className="text-sm text-gray-600">Tiền điện: </span>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Tiền điện</span>
                                                 <span className="text-sm font-bold text-gray-800">
                                                     {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
                                                 </span>
                                             </div>
                                         )}
                                         {sessionId && (
-                                            <div className="flex justify-between items-center p-2 rounded-lg mt-2" style={{
-                                                background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-                                                border: '2px solid #6ee7b7'
+                                            <div className="flex justify-between items-center pt-2" style={{
+                                                borderTop: '1px solid #e5e7eb'
                                             }}>
-                                                <span className="text-sm font-medium" style={{ color: '#065f46' }}>Mã phiên: </span>
+                                                <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Mã phiên</span>
                                                 <span className="text-sm font-mono font-bold" style={{ color: '#00b09b' }}>{sessionId}</span>
                                             </div>
                                         )}

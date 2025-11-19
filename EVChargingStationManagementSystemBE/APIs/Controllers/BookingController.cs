@@ -170,13 +170,13 @@ namespace APIs.Controllers
         }
 
         // 11 Auto Reassign - Chuyển booking khỏi trạm lỗi
-        [HttpPost("auto-reassign-error-stations")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AutoReassignBookingsForErrorStations()
-        {
-            await _service.AutoReassignBookingsForErrorStations();
-            return Ok(new { message = "Đã xử lý chuyển các booking khỏi trạm lỗi." });
-        }
+        //[HttpPost("auto-reassign-error-stations")]
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> AutoReassignBookingsForErrorStations()
+        //{
+        //    await _service.AutoReassignBookingsForErrorStations();
+        //    return Ok(new { message = "Đã xử lý chuyển các booking khỏi trạm lỗi." });
+        //}
         // 8️ Lấy danh sách booking của trạm mà nhân viên đang quản lý
         [HttpGet("station-bookings")]
         [Authorize(Roles = "Staff")]

@@ -112,7 +112,7 @@ const Profile = () => {
       );
 
       if (res?.status === 200 || res?.data?.success) {
-        toast.success("Cập nhật thông tin thành công!");
+        
         setUser({
           ...formData,
           driverId: user.driverId,
@@ -120,6 +120,7 @@ const Profile = () => {
         });
         setMode("view");
         setShowPopup("");
+        toast.success("Cập nhật thông tin thành công!");
       } else {
         toast.error(res?.data?.message || "Lỗi cập nhật!");
       }
@@ -132,30 +133,32 @@ const Profile = () => {
   const normalize = (str = "") =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const handlePasswordChange = async () => {
-    const { oldPassword, newPassword, confirmPassword } = passwordData;
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      toast.error("Vui lòng nhập đầy đủ thông tin!");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu mới và xác nhận không khớp!");
-      return;
-    }
-    try {
-      const res = await changePassword(oldPassword, newPassword, confirmPassword);
-      if (res?.status === 200 || res?.success) {
-        toast.success("Đổi mật khẩu thành công!");
-        setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
-        setMode("view");
-      } else {
-        toast.error(res?.message || "Đổi mật khẩu thất bại!");
-      }
-    } catch (err) {
-      console.error("Lỗi đổi mật khẩu:", err);
-      toast.error("Mật khẩu cũ không đúng hoặc có lỗi hệ thống!");
-    }
-  };
+const handlePasswordChange = async () => {
+  const { oldPassword, newPassword, confirmPassword } = passwordData;
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    toast.error("Vui lòng nhập đầy đủ thông tin!");
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    toast.error("Mật khẩu mới và xác nhận không khớp!");
+    return;
+  }
+
+  try {
+    const res = await changePassword(oldPassword, newPassword, confirmPassword);
+    console.log("API response:", res); // log để xem dữ liệu
+    toast.success("Đổi mật khẩu thành công!");
+    setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    setMode("view");
+  } catch (err) {
+    console.log("Lỗi đổi mật khẩu:", err.response?.data || err);
+    const msg =
+      err.response?.data?.message ||
+      "Mật khẩu cũ không đúng";
+    toast.error(msg);
+  }
+};
+
 
   const handleDelete = async (vehicleModelId) => {
     if (!vehicleModelId) return;
@@ -183,8 +186,9 @@ const Profile = () => {
     .filter(Boolean);
 
   return (
+    
     <div className="profile-wrapper">
-      <ToastContainer position="top-right" autoClose={2000} />
+      
 
       {/* Sidebar */}
       <div className="profile-sidebar">
@@ -463,6 +467,7 @@ const Profile = () => {
           </div>
         </div>
       )}
+      <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 };

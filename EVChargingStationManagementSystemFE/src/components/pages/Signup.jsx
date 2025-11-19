@@ -80,7 +80,18 @@ const Signup = () => {
       setErrors({});
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setErrors({ api: err.message });
+      let apiError = err.message || "";
+      let translatedError = "";
+
+      if (apiError.includes("Số điện thoại của bạn đã được đăng ký")) {
+        translatedError = "Số điện thoại không hợp lệ hoặc không thể sử dụng.";
+      } else if (apiError.includes("Save data fail")) {
+        translatedError = "Email không hợp lệ hoặc không thể sử dụng.";
+      } else {
+        translatedError = apiError; // lỗi khác giữ nguyên
+      }
+
+      setErrors({ api: translatedError });
     } finally {
       setSubmitting(false);
     }

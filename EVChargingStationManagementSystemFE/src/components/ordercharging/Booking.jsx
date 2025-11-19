@@ -232,7 +232,7 @@ console.log("Lấy Role:", role);
     setcheckInCode(res?.data?.checkInCode || null);
     setShowSuccessPopup(true);
     if (res?.data?.checkInCode) {
-      addNotification(`🎉 Booking thành công! Mã check-in: ${res.data.checkInCode}`);
+      addNotification(`Booking thành công! Mã check-in: ${res.data.checkInCode}`);
     }
   } catch (error) {
     console.error("Booking error:", error);

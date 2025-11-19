@@ -6,7 +6,7 @@ import "./StaffSidebar.css";
 
 const StaffSidebar = () => {
     const menuItems = [
-        { name: "Trang chủ", path: "/", icon: <House size={20} /> },
+        // { name: "Trang chủ", path: "/", icon: <House size={20} /> },
         // { name: "Dashboard", path: "/admin", icon: <BarChart3 size={20} /> },
         { name: "Trạm sạc", path: "/staff/stations", icon: <Zap size={20} /> },
         // { name: "Xe điện", path: "/staff/vehicles", icon: <Car size={20} /> },
@@ -60,7 +60,7 @@ const StaffSidebar = () => {
                         NV
                     </div>
                     <div className="user-details">
-                        <div className="user-name">Staff User</div>
+                        <div className="user-name">Nhân viên</div>
                     </div>
                 </div>
                 <button

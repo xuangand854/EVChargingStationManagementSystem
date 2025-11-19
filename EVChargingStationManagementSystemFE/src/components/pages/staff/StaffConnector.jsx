@@ -108,6 +108,7 @@ const StaffConnector = () => {
                 dataSource={connectors}
                 columns={columns}
                 rowKey="id"
+                locale={{ emptyText: "Không có dữ liệu" }}
             />
 
             <Modal

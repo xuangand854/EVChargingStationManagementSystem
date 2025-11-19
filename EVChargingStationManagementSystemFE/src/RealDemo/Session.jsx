@@ -7,6 +7,7 @@ import { getChargingPostId } from "../API/ChargingPost";
 import { PatchConnectorToggle, GetConnectorId } from "../API/Connector";
 import { GetVAT, GetPrice } from "../API/SystemConfiguration";
 import { BookCheckin } from "../API/Booking";
+import { PostPayment } from "../API/Payment";
 
 import {
     PlugZap,
@@ -231,6 +232,14 @@ const Session = () => {
         }
         return () => clearInterval(interval);
     }, [isCharging, pricingData]);
+
+    // Tự động dừng sạc khi đạt 100%
+    useEffect(() => {
+        if (isCharging && chargingData.batteryLevel >= 100) {
+            message.success("🎉 Pin đã đầy 100%! Phiên sạc đã tự động dừng.");
+            handleStopSession();
+        }
+    }, [chargingData.batteryLevel, isCharging]);
 
     const handleCheckin = async () => {
         const checkinCode = otpValues.join("");
@@ -476,12 +485,20 @@ const Session = () => {
     };
 
     const handlePayment = async () => {
+        console.log("🔍 handlePayment - sessionId:", sessionId);
+
         if (!sessionId) {
             message.error("Không tìm thấy mã phiên sạc!");
             return;
         }
         try {
             message.info("Đang chuyển đến trang thanh toán...");
+
+            // Lấy data từ state
+            const totalCost = chargingData.cost || 0;
+            const energyDelivered = chargingData.energyDelivered || 0;
+            const pricePerKWh = pricingData.pricePerKWh || 0;
+            const vatRate = pricingData.vatRate || 10;
 
             // Chuẩn bị data để truyền qua state
             const paymentData = {
@@ -490,12 +507,15 @@ const Session = () => {
                 totalCost: totalCost,
                 energyDelivered: energyDelivered,
                 pricePerKWh: pricePerKWh,
-                vatRate: paymentInfo.vatRate,
-                chargingTime: sessionInfo.duration,
+                vatRate: vatRate,
+                chargingTime: formatTime(timer),
                 stationInfo: stationInfo,
                 vehicleInfo: vehicleInfo,
                 connectorInfo: connectorInfo
             };
+
+            console.log("📦 Payment data:", paymentData);
+            console.log("🔗 Navigate to:", `/payment-method/${sessionId}`);
 
             // Backup vào sessionStorage
             try {
@@ -505,11 +525,11 @@ const Session = () => {
                 sessionStorage.setItem('payment.amount', String(totalCost));
                 sessionStorage.setItem('payment.energy', String(energyDelivered));
                 sessionStorage.setItem('payment.pricePerKWh', String(pricePerKWh));
-                sessionStorage.setItem('payment.vatRate', String(paymentInfo.vatRate));
-                sessionStorage.setItem('payment.chargingTime', sessionInfo.duration);
+                sessionStorage.setItem('payment.vatRate', String(vatRate));
+                sessionStorage.setItem('payment.chargingTime', formatTime(timer));
             } catch { }
 
-            // Navigate với state
+            // Navigate đến trang chọn phương thức thanh toán
             navigate(`/payment-method/${sessionId}`, { state: paymentData });
         } catch (error) {
             console.error("Lỗi khi điều hướng:", error);

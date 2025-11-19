@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, Button, message, List, Select } from "antd";
 import { PatchPaymentOfflineStatus, getPaymentThatHaveSend } from "../../../API/Payment";
 import { ToastContainer, toast } from "react-toastify";
@@ -107,23 +107,23 @@ const ConfirmPaymentOffline = () => {
                 </div>
 
                 <List
-                    bordered
                     loading={loading}
                     dataSource={filteredPayments}
+                    locale={{ emptyText: "Không có thanh toán nào" }}
                     renderItem={(item) => (
                         <List.Item
                             actions={
                                 item.status === "Initiated"
                                     ? [
-                                          <Button
-                                              type="default"
-                                              size="small"
-                                              onClick={() => handleUpdateOfflineStatus(item.id)}
-                                              loading={loading}
-                                          >
-                                              Xác Nhận Thanh Toán
-                                          </Button>
-                                      ]
+                                        <Button
+                                            type="default"
+                                            size="small"
+                                            onClick={() => handleUpdateOfflineStatus(item.id)}
+                                            loading={loading}
+                                        >
+                                            Xác Nhận Thanh Toán
+                                        </Button>
+                                    ]
                                     : []
                             }
                         >

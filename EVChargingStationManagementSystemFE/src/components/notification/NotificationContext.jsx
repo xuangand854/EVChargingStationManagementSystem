@@ -2,21 +2,24 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { v4 as uuidv4 } from "uuid";
 
 export const NotificationContext = createContext();
-
 export const useNotifications = () => useContext(NotificationContext);
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
+  const [unReadCount, setUnReadCount] = useState(0);
 
-  // Thêm notification
+  // ========================
+  // ADD NOTIFICATION
+  // ========================
   const addNotification = useCallback((messageOrObject, type = "User") => {
     let newNoti;
+
     if (typeof messageOrObject === "string") {
       newNoti = {
         id: Date.now() + "-" + uuidv4(),
         title: messageOrObject,
         type,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
     } else {
       newNoti = { ...messageOrObject };
@@ -25,16 +28,28 @@ export const NotificationProvider = ({ children }) => {
       if (!newNoti.type) newNoti.type = "User";
     }
 
+    // Thêm vào danh sách
     setNotifications(prev => [newNoti, ...prev]);
+
+    // Tăng badge
+    setUnReadCount(prev => prev + 1);
   }, []);
 
-  // Xóa toàn bộ notifications
-  const clearNotifications = useCallback(() => setNotifications([]), []);
+  // ========================
+  // CLEAR ALL
+  // ========================
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+    setUnReadCount(0);
+  }, []);
 
-  // Reset notifications qua ngày mới
+  // ========================
+  // RESET QUA NGÀY MỚI
+  // ========================
   useEffect(() => {
     const today = new Date().toDateString();
     const storedDay = localStorage.getItem("notificationsDay");
+
     if (storedDay !== today) {
       clearNotifications();
       localStorage.setItem("notificationsDay", today);
@@ -42,7 +57,15 @@ export const NotificationProvider = ({ children }) => {
   }, [clearNotifications]);
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, clearNotifications }}>
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        addNotification,
+        clearNotifications,
+        unReadCount,
+        setUnReadCount,
+      }}
+    >
       {children}
     </NotificationContext.Provider>
   );

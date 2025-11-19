@@ -20,7 +20,7 @@ namespace APIs.Controllers
 
             if (result.Status == Const.FAIL_CREATE_CODE)
             {
-                return BadRequest(result.Data);
+                return BadRequest(new { result.Message });
             }
 
             return Ok(new { result.Message });

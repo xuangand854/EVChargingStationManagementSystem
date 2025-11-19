@@ -56,18 +56,30 @@ export const getAuthStatus = () => {
   }
 };
 
-export const register = async (email, password, name, phone) => { // đăng kí tài khoản
+export const register = async (email, password, name, phone) => {
   try {
-    const response = await api.post(
-      `${BASE_URL}/register`,
-      { email, password, name, phone }
-    );
+    const response = await api.post(`${BASE_URL}/register`, { email, password, name, phone });
     return response.data;
   } catch (error) {
-    console.error('Error during registration:', error);
-    throw error;
+    const data = error?.response?.data;
+
+    // Nếu data là mảng và có phần tử
+    if (Array.isArray(data) && data.length > 0) {
+      // Lấy message đầu tiên
+      const serverMsg = data[0].description || data[0].message;
+      if (serverMsg) throw new Error(serverMsg);
+    }
+
+    // Nếu data là object
+    if (data?.description || data?.message) {
+      throw new Error(data.description || data.message);
+    }
+
+    // fallback
+    throw new Error(error.message || "Lỗi không xác định từ server");
   }
-}
+};
+
 
 export const login = async (email, password) => { // đăng nhập
   try {

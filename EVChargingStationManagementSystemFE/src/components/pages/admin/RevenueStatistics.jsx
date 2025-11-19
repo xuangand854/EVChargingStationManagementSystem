@@ -17,7 +17,10 @@ import "./RevenueStatistics.css";
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
+
 const RevenueStatistics = () => {
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [dateRange, setDateRange] = useState([dayjs().subtract(30, 'days'), dayjs()]);
@@ -40,7 +43,6 @@ const RevenueStatistics = () => {
             calculateStatistics();
         }
     }, [transactions, dateRange]);
-
     const fetchTransactions = async () => {
         setLoading(true);
         try {
@@ -49,14 +51,42 @@ const RevenueStatistics = () => {
                 Array.isArray(response) ? response : [];
 
             setTransactions(data);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Lỗi khi lấy giao dịch: ${errorMsg}`);
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const message =
+                error?.customMessage ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Đã xảy ra lỗi';
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && message.includes('Không tìm thấy lịch sử giao dịch');
+
+            if (isNoDataError) {
+                console.log('Không có giao dịch nào trong khoảng thời gian này');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(message); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
             setTransactions([]);
         } finally {
             setLoading(false);
         }
     };
+
+
+
+
+
+
 
     const calculateStatistics = () => {
         // Parse ngày từ referenceCode (format: ONL-YYYYMMDD-XXXXXX)
@@ -338,7 +368,11 @@ const RevenueStatistics = () => {
                         </div>
                     }
                 >
-                    {filteredTransactions.length > 0 ? (
+                    {hasError ? (
+                        <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                    ) : noData || filteredTransactions.length === 0 ? (
+                        <Empty description="Không có giao dịch nào trong khoảng thời gian này" />
+                    ) : (
                         <Table
                             columns={columns}
                             dataSource={filteredTransactions}
@@ -347,9 +381,8 @@ const RevenueStatistics = () => {
                             scroll={{ x: 800, y: 400 }}
                             sticky
                         />
-                    ) : (
-                        <Empty description="Không có giao dịch nào trong khoảng thời gian này" />
                     )}
+
                 </Card>
             </div>
         </div>

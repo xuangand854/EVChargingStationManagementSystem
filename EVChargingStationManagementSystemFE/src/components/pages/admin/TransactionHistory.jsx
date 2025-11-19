@@ -11,7 +11,8 @@ import {
     Row,
     Col,
     Statistic,
-    Modal
+    Modal,
+    Empty
 } from "antd";
 import {
     Search,
@@ -22,6 +23,7 @@ import {
     Calendar
 } from "lucide-react";
 import { GetTransaction } from "../../../API/Transaction";
+import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import "./TransactionHistory.css";
 
@@ -32,6 +34,8 @@ const TransactionHistory = () => {
     const [transactions, setTransactions] = useState([]);
     const [filteredTransactions, setFilteredTransactions] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [noData, setNoData] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
@@ -62,8 +66,31 @@ const TransactionHistory = () => {
 
             setTransactions(data);
             calculateStatistics(data);
+            setNoData(false);
+            setHasError(false);
         } catch (error) {
-            console.error("Lỗi khi lấy giao dịch:", error);
+            console.log('Full error:', error);
+
+            const status = error?.response?.status;
+            const message =
+                error?.customMessage ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Đã xảy ra lỗi';
+
+            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
+            const isNoDataError = status === 404 && message.includes('Không tìm thấy lịch sử giao dịch');
+
+            if (isNoDataError) {
+                console.log('Không có giao dịch nào');
+                setNoData(true);
+                setHasError(false);
+            } else {
+                toast.error(message); // ✅ Bắn toast cho tất cả lỗi khác
+                setHasError(true);
+                setNoData(false);
+            }
+
             setTransactions([]);
         } finally {
             setLoading(false);
@@ -352,15 +379,21 @@ const TransactionHistory = () => {
 
             {/* Table */}
             <div className="table-card">
-                <Table
-                    columns={columns}
-                    dataSource={filteredTransactions}
-                    rowKey="id"
-                    loading={loading}
-                    pagination={false}
-                    scroll={{ x: 1000, y: 500 }}
-                    sticky
-                />
+                {hasError ? (
+                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
+                ) : noData || filteredTransactions.length === 0 ? (
+                    <Empty description="Không có giao dịch nào" />
+                ) : (
+                    <Table
+                        columns={columns}
+                        dataSource={filteredTransactions}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={false}
+                        scroll={{ x: 1000, y: 500 }}
+                        sticky
+                    />
+                )}
             </div>
 
             {/* Detail Modal */}

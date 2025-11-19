@@ -1,289 +1,176 @@
-:root {
-    --bg: #f6f8fb;
-    --card: #ffffff;
-    --muted: #6b7280;
-    --text: #0f172a;
-    --primary: #2563eb;
-    --accent: #06b6d4;
-    --danger: #ef4444;
-    --radius: 10px;
-    --shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
-}
-
-/* Container */
-.syscfg-container {
-    padding: 24px;
-    background: linear-gradient(180deg, var(--bg), #eef2ff 120%);
-    min-height: calc(100vh - 80px);
+/* Wrapper */
+.syscfg-wrapper {
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    height: calc(100vh - 80px);
+    background: #f5f7fa;
 }
 
-/* Card */
-.syscfg-card {
-    width: 100%;
-    max-width: 920px;
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 22px;
-    box-sizing: border-box;
-    border: 1px solid rgba(15, 23, 42, 0.04);
+/* Fixed Header */
+.syscfg-header-fixed {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f5f7fa;
+    padding: 24px 24px 0 24px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 /* Header */
-.syscfg-card-header {
+.syscfg-header {
+    margin-bottom: 16px;
+}
+
+.syscfg-main-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
-.syscfg-title {
+.syscfg-subtitle {
+    font-size: 14px;
+    color: #6b7280;
     margin: 0;
-    font-size: 18px;
-    color: var(--text);
 }
 
-.syscfg-sub {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
+/* Error Card */
+.syscfg-error-card {
+    margin-bottom: 16px;
 }
 
-/* Error */
 .syscfg-error {
-    background: #fff2f2;
-    color: var(--danger);
-    padding: 10px 12px;
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px 16px;
     border-radius: 8px;
-    margin-bottom: 12px;
-    border: 1px solid rgba(239, 68, 68, 0.08);
-}
-
-/* Form */
-.syscfg-form {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 20px;
-}
-
-/* Single column rows (for smaller screens) */
-@media (max-width:720px) {
-    .syscfg-form {
-        grid-template-columns: 1fr;
-    }
-}
-
-.form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.form-label {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.form-input {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    background: #fff;
-    font-size: 14px;
-    color: var(--text);
-    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.03);
-    transition: box-shadow 0.12s, border-color 0.12s, transform 0.08s;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: rgba(37, 99, 235, 0.9);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.06);
-    transform: translateY(-1px);
-}
-
-/* Actions */
-.form-actions {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 6px;
-}
-
-.btn {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
+    border: 1px solid #fecaca;
     font-size: 14px;
 }
 
-.btn-primary {
-    background: linear-gradient(90deg, var(--primary), #1e40af);
-    color: #fff;
-    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
-}
-
-.btn-secondary {
-    background: #f3f4f6;
-    color: var(--text);
-    border: 1px solid rgba(15, 23, 42, 0.04);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* ``` // filepath: e:\FPTU\Ky5\SWP\SWP_PROJECT\EVChargingStationManagementSystem\EVChargingStationManagementSystemFE\src\components\pages\admin\SystemConfiguration.css */
-
-:root {
-    --bg: #f6f8fb;
-    --card: #ffffff;
-    --muted: #6b7280;
-    --text: #0f172a;
-    --primary: #2563eb;
-    --accent: #06b6d4;
-    --danger: #ef4444;
-    --radius: 10px;
-    --shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
-}
-
-/* Container */
-.syscfg-container {
+/* Scrollable Content */
+.syscfg-content-scroll {
+    flex: 1;
+    overflow-y: auto;
     padding: 24px;
-    background: linear-gradient(180deg, var(--bg), #eef2ff 120%);
-    min-height: calc(100vh - 80px);
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
 }
 
-/* Card */
-.syscfg-card {
-    width: 100%;
-    max-width: 920px;
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 22px;
-    box-sizing: border-box;
-    border: 1px solid rgba(15, 23, 42, 0.04);
-}
-
-/* Header */
-.syscfg-card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-}
-
-.syscfg-title {
-    margin: 0;
-    font-size: 18px;
-    color: var(--text);
-}
-
-.syscfg-sub {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
-}
-
-/* Error */
-.syscfg-error {
-    background: #fff2f2;
-    color: var(--danger);
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    border: 1px solid rgba(239, 68, 68, 0.08);
-}
-
-/* Form */
-.syscfg-form {
+/* Grid */
+.syscfg-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 20px;
+    gap: 16px;
+    padding-bottom: 24px;
 }
 
-/* Single column rows (for smaller screens) */
-@media (max-width:720px) {
-    .syscfg-form {
-        grid-template-columns: 1fr;
-    }
+/* Card Item */
+.syscfg-card-item {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
-.form-row {
+.syscfg-card-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.syscfg-card-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* Info Section */
+.syscfg-info {
+    padding-right: 24px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.syscfg-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
 }
 
-.form-label {
+.syscfg-id {
     font-size: 13px;
-    color: var(--muted);
+    color: #9ca3af;
+    font-weight: 400;
 }
 
-.form-input {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    background: #fff;
+.syscfg-description {
     font-size: 14px;
-    color: var(--text);
-    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.03);
-    transition: box-shadow 0.12s, border-color 0.12s, transform 0.08s;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 12px;
 }
 
-.form-input:focus {
-    outline: none;
-    border-color: rgba(37, 99, 235, 0.9);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.06);
-    transform: translateY(-1px);
+.syscfg-unit {
+    font-size: 13px;
+    color: #4b5563;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.syscfg-unit strong {
+    color: #1f2937;
+}
+
+/* Form Section */
+.syscfg-form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.syscfg-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.syscfg-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
 }
 
 /* Actions */
-.form-actions {
-    grid-column: 1 / -1;
+.syscfg-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: flex-end;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
-.btn {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
+/* Saved Time */
+.syscfg-saved-time {
+    font-size: 12px;
+    color: #10b981;
+    text-align: right;
+    font-weight: 500;
 }
 
-.btn-primary {
-    background: linear-gradient(90deg, var(--primary), #1e40af);
-    color: #fff;
-    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
-}
+/* Responsive */
+@media (max-width: 1024px) {
+    .syscfg-card-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 
-.btn-secondary {
-    background: #f3f4f6;
-    color: var(--text);
-    border: 1px solid rgba(15, 23, 42, 0.04);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    .syscfg-info {
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 20px;
+    }
 }

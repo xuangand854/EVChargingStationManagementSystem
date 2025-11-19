@@ -79,8 +79,11 @@ import UserReport from "./components/profile/UserReport.jsx"
 import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.jsx";
 
 
+
 export default function App() {
+  
   return (
+
     <NotificationProvider>
       <BrowserRouter>
         <ToastContainer
@@ -147,8 +150,8 @@ export default function App() {
           {/* Payment method selection */}
           <Route path="payment-method/:sessionId" element={<PaymentOptionPage />} />
 
-          Shortcut route to session by connectorID
-          <Route path="session/:connectorID" element={<Session />} />
+        
+        <Route path="session/:connectorID" element={<Session />} />
 
           {/* // */}
           <Route path="payment-status/success" element={<Success />} />
@@ -202,7 +205,8 @@ export default function App() {
         <NotificationBubble />
 
       </BrowserRouter>
-    </NotificationProvider>
+      </NotificationProvider>
+
   );
 }
 

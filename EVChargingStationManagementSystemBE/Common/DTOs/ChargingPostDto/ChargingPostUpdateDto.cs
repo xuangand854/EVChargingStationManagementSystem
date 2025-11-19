@@ -6,7 +6,7 @@ namespace Common.DTOs.ChargingPostDto
     {
         public string? PostName { get; set; }
         public string? ConnectorType { get; set; }
-        public int? MaxPowerKW { get; set; }
+        public int? MaxPowerKw { get; set; }
         public Guid? StationId { get; set; }
     }
 }

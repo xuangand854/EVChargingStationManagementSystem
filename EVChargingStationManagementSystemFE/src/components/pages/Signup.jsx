@@ -1,67 +1,70 @@
-import React, { useEffect, useState } from "react";
-import "../pages/Signup.css";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Card } from "antd";
+import { Zap } from "lucide-react";
 import { register as registerApi } from "../../API/Auth";
+import InputField from "../account/InputField";
+import SocialLogin from "../account/SocialLogin";
+import "./signup.css";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [formValues, setFormValues] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
-    phone: "",
   });
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
     document.body.className = "signup-body";
-    return () => {
-      document.body.className = "";
-    };
+    return () => (document.body.className = "");
   }, []);
+
+  const passwordHint =
+    "Mật khẩu: ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt.";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
 
-  // Validate chung: nếu bỏ trống bất kỳ trường bắt buộc nào
-  const validateForm = () => {
-    const { name, email, password, confirmPassword, phone } = formValues;
+    const newErrors = { ...errors };
 
-    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      return "Vui lòng điền đầy đủ thông tin.";
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) newErrors.email = "Email không hợp lệ";
+      else delete newErrors.email;
     }
 
-    // Validate chi tiết nếu đã nhập
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Email không hợp lệ.";
-
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/;
-    if (!passwordRegex.test(password))
-      return "Mật khẩu phải ít nhất 8 ký tự, bao gồm chữ cái, số và ký tự đặc biệt.";
-
-    if (password !== confirmPassword) return "Mật khẩu xác nhận không khớp.";
-
-    if (phone) {
-      const phoneRegex = /^(0|\+84)\d{9,10}$/;
-      if (!phoneRegex.test(phone)) return "Số điện thoại không hợp lệ.";
+    if (name === "password") {
+      const passRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/;
+      if (!passRegex.test(value)) newErrors.password = passwordHint;
+      else delete newErrors.password;
     }
 
-    return null; // không có lỗi
+    if (name === "confirmPassword") {
+      if (value !== formValues.password)
+        newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+      else delete newErrors.confirmPassword;
+    }
+
+    setErrors(newErrors);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
+    const requiredFields = ["name", "email", "password", "confirmPassword"];
+    let formErrors = {};
+    requiredFields.forEach((f) => {
+      if (!formValues[f].trim()) formErrors[f] = "Trường này bắt buộc";
+    });
+    if (Object.keys(errors).length > 0 || Object.keys(formErrors).length > 0) {
+      setErrors({ ...formErrors, ...errors });
       return;
     }
 
@@ -73,95 +76,123 @@ const Signup = () => {
         formValues.name,
         formValues.phone
       );
-      setSuccess(
-        "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản."
-      );
+      setSuccess("Đăng ký thành công! Chuyển tới trang đăng nhập...");
+      setErrors({});
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      const msg = typeof err === "string" ? err : err?.message || "Đăng ký thất bại";
-      setError(msg);
+      setErrors({ api: err.message });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="Signup-container">
-      <h2 className="form-title">Tạo Tài Khoản</h2>
-
-      <form className="Signup-form" onSubmit={handleSubmit}>
-        <div className="input-wrapper">
-          <input
-            name="name"
-            type="text"
-            placeholder="Họ Tên Đầy Đủ"
-            className="input-field"
-            value={formValues.name}
-            onChange={handleChange}
-          />
-          <i className="bx bx-user"></i>
+    <div className="signup-page-wrapper">
+      <div className="signup-page-container">
+        {/* Left Branding */}
+        <div className="signup-branding">
+          <div className="branding-content">
+            <div className="brand-icon">
+              <Zap size={64} color="white" />
+            </div>
+            <h1 className="brand-title">EVCharge</h1>
+            <p className="brand-subtitle">
+              Hệ thống quản lý trạm sạc xe điện thông minh
+            </p>
+          </div>
         </div>
 
-        <div className="input-wrapper">
-          <input
-            name="email"
-            type="email"
-            placeholder="Địa Chỉ Email"
-            className="input-field"
-            value={formValues.email}
-            onChange={handleChange}
-          />
-          <i className="bx bx-envelope"></i>
+        {/* Right Form */}
+        <div className="signup-form-section">
+          <Card className="signup-card">
+            <div className="signup-header">
+              <h2 className="signup-title">Tạo Tài Khoản</h2>
+              <p className="signup-subtitle">Điền đầy đủ thông tin để đăng ký</p>
+            </div>
+
+            <SocialLogin />
+
+            <div className="separator">
+              <span>Hoặc đăng ký với email</span>
+            </div>
+
+            <form className="signup-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <InputField
+                  name="name"
+                  value={formValues.name}
+                  onChange={handleChange}
+                  type="text"
+                  placeholder="Họ và tên"
+                />
+                {errors.name && <div className="error-message">{errors.name}</div>}
+              </div>
+
+              <div className="form-group">
+                <InputField
+                  name="email"
+                  value={formValues.email}
+                  onChange={handleChange}
+                  type="email"
+                  placeholder="Email"
+                />
+                {errors.email && <div className="error-message">{errors.email}</div>}
+              </div>
+
+              <div className="form-group">
+                <InputField
+                  name="phone"
+                  value={formValues.phone}
+                  onChange={handleChange}
+                  type="tel"
+                  placeholder="Số điện thoại (bắt buộc)"
+                />
+              </div>
+
+              <div className="form-group">
+                <InputField
+                  name="password"
+                  value={formValues.password}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Mật khẩu"
+                />
+                {errors.password && (
+                  <div className="input-hint">{errors.password}</div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <InputField
+                  name="confirmPassword"
+                  value={formValues.confirmPassword}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Xác nhận mật khẩu"
+                />
+                {errors.confirmPassword && (
+                  <div className="error-message">{errors.confirmPassword}</div>
+                )}
+              </div>
+
+              {errors.api && <div className="error-message">{errors.api}</div>}
+              {success && (
+                <div className="success-message">{success}</div>
+              )}
+
+              <button className="signup-button" type="submit" disabled={submitting}>
+                {submitting ? "Đang đăng ký..." : "Đăng ký"}
+              </button>
+            </form>
+
+            <div className="signup-section">
+              <p className="signup-text">
+                Bạn đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+              </p>
+            </div>
+          </Card>
         </div>
-
-        <div className="input-wrapper">
-          <input
-            name="phone"
-            type="tel"
-            placeholder="Số Điện Thoại(bắt buộc)"
-            className="input-field"
-            value={formValues.phone}
-            onChange={handleChange}
-          />
-          <i className="bx bx-phone"></i>
-        </div>
-
-        <div className="input-wrapper">
-          <input
-            name="password"
-            type="password"
-            placeholder="Mật Khẩu"
-            className="input-field"
-            value={formValues.password}
-            onChange={handleChange}
-          />
-          <i className="bx bx-lock-alt"></i>
-          <i className="bx bx-hide eye-icon"></i>
-        </div>
-
-        <div className="input-wrapper">
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Xác Nhận Mật Khẩu"
-            className="input-field"
-            value={formValues.confirmPassword}
-            onChange={handleChange}
-          />
-          <i className="bx bx-lock-alt"></i>
-        </div>
-
-        {error && <p style={{ color: "#d00", marginBottom: "12px" }}>{error}</p>}
-        {success && <p style={{ color: "#0a0", marginBottom: "12px" }}>{success}</p>}
-
-        <button type="submit" className="login-button" disabled={submitting}>
-          {submitting ? "Signing Up..." : "Sign Up"}
-        </button>
-      </form>
-
-      <p className="signup-text">
-        Already have an account? <Link to="/login">Log in</Link>
-      </p>
+      </div>
     </div>
   );
 };

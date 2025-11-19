@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { addBooking ,MyBooking} from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
@@ -24,8 +24,9 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [checkInCode,setcheckInCode]= useState(null);
   const [isStationLocked, setIsStationLocked] = useState(false);
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
   
-  // const navigate = useNavigate();
+  
   
 
   const [bookingData, setBookingData] = useState({
@@ -101,7 +102,14 @@ console.log("Lấy Role:", role);
       <div className="popup-overlay" onClick={onClose}>
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
           <h3> Xin hãy đăng nhập để có thể sử dụng dịch vụ.</h3>
-          <div className="btn-buttonlogin"><Login /></div>
+          <div className="btn-buttonlogin">
+              <button
+                className="btn-login"
+                onClick={() => navigate("/login")}
+              >
+                Đăng nhập
+              </button>
+            </div>
           
         </div>
       </div>
@@ -134,6 +142,9 @@ console.log("Lấy Role:", role);
       </div>
     );
   }
+  const userVehicles = vehicleModels.filter(v =>
+    profile?.selectedVehicles?.includes(v.id)
+  );
 
   const normalize = (str = "") =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -150,12 +161,12 @@ console.log("Lấy Role:", role);
     : stations;
 
   const filteredVehicles = termVehicle
-    ? vehicleModels.filter(
+    ? userVehicles.filter(
         (v) =>
           normalize(v.modelName).includes(normalize(termVehicle)) ||
           normalize(v.vehicleType).includes(normalize(termVehicle))
       )
-    : vehicleModels;
+    : userVehicles;
 
   const handleSelectStation = (st) => {
     setTermStation(st.stationName);

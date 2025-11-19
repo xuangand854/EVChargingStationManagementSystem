@@ -51,12 +51,15 @@ api.interceptors.response.use(
       const status = error.response.status;
 
       if (status === 401) {
-        return Promise.reject(new Error("Phiên đăng nhập đã hết hạn"));
+        error.customMessage = "Phiên đăng nhập đã hết hạn";
+        return Promise.reject(error);
       }
 
       if (status === 403) {
-        return Promise.reject(new Error("Không có quyền truy cập"));
+        error.customMessage = "Không có quyền truy cập";
+        return Promise.reject(error);
       }
+
 
 
       // Giữ nguyên cấu trúc lỗi validation (400 Bad Request)
@@ -67,19 +70,22 @@ api.interceptors.response.use(
       if (status === 409 && error.response.data?.message) {
         return Promise.reject(error.response.data);
       }
-
       let message = "";
       if (typeof error.response.data === "string" && error.response.data.trim() !== "") {
         message = error.response.data;
       } else {
         message =
           error.response.data?.message ||
-          error.response.data ||
           HTTP_ERROR_MESSAGES[status] ||
           `Lỗi HTTP status ${status}`;
       }
 
-      return Promise.reject(message);
+      // gắn thêm customMessage để frontend dùng
+      error.customMessage = message;
+      return Promise.reject(error);
+
+
+
     }
 
     return Promise.reject(error);

@@ -62,6 +62,30 @@ namespace BusinessLogic.Services
             }
         }
 
+        public async Task<IServiceResult> GetByConnector(Guid connectorId)
+        {
+            try
+            {
+                var chargingSession = await _unitOfWork.ChargingSessionRepository.GetQueryable()
+                    .AsNoTracking()
+                    .Where(v => !v.IsDeleted && v.ConnectorId == connectorId && v.Status.Equals(ChargingSessionStatus.Completed.ToString()))
+                    .OrderByDescending(v => v.UpdatedAt)
+                    .ProjectToType<ChargingSessionViewDetailDto>()
+                    .FirstOrDefaultAsync();
+                if (chargingSession == null)
+                    return new ServiceResult(
+                        Const.WARNING_NO_DATA_CODE,
+                        "Không tìm thấy phiên sạc nào"
+                    );
+
+                return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingSession);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
+            }
+        }
+
         public async Task<IServiceResult> Start(ChargingSessionStartDto dto)
         {
             try

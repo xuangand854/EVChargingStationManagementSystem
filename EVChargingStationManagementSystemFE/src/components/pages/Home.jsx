@@ -91,7 +91,7 @@ const Home = () => {
                 <header className="home-hero">
                     <div className="hero-content">
                         <h1>
-                            <span className="brand-orange">Sạc xe điện thông minh</span>
+                            <span className="brand-orange">Quản Lý Trạm Sạc Xe Điện Thông Minh</span>
                             <span className="brand-gradient"> EVOne</span>
                         </h1>
                         <p>Tìm, đặt chỗ và sạc nhanh ở mọi nơi bạn đến.</p>

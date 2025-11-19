@@ -106,10 +106,7 @@ const Signup = () => {
             <div className="brand-icon">
               <Zap size={64} color="white" />
             </div>
-            <h1 className="brand-title">EVCharge</h1>
-            <p className="brand-subtitle">
-              Hệ thống quản lý trạm sạc xe điện thông minh
-            </p>
+            <h1 className="brand-title">Hệ thống quản lý trạm sạc xe điện </h1>
           </div>
         </div>
 

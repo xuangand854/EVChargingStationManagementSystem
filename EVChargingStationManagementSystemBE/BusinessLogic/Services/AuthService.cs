@@ -26,6 +26,12 @@ namespace BusinessLogic.Services
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         public async Task<IServiceResult> RegisterAccount(RegisterAccountDto dto)
         {
+            var phoneExists = await _unitOfWork.UserAccountRepository.GetQueryable()
+            .AsNoTracking()
+            .AnyAsync(u => !u.IsDeleted && u.PhoneNumber == dto.Phone);
+
+            if (phoneExists)
+                return new ServiceResult(Const.FAIL_CREATE_CODE, "Số điện thoại của bạn đã được đăng ký");
             var user = new UserAccount();
             dto.Adapt(user);
             user.RegistrationDate = DateTime.UtcNow;

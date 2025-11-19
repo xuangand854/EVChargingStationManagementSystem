@@ -2,13 +2,23 @@ import api from "./axios";
 
 const BASE_URL = "/Voucher";
 
-//getallvoucher
+//getallvoucher(user)
 export const GetVoucher = async () => {
     try {
         const response = await api.get(`${BASE_URL}`);
         return response.data;
     } catch (error) {
         console.error('Lỗi khi lấy danh sách voucher:', error);
+        throw error;
+    }
+}
+
+export const GetAdminVouchers = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/admin`);
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách voucher cho admin:', error);
         throw error;
     }
 }

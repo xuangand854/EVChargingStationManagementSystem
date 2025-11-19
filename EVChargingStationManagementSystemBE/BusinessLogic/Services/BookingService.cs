@@ -436,7 +436,7 @@ namespace BusinessLogic.Services
         // Khóa tài khoản EVDriver nếu trong ngày có >= 3 lần hủy không hợp lệ hoặc auto-cancel
         public async Task LockAccountsWithTooManyNoShows()
         {
-            int threshold = 3;
+            int threshold = 1;
             DateTime today = DateTime.Now.Date;
 
             var evDrivers = await _unitOfWork.EVDriverRepository.GetAllAsync(

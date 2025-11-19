@@ -78,6 +78,7 @@ import AdminReportContainer from "./components/pages/admin/AdminReportContainer.
 import UserReport from "./components/profile/UserReport.jsx"
 import AdminFeedbackPage from "./components/pages/admin/AdminFeedBackContainer.jsx";
 import AdminUser from "./components/pages/admin/Users.jsx"
+import PaymentHistory from "./components/profile/PaymentHistory.jsx";
 
 
 
@@ -120,6 +121,7 @@ export default function App() {
             <Route path="report-page" element={<ReportPage />} />
             <Route path="rating-page" element={<RatingPage />} />
             <Route path="user-report" element={<UserReport />} />
+            <Route path="payment-history" element={<PaymentHistory />} />
 
             {/* // */}
             {/* Trạm Sạc */}

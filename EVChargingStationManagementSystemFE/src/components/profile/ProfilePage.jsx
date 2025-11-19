@@ -73,19 +73,11 @@ const ProfilePage = () => {
 
   const quickActions = [
     { title: "Tìm trạm sạc", icon: <MapPin size={20} />, path: "/order-charging" },
-<<<<<<< Updated upstream
     { title: "Lịch sử đặt lịch", icon: <Calendar size={20} />, path: "/orders" },
-     { title: "Tài khoản", icon: <User size={20} />, path: "/profile", rolesAllowed: ["EVDriver", "user"] }, // chỉ user/EVDriver
-    { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/user-report" ,rolesAllowed: ["EVDriver", "user"] },
-    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page",rolesAllowed: ["EVDriver", "user"]  },
-=======
-    { title: "Lịch sử sạc", icon: <Calendar size={20} />, path: "/orders" },
     { title: "Lịch sử thanh toán", icon: <Receipt size={20} />, path: "/payment-history", rolesAllowed: ["EVDriver", "user"] },
     { title: "Tài khoản", icon: <User size={20} />, path: "/profile", rolesAllowed: ["EVDriver", "user"] }, // chỉ user/EVDriver
-    { title: "Gói dịch vụ", icon: <BarChart2 size={20} />, path: "#" },
     { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/user-report", rolesAllowed: ["EVDriver", "user"] },
     { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page", rolesAllowed: ["EVDriver", "user"] },
->>>>>>> Stashed changes
   ];
 
   const formatDateTime = (isoString) => {

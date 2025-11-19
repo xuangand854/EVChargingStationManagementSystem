@@ -240,6 +240,56 @@ const Home = () => {
 
 
 
+                    {/* Nút mở popup chọn trạm */}
+                    <div className="search-bar">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                                const role = (localStorage.getItem("user_role") || "").toLowerCase();
+
+                                if (role === "admin") {
+                                navigate("/admin/admin-map");  
+                                } else {
+                                navigate("/order-charging");    
+                                }
+                            }}
+                            >
+                            Chọn trạm sạc
+                        </button>
+                    </div>
+
+                    {/* Popup danh sách trạm */}
+                    {suggestions.length > 0 && (
+                        <div className="popup-overlay">
+                            <div className="popup-content">
+                                <h3>Danh sách trạm</h3>
+                                <ul className="station-select-list">
+                                    {suggestions.map((station) => (
+                                        <li
+                                            key={station.id}
+                                            onClick={() => {
+                                                handleSelectStation(station);
+                                                setSuggestions([]); // đóng popup
+                                            }}
+                                        >
+                                            <b>{station.name}</b> - {station.address}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setSuggestions([])} // đóng popup khi bấm hủy
+                                >
+                                    Đóng
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* OpenStreetMap Integration */}
+                    
+                
+      
 
 
 

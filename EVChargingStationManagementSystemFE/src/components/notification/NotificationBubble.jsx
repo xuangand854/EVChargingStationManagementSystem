@@ -6,11 +6,12 @@ import { getNotificattion, getNotificattionUnRead } from "../../API/Notificattio
 import "./NotificationBubble.css";
 
 const NotificationBubble = () => {
-  const { notifications, addNotification, clearNotifications } = useNotifications();
+  const { notifications, addNotification, clearNotifications, unReadCount, setUnReadCount } =
+    useNotifications();
+
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(getAuthStatus().isAuthenticated);
   const [role, setRole] = useState(getAuthStatus().user?.role);
-  const [unReadCount, setUnReadCount] = useState(0);
 
   // Lắng nghe auth thay đổi
   useEffect(() => {
@@ -23,7 +24,7 @@ const NotificationBubble = () => {
     return () => window.removeEventListener("auth-changed", handleAuthChanged);
   }, []);
 
-  // Load notifications khi đăng nhập
+  // Load notifications khi login
   useEffect(() => {
     const loadNotifications = async () => {
       if (!loggedIn) return;
@@ -36,8 +37,11 @@ const NotificationBubble = () => {
           ]);
 
           const today = new Date().toDateString();
-          const notificationsArray = (allResponse.data?.data || allResponse.data || [])
-            .filter(n => new Date(n.createdAt).toDateString() === today);
+
+          const notificationsArray =
+            (allResponse.data?.data || allResponse.data || []).filter(
+              n => new Date(n.createdAt).toDateString() === today
+            );
 
           clearNotifications();
 
@@ -46,44 +50,39 @@ const NotificationBubble = () => {
               id: n.id,
               title: n.title,
               type: n.type || "System",
-              createdAt: n.createdAt
+              createdAt: n.createdAt,
             })
           );
 
-          // Kiểm tra xem người dùng đã mở panel chưa
-          const seenToday = localStorage.getItem("notificationsSeenDay");
-          if (seenToday === today) {
-            setUnReadCount(0);
-          } else {
-            setUnReadCount(unreadResponse?.data?.count || notificationsArray.length);
-          }
+          // Set unread từ API
+          setUnReadCount(unreadResponse?.data?.count || notificationsArray.length);
         } else {
-          // User bình thường → thông báo welcome 1 lần trong ngày
           const today = new Date().toDateString();
           const welcomeSentDay = localStorage.getItem("welcomeNotificationSentDay");
+
           if (welcomeSentDay !== today) {
             addNotification({
               id: "welcome",
               title: "Chào mừng tài xế xe điện đến với dịch vụ trạm sạc!",
               type: "User",
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
             });
+
             localStorage.setItem("welcomeNotificationSentDay", today);
           }
         }
       } catch (err) {
-        console.error("❌ Load notifications failed:", err.response?.data || err.message);
+        console.error("❌ Load notifications failed:", err);
       }
     };
 
     loadNotifications();
-  }, [loggedIn, role, addNotification, clearNotifications]);
+  }, [loggedIn, role]);
 
-  // Mở/đóng panel
+  // Mở panel = đánh dấu đã xem
   const handleOpenPanel = () => {
     setOpen(prev => !prev);
 
-    // Nếu mở panel → đánh dấu đã xem
     if (!open) {
       setUnReadCount(0);
       localStorage.setItem("notificationsSeenDay", new Date().toDateString());

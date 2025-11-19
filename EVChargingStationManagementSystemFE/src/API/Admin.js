@@ -11,7 +11,7 @@ const BASE_URL = "/VehicleModel";
 export const getVehicleModels = async () => {
   try {
     const response = await api.get(`${BASE_URL}`);
-    console.log('Danh Sách VehicleModel:', response.data);
+    
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy danh sách vehicleModel:', error);
@@ -37,7 +37,7 @@ export const addVehicalModel = async (
             imageUrl
         });
 
-        console.log('Thêm VehicleModel - Response:', response.data);
+        
         return response.data;
     } catch (error) {
         console.error('Lỗi khi thêm VehicleModel:', error.response?.data || error);
@@ -52,7 +52,7 @@ export const addVehicalModel = async (
 export const updateVehicle = async (modelData) => {
   try {
     const response = await api.put(`${BASE_URL}`, modelData); {
-      console.log('cập nhật VehicalModel - Responese', response);
+      
       return response.data;
     }
   } catch (error) {
@@ -67,7 +67,7 @@ export const deleteVehicle = async (id) => {
     const response = await api.delete(`/VehicleModel`, {
       params: { vehicleModelId: id } // gửi id dưới dạng query param
     });
-    console.log('xóa VehicleModel - Response', response);
+    
     return response.data;
   } catch (error) {
     console.error('lỗi khi xóa VehicleModel', error);
@@ -80,7 +80,7 @@ export const deleteVehicle = async (id) => {
 export const getVehicleById = async (id) => {
   try {
     const response = await api.get(`${BASE_URL}/${id}`);
-    console.log('chi tiết VehicleModel:', response.data);
+    
     return response.data;
   } catch (error) {
     console.error('lỗi khi lấy chi tiết VehicleModel:', error);
@@ -95,7 +95,7 @@ export const updateVehicleStatus = async (id, status) => {
       id,
       status,
     });
-    console.log('cập nhật status VehicleModel - Responese', response.data);
+    
     return response.data;
   } catch (error) {
     console.error('lỗi khi cập nhật status VehicleModel:', error);

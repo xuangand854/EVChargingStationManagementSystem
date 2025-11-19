@@ -39,22 +39,15 @@ const Login = () => {
       setSubmitting(true);
       const result = await loginApi(formValues.email, formValues.password);
 
-      // Lấy role từ kết quả login (đã decode JWT trong API)
-      const userRole = result?.user?.role || localStorage.getItem("user_role");
 
-      console.log("🔍 User role:", userRole);
+      // lấy role từ kết quả hoặc localStorage
+      const userRole = (result?.user?.role || localStorage.getItem("user_role") || "")
+        .trim()
+        .toLowerCase();
 
-      // Điều hướng theo role
-      if (userRole === "Admin") {
-        navigate("/admin/station", { replace: true });
-      } else if (userRole === "Staff") {
-        navigate("/staff", { replace: true });
-      } else {
-        // EVDriver hoặc role khác
-        navigate("/", { replace: true });
-      }
-
-      // Phát sự kiện để UI cập nhật
+      if (userRole === "admin") navigate("/admin");
+      else if (userRole === "staff") navigate("/staff");
+      else navigate("/");
       window.dispatchEvent(new Event("auth-changed"));
 
     } catch (err) {

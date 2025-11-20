@@ -116,8 +116,11 @@ const handleCancel = async (orderId) => {
                     {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thành</span>}
                     {order.status === "InProgress" && <span className={"inprogress"}>Đang trong quá trình xử lý</span>}
                     {order.status === "Cancelled" && <span className={"cancelled"}>Yêu Cầu Đặt Lịch Sạc Của Bạn Đã Hủy Hợp Lệ </span>}
-                    {order.status === "CompensatedCancelled" && <span className={"cancelled"}>Hủy Đặt Chổ Ko Hợp Lệ </span>}
-
+                    {order.status === "CancelledInvalid" && <span className={"cancelled"}>Hủy Đặt Chổ Ko Hợp Lệ </span>}
+                    {order.status === "CompensatedCancelled" && <span className={"cancelled"}>Hủy Đặt Lịch Có Bồi Thường </span>}
+                    {order.status === "AutoCancelled" && <span className={"cancelled"}>Đơn Đặt Lịch Tự Động Hủy</span>}
+                    {order.status === "Waiting" && <span className={"inprogress"}>Chờ Đơn Đặt Lịch Sạc</span>}
+                    {order.status === "Rejected" && <span className={"icancelled"}>Từ Chối Đặt Chổ </span>}
                   </p>
                   {order.status === "Scheduled" && (
                     <button

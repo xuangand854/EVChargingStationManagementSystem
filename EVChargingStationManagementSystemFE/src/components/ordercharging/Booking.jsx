@@ -241,6 +241,8 @@ console.log("Lấy Role:", role);
       toast.error("Tài khoản của bạn chưa được xác thực. Vui lòng xác thực trước khi đặt lịch!");
     } else if (msg.includes("Tất cả cổng sạc tại trạm đều đã được đặt trong thời gian này.")) {
       toast.warning("Trạm sạc hiện không có cổng sạc khả dụng, vui lòng thử lại trạm khác!");
+    }else if (msg.includes("Trạm sạc hiện không có cổng sạc hoạt động.")) {
+      toast.warning("Trạm sạc hiện không có cổng sạc hoạt động vui lòng chọn trạm khác ");
     } else {
       toast.error("Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
     }

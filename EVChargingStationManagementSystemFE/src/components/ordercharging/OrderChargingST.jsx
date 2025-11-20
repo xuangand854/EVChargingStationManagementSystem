@@ -709,18 +709,12 @@ const OrderChargingST = () => {
 
 
                     // (Optional) Kiểm tra còn trụ available
-                    const hasAvailablePost = posts.some(p => p.status?.toLowerCase() === "available");
+                    const activePile = stationPosts[station.id]?.some(
+                        p => p.status?.toLowerCase() === "available"
+                      );
 
-                    if (!hasAvailablePost) {
-                      toast.warning("Trạm này hiện không còn trụ nào khả dụng!");
-                      return;
-                    }
-
-
-                      // Kiểm tra trụ active
-                      const activePile = stationPosts[station.id]?.some(p => p.status === "Available");
                       if (!activePile) {
-                        toast.warning("Trạm này không còn trụ sạc nào hoạt động!");
+                        toast.warning("Trạm này không còn trụ sạc nào khả dụng!");
                         return;
                       }
 

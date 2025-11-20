@@ -154,11 +154,11 @@ export default function SystemConfigEditor() {
                                     <div className="syscfg-description">
                                         {it.description}
                                     </div>
-                                    {it.unit && (
+                                    {/* {it.unit && (
                                         <div className="syscfg-unit">
                                             Đơn vị: <strong>{it.unit}</strong>
                                         </div>
-                                    )}
+                                    )} */}
                                 </div>
 
                                 {/* Right: Form */}

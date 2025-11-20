@@ -33,7 +33,6 @@ const ChargingPost = ({ onClose, onUpdated }) => {
   const statusMap = {
     InActive: 0,
     Available: 1,
-    
     Maintained: 2,
   };
 

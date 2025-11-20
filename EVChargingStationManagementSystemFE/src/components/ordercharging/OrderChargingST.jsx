@@ -134,7 +134,7 @@ const OrderChargingST = () => {
 
   //Tính khoảng cách giữa 2 điểm (Haversine)
   const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
+    const R = 6371;//ban kinh trai đat
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -142,7 +142,7 @@ const OrderChargingST = () => {
       Math.cos((lat1 * Math.PI) / 180) *
         Math.cos((lat2 * Math.PI) / 180) *
         Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));//trả về góc trung tâm giữa hai điểm.
   };
   const formatDistance = (km) => {
   if (km < 1) return `${Math.round(km * 1000)} m`;
@@ -204,8 +204,7 @@ const OrderChargingST = () => {
               authStatus.user.role ||
               authStatus.user.user_role ||
               authStatus.user.user_role_raw ||
-              authStatus.role ||
-              "",
+              authStatus.role ||"",
           };
           setUser(userData);
         } else setUser(null);
@@ -247,7 +246,7 @@ const OrderChargingST = () => {
     }
   };
 
-  // --- Làm mới vị trí (nếu muốn ép cập nhật) ---
+  // --- Làm mới vị trí (ép cập nhật) ---
   const handleRefreshLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Trình duyệt không hỗ trợ định vị!");

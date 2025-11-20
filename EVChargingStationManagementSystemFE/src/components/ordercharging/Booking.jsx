@@ -24,9 +24,6 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [isStationLocked, setIsStationLocked] = useState(false);
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
-  
-  
-  
 
   const [bookingData, setBookingData] = useState({
     stationId: stationId || "",

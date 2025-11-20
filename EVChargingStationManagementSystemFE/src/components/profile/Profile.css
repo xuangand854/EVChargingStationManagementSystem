@@ -6,7 +6,7 @@
    COLORS & ROOT VARIABLES
 =============================== */
 :root {
-  --ev-primary: #0ea5e9;        /* Electric blue */
+  --ev-primary: #0ea5e9;        
   --ev-primary-dark: #0284c7;
   --ev-bg: #f0f4f8;             /* Background page */
   --ev-card-bg: #ffffff;        /* Card background */
@@ -32,6 +32,24 @@ body {
   padding: 4px; 
    
 }
+
+.setting-icon {
+  font-size: 24px;
+  color: 135deg, #00b09b 0%, #96c93d 100%;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+
+/* Hover effect */
+.setting-icon:hover {
+  color: white;
+  background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  cursor: pointer;
+  transform: translateY(-2px);
+}
+
+
 
 /* ===============================
    SIDEBAR – Dark Card

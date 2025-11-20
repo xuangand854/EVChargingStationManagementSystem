@@ -225,7 +225,7 @@ const handlePasswordChange = async () => {
             <h2>Thông tin cá nhân</h2>
             {mode === "view" && (
               <button className="edit-btn" onClick={() => setMode("edit")}>
-                <SettingOutlined style={{ fontSize: '24px', color: '#000' }} />
+                <SettingOutlined className="setting-icon" />
               </button>
             )}
           </div>

@@ -106,7 +106,7 @@ const BookingOrder = () => {
               {filteredBookings.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="no-booking">
-                    Không có booking nào phù hợp.
+                    Không có lích đặt sạc nào phù hợp.
                   </td>
                 </tr>
               ) : (

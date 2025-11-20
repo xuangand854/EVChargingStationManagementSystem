@@ -4,8 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import "./ReportPage.css";
 
 import { addReport } from "../../API/Report";
-import { getChargingStation } from "../../API/Station";
-import { getAllChargingPost } from "../../API/ChargingPost";
+import { getChargingStation, getStaffWorkingStation } from "../../API/Station";
 
 const ReportPage = () => {
   const navigate = useNavigate();
@@ -28,45 +27,75 @@ const ReportPage = () => {
   const [showStationList, setShowStationList] = useState(false);
   const [showPostList, setShowPostList] = useState(false);
 
+  // Hàm bỏ dấu tiếng Việt
+  const removeVietnameseTones = (str) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
 
-  // Lấy danh sách trạm
-
+  // Load trạm nhân viên + danh sách trạm
   useEffect(() => {
-    const fetchStations = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getChargingStation();
-        const stationList = Array.isArray(res) ? res : Array.isArray(res.data) ? res.data : [];
-        setStations(stationList);
+        // Load trạm nhân viên
+        const staffRes = await getStaffWorkingStation();
+        const staffStation = staffRes?.data;
+
+        // Load toàn bộ trạm
+        const allStationsRes = await getChargingStation();
+        const allStations = Array.isArray(allStationsRes)
+          ? allStationsRes
+          : Array.isArray(allStationsRes.data)
+          ? allStationsRes.data
+          : [];
+
+        setStations(allStations);
+
+        if (staffStation) {
+          // Set trạm nhân viên tự động
+          setFormData((prev) => ({
+            ...prev,
+            stationId: staffStation.id,
+          }));
+          setStationSearch(staffStation.stationName || "");
+
+          // Set danh sách trụ sạc từ API
+          setPosts(
+            Array.isArray(staffStation.chargingPosts)
+              ? staffStation.chargingPosts
+              : []
+          );
+        }
       } catch (err) {
         console.error("Lỗi khi lấy trạm:", err);
         setStations([]);
+        setPosts([]);
       }
     };
-    fetchStations();
+    fetchData();
   }, []);
 
+  // Lọc danh sách trạm
+  const filteredStations = Array.isArray(stations)
+    ? stations.filter((s) =>
+        s.stationName?.toLowerCase().includes(stationSearch.toLowerCase())
+      )
+    : [];
 
-  // Lấy danh sách cột sạc theo trạm
-
-  useEffect(() => {
-    if (!formData.stationId) {
-      setPosts([]);
-      return;
-    }
-    const fetchPosts = async () => {
-      try {
-        const data = await getAllChargingPost(formData.stationId);
-        setPosts(data || []);
-      } catch (err) {
-        console.error("Lỗi khi lấy post:", err);
-      }
-    };
-    fetchPosts();
-  }, [formData.stationId]);
-
+  // Lọc danh sách trụ
+  const filteredPosts = Array.isArray(posts)
+    ? posts.filter((p) => {
+        const search = removeVietnameseTones(postSearch);
+        const code = removeVietnameseTones(p.postName || "");
+        const name = removeVietnameseTones(p.postName || "");
+        const idStr = (p.id || "").toString();
+        return code.includes(search) || name.includes(search) || idStr.includes(search);
+      })
+    : [];
 
   // Submit form
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -84,7 +113,7 @@ const ReportPage = () => {
       postId: formData.postId || null,
     };
 
-    console.log(" Payload gửi lên:", payload);
+    console.log("Payload gửi lên:", payload);
 
     try {
       setLoading(true);
@@ -96,7 +125,7 @@ const ReportPage = () => {
         payload.stationId,
         payload.postId
       );
-      setMessage(" Báo cáo đã gửi thành công!");
+      setMessage("✅ Báo cáo đã gửi thành công!");
       setFormData({
         title: "",
         reportType: "",
@@ -111,42 +140,18 @@ const ReportPage = () => {
       setShowPostList(false);
       setTimeout(() => navigate("/staff/staff-report"), 1500);
     } catch (err) {
-      console.error(" Lỗi gửi báo cáo:", err);
-      setMessage(" Gửi báo cáo thất bại!");
+      console.error("Lỗi gửi báo cáo:", err);
+      setMessage("❌ Gửi báo cáo thất bại!");
     } finally {
       setLoading(false);
     }
   };
 
-
-  // Filter danh sách trạm & cột
-  // Hàm bỏ dấu
-const removeVietnameseTones = (str) => {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
-    .toLowerCase();
-};
-
-  const filteredStations = Array.isArray(stations)
-    ? stations.filter((s) => s.stationName?.toLowerCase().includes(stationSearch.toLowerCase()))
-    : [];
-
-const filteredPosts = Array.isArray(posts)
-  ? posts.filter((p) => {
-      const search = removeVietnameseTones(postSearch);
-      const code = removeVietnameseTones(p.postCode || "");
-      const name = removeVietnameseTones(p.postName || "");
-      const idStr = (p.id || "").toString();
-      return code.includes(search) || name.includes(search) || idStr.includes(search);
-    })
-  : [];
-
   return (
     <div className="report-page">
       <div className="page-header">
         <h1>Gửi báo cáo</h1>
-        <p>Hãy mô tả vấn gửi cho hệ thống</p>
+        <p>Hãy mô tả vấn đề gửi cho hệ thống</p>
       </div>
 
       <div className="form-container">
@@ -202,36 +207,13 @@ const filteredPosts = Array.isArray(posts)
               type="text"
               placeholder="Tìm trạm sạc..."
               value={stationSearch}
+              readOnly
               onFocus={() => setShowStationList(true)}
-              onChange={(e) => {
-                setStationSearch(e.target.value);
-                setShowStationList(true);
-              }}
             />
-            {showStationList && stationSearch && (
-              <ul className="dropdown-list">
-                {filteredStations.length > 0 ? (
-                  filteredStations.map((s) => (
-                    <li
-                      key={s.id}
-                      onClick={() => {
-                        setFormData({ ...formData, stationId: s.id, postId: "" });
-                        setStationSearch(s.stationName);
-                        setShowStationList(false);
-                        setPostSearch("");
-                      }}
-                    >
-                      {s.stationName} ({s.province})
-                    </li>
-                  ))
-                ) : (
-                  <li className="no-result">Không tìm thấy trạm phù hợp</li>
-                )}
-              </ul>
-            )}
+            
           </div>
 
-          {/* Cột sạc */}
+          {/* Trụ sạc */}
           <div className="form-group" style={{ position: "relative" }}>
             <label>Trụ sạc</label>
             <input
@@ -246,26 +228,25 @@ const filteredPosts = Array.isArray(posts)
               }}
             />
             {showPostList && (
-                <ul className="dropdown-list">
-                  {filteredPosts.length > 0 ? (
-                    filteredPosts.map((p) => (
-                      <li
-                        key={p.id}
-                        onClick={() => {
-                          setFormData({ ...formData, postId: p.id }); 
-                          setPostSearch(p.postName || p.postCode || `Trụ:${p.id}`);
-                          setShowPostList(false);
-                        }}
-                      >
-                        {p.postName || p.postCode || `Trụ:${p.id}`}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="no-result">Không tìm thấy trụ phù hợp</li>
-                  )}
-                </ul>
-              )}
-
+              <ul className="dropdown-list">
+                {filteredPosts.length > 0 ? (
+                  filteredPosts.map((p) => (
+                    <li
+                      key={p.id}
+                      onClick={() => {
+                        setFormData({ ...formData, postId: p.id });
+                        setPostSearch(p.postName || p.postCode || `Trụ:${p.id}`);
+                        setShowPostList(false);
+                      }}
+                    >
+                      {p.postName || p.postCode || `Trụ:${p.id}`}
+                    </li>
+                  ))
+                ) : (
+                  <li className="no-result">Không tìm thấy trụ phù hợp</li>
+                )}
+              </ul>
+            )}
           </div>
 
           {/* Mô tả */}
@@ -278,19 +259,20 @@ const filteredPosts = Array.isArray(posts)
             />
           </div>
 
-          {/* Buttons */}
+          {/* Button submit */}
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? "Đang gửi..." : "Gửi báo cáo"}
           </button>
 
-          
+          {message && (
+            <div
+              className="notify"
+              style={{ marginTop: "10px", color: message.includes("✅") ? "green" : "red" }}
+            >
+              {message}
+            </div>
+          )}
         </form>
-
-        {message && (
-          <div className="notify" style={{ marginTop: "10px", color: message.includes("✅") ? "green" : "red" }}>
-            {message}
-          </div>
-        )}
       </div>
     </div>
   );

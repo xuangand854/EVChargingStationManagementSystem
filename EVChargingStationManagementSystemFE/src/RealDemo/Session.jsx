@@ -939,15 +939,17 @@ const Session = () => {
                                     {connectorStatus === "Charging" && "⚡"}
                                     {connectorStatus === "InUse" && "🔌"}
                                     {connectorStatus === "Available" && "⏸️"}
+                                    {connectorStatus === "Reserved" && "�"}
                                     {connectorStatus === "Preparing" && "🔄"}
-                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Preparing" && "⚠️"}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Reserved" && connectorStatus !== "Preparing" && "⚠️"}
                                 </span>
                                 <span className="font-bold">
                                     {connectorStatus === "Charging" && "Đang sạc"}
                                     {connectorStatus === "InUse" && "Đã cắm - Sẵn sàng"}
                                     {connectorStatus === "Available" && "Chưa kết nối"}
+                                    {connectorStatus === "Reserved" && "Đã đặt trước"}
                                     {connectorStatus === "Preparing" && "Sẵn sàng sạc"}
-                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Preparing" && connectorStatus}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Reserved" && connectorStatus !== "Preparing" && connectorStatus}
                                 </span>
                                 {connectorStatus === "Charging" && (
                                     <div className="ml-2 px-3 py-1.5 rounded-full" style={{

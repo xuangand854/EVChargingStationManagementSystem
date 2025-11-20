@@ -6,13 +6,12 @@ import { addBooking ,MyBooking} from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
 import { getEVDriverProfile} from "../../API/EVDriver.js";
 import { jwtDecode } from "jwt-decode";
-import { useNotifications } from "../notification/useNotifications";
+import { useNotifications } from "../notification/NotificationContext.jsx";
 import {getChargingStationId} from "../../API/Station.js"
 
 
 import "react-toastify/dist/ReactToastify.css";
 import "./Booking.css";
-import Login from "../pages/Login.jsx";
 export default function BookingPopup({ stations = [], stationId, onClose, onAdded }) {
   const [termStation, setTermStation] = useState("");
   const [termVehicle, setTermVehicle] = useState("");

@@ -5,7 +5,7 @@ import { Zap } from "lucide-react";
 import { register as registerApi } from "../../API/Auth";
 import InputField from "../account/InputField";
 import SocialLogin from "../account/SocialLogin";
-import "./signup.css";
+import "./Signup.css";
 
 const Signup = () => {
   const navigate = useNavigate();

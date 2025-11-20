@@ -90,7 +90,7 @@ namespace BusinessLogic.Services
                 var bookingEndTime = dto.StartTime.AddMinutes(60); // mặc định 60 phút
 
                 var usableConnectors = station.ChargingPosts
-                    .Where(cp => !cp.IsDeleted && cp.Status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                    .Where(cp => !cp.IsDeleted && cp.Status.Equals("Available", StringComparison.OrdinalIgnoreCase))
                     .SelectMany(cp => cp.Connectors)
                     .Where(c =>
                         !c.IsDeleted &&

@@ -605,59 +605,97 @@ namespace BusinessLogic.Services
             {
                 var station = booking.ChargingStationNavigation;
 
-                Connector connector = null;
+                // Tìm connector khả dụng
+                var connector = station.ChargingPosts
+                    .SelectMany(p => p.Connectors)
+                    .FirstOrDefault(c => c.Status == ConnectorStatus.Available.ToString());
 
-                // CASE 1: Booking chưa có connector → chọn 1 connector còn Available
-                if (booking.ConnectorId == null)
+                if (connector == null)
                 {
-                    connector = station.ChargingPosts
-                        .SelectMany(p => p.Connectors)
-                        .FirstOrDefault(c => c.Status == ConnectorStatus.Available.ToString());
+                    // Không có connector khả dụng → kiểm tra booking khác trong trạm
+                    var blockingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                        b => b.ChargingStationNavigation.Id == station.Id &&
+                             b.Status == BookingStatus.Scheduled.ToString() &&
+                             b.EndTime > booking.StartTime,
+                        asNoTracking: false
+                    );
 
-                    if (connector == null)
+                    var nearestBlocking = blockingBookings
+                        .OrderBy(b => b.EndTime)
+                        .FirstOrDefault();
+
+                    if (nearestBlocking != null)
                     {
-                        booking.Status = BookingStatus.AutoCancelled.ToString();
-                        booking.UpdatedAt = now;
-                        continue;
-                    }
+                        var diff = nearestBlocking.EndTime - booking.StartTime;
 
-                    booking.ConnectorId = connector.Id;
-                    booking.UpdatedAt = now;
-                }
-                else
-                {
-                    // CASE 2: Booking đã có connector nhưng connector không còn Available
-                    connector = booking.ConnectorNavigation;
-
-                    if (connector.Status != ConnectorStatus.Available.ToString())
-                    {
-                        var alternative = station.ChargingPosts
-                            .SelectMany(p => p.Connectors)
-                            .FirstOrDefault(c => c.Status == ConnectorStatus.Available.ToString());
-
-                        if (alternative == null)
+                        if (diff.TotalMinutes <= 10)
                         {
-                            booking.Status = BookingStatus.AutoCancelled.ToString();
+                            // Cho booking mới chờ
+                            booking.Status = BookingStatus.Waiting.ToString();
                             booking.UpdatedAt = now;
                             continue;
                         }
+                        else
+                        {
+                            // Hủy booking cũ nhưng bồi thường
+                            nearestBlocking.Status = BookingStatus.CompensatedCancelled.ToString();
+                            nearestBlocking.UpdatedAt = now;
 
-                        booking.ConnectorId = alternative.Id;
-                        connector = alternative;
+                            // Cộng điểm cho EVDriverProfile của booking cũ
+                            var driverProfile = await _unitOfWork.EVDriverProfileRepository
+                                .GetByAccountIdAsync(nearestBlocking.AccountId);
+
+                            if (driverProfile != null)
+                            {
+                                driverProfile.Point += 100;
+                                driverProfile.UpdatedAt = now;
+                            }
+
+                            // Gán connector cho booking mới
+                            booking.ConnectorId = nearestBlocking.ConnectorId;
+                            booking.Status = BookingStatus.Scheduled.ToString();
+                            booking.UpdatedAt = now;
+
+                            var newConnector = booking.ConnectorNavigation;
+                            if (newConnector != null)
+                            {
+                                newConnector.Status = ConnectorStatus.Reserved.ToString();
+                                newConnector.IsLocked = true;
+                                newConnector.UpdatedAt = now;
+
+                                ApplyReserveLogic(newConnector, now);
+                            }
+
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // Không có booking blocking nào nhưng connector vẫn full → từ chối
+                        booking.Status = BookingStatus.Rejected.ToString();
                         booking.UpdatedAt = now;
+                        booking.Note = "Trạm đã có booking trước, bạn không thể sử dụng lúc này.";
+                        continue;
                     }
                 }
+                else
+                {
+                    // Nếu connector rảnh → gán cho booking mới
+                    booking.ConnectorId = connector.Id;
+                    booking.UpdatedAt = now;
 
-                // LOCK connector vừa chọn
-                connector.Status = ConnectorStatus.Reserved.ToString();
-                connector.IsLocked = true;
-                connector.UpdatedAt = now;
+                    connector.Status = ConnectorStatus.Reserved.ToString();
+                    connector.IsLocked = true;
+                    connector.UpdatedAt = now;
 
-                ApplyReserveLogic(connector, now);
+                    ApplyReserveLogic(connector, now);
+                }
             }
 
             await _unitOfWork.SaveChangesAsync();
         }
+
+
 
         public async Task<IServiceResult> GetBookingsByStaff(Guid staffId)
         {

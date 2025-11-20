@@ -19,6 +19,7 @@ namespace Common.Enum.Booking
         AutoCancelled = 7,    // Hệ thống tự hủy (do trễ hoặc lỗi)
         NoShow = 8,           // Người dùng không tới
         CancelledInvalid = 9,
+        Waiting = 10,
            // Người dùng hủy không hợp lệ (sau StartTime hoặc trước StartTime ≤ 2 phút)
     }
 }

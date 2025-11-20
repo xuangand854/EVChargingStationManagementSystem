@@ -953,8 +953,6 @@ const Session = () => {
                                 </span>
                                 {connectorStatus === "Charging" && (
                                     <div className="ml-2 px-3 py-1.5 rounded-full" style={{
-                                        background: 'linear-gradient(135deg, #00b09b, #96c93d)',
-                                        boxShadow: '0 2px 8px rgba(0, 176, 155, 0.3)'
                                     }}>
                                         <span className="font-bold text-white text-sm">{formatTime(timer)}</span>
                                     </div>
@@ -1136,24 +1134,24 @@ const Session = () => {
                                 {!pricingData.loading ? (
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-600">Giá điện</span>
+                                            <span className="text-sm text-gray-600">Giá điện: </span>
                                             <span className="text-sm font-bold text-gray-800">
                                                 {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-600">Thuế VAT</span>
+                                            <span className="text-sm text-gray-600">Thuế VAT: </span>
                                             <span className="text-sm font-bold text-gray-800">{pricingData.vatRate}%</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Công suất tối đa</span>
+                                            <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Công suất tối đa: </span>
                                             <span className="text-base font-bold" style={{ color: '#00b09b' }}>
                                                 {pricingData.maxPowerKw} kW
                                             </span>
                                         </div>
                                         {chargingData.energyDelivered > 0 && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-600">Tiền điện</span>
+                                                <span className="text-sm text-gray-600">Tiền điện: </span>
                                                 <span className="text-sm font-bold text-gray-800">
                                                     {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
                                                 </span>
@@ -1163,7 +1161,7 @@ const Session = () => {
                                             <div className="flex justify-between items-center pt-2" style={{
                                                 borderTop: '1px solid #e5e7eb'
                                             }}>
-                                                <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Mã phiên</span>
+                                                <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Mã phiên: </span>
                                                 <span className="text-sm font-mono font-bold" style={{ color: '#00b09b' }}>{sessionId}</span>
                                             </div>
                                         )}

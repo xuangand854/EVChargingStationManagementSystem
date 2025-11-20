@@ -377,6 +377,11 @@ const PaymentOptionPage = () => {
                     >
                         Về Trang Chủ
                     </Button>
+                    <Button onClick={() => {
+                        try { sessionStorage.setItem('payment.paid', 'true'); } catch { }
+                        const returnPath = (() => { try { return sessionStorage.getItem('payment.returnPath'); } catch { return null; } })();
+                        if (returnPath) navigate(returnPath); else navigate(-1);
+                    }}>Quay lại phiên sạc</Button>
 
 
                     {paymentId && (

@@ -151,16 +151,16 @@ const AdminStation = () => {
             dataIndex: "province",
             key: "province",
         },
-        {
-            title: "Vĩ độ",
-            dataIndex: "latitude",
-            key: "latitude",
-        },
-        {
-            title: "Kinh độ",
-            dataIndex: "longitude",
-            key: "longitude",
-        },
+        // {
+        //     title: "Vĩ độ",
+        //     dataIndex: "latitude",
+        //     key: "latitude",
+        // },
+        // {
+        //     title: "Kinh độ",
+        //     dataIndex: "longitude",
+        //     key: "longitude",
+        // },
         {
             title: "Hành động",
             key: "action",

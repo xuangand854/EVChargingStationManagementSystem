@@ -315,9 +315,9 @@ const Session = () => {
     };
 
     const handlePlugToCar = async () => {
-        // Kiểm tra status trước khi cắm
-        if (connectorStatus !== "Available") {
-            message.warning("⚠️ Connector không ở trạng thái Available!");
+        // Kiểm tra status trước khi cắm - cho phép Available hoặc Preparing
+        if (connectorStatus !== "Available" && connectorStatus !== "Preparing") {
+            message.warning("⚠️ Connector không ở trạng thái sẵn sàng!");
             return;
         }
 
@@ -589,7 +589,7 @@ const Session = () => {
                         Phiên Sạc
                     </h1>
                     <div className="flex items-center justify-center gap-2">
-                        <span className="text-gray-600">Connector:</span>
+                        <span className="text-gray-600">Súng sạc: </span>
                         <span className="font-bold text-gray-800">
                             {connectorInfo.name || `#${connectorID}`}
                         </span>
@@ -939,13 +939,17 @@ const Session = () => {
                                     {connectorStatus === "Charging" && "⚡"}
                                     {connectorStatus === "InUse" && "🔌"}
                                     {connectorStatus === "Available" && "⏸️"}
-                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && "⚠️"}
+                                    {connectorStatus === "Reserved" && "�"}
+                                    {connectorStatus === "Preparing" && "🔄"}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Reserved" && connectorStatus !== "Preparing" && "⚠️"}
                                 </span>
                                 <span className="font-bold">
                                     {connectorStatus === "Charging" && "Đang sạc"}
                                     {connectorStatus === "InUse" && "Đã cắm - Sẵn sàng"}
                                     {connectorStatus === "Available" && "Chưa kết nối"}
-                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus}
+                                    {connectorStatus === "Reserved" && "Đã đặt trước"}
+                                    {connectorStatus === "Preparing" && "Sẵn sàng sạc"}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus !== "Reserved" && connectorStatus !== "Preparing" && connectorStatus}
                                 </span>
                                 {connectorStatus === "Charging" && (
                                     <div className="ml-2 px-3 py-1.5 rounded-full" style={{
@@ -963,7 +967,7 @@ const Session = () => {
                                     <Button
                                         size="large"
                                         onClick={handlePlugToCar}
-                                        disabled={connectorStatus !== "Available" || loading}
+                                        disabled={(connectorStatus !== "Available" && connectorStatus !== "Preparing") || loading}
                                         className="w-full font-bold hover:scale-105 transition-all"
                                         icon={<PlugZap size={20} />}
                                         style={{
@@ -973,10 +977,10 @@ const Session = () => {
                                             background: 'white',
                                             borderWidth: '2px',
                                             borderStyle: 'solid',
-                                            borderColor: connectorStatus === "Available" && !loading ? '#00b09b' : '#d1d5db',
-                                            color: connectorStatus === "Available" && !loading ? '#00b09b' : '#9ca3af',
+                                            borderColor: (connectorStatus === "Available" || connectorStatus === "Preparing") && !loading ? '#00b09b' : '#d1d5db',
+                                            color: (connectorStatus === "Available" || connectorStatus === "Preparing") && !loading ? '#00b09b' : '#9ca3af',
                                             borderRadius: '16px',
-                                            boxShadow: connectorStatus === "Available" && !loading
+                                            boxShadow: (connectorStatus === "Available" || connectorStatus === "Preparing") && !loading
                                                 ? '0 4px 12px rgba(0, 176, 155, 0.2)'
                                                 : 'none',
                                             display: 'flex',
@@ -995,7 +999,7 @@ const Session = () => {
                                     <Button
                                         size="large"
                                         onClick={handleStartSession}
-                                        disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading}
+                                        disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading || sessionId}
                                         className="w-full font-bold hover:scale-105 transition-all"
                                         icon={<Power size={20} />}
                                         style={{
@@ -1005,10 +1009,10 @@ const Session = () => {
                                             background: 'white',
                                             borderWidth: '2px',
                                             borderStyle: 'solid',
-                                            borderColor: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading ? '#10b981' : '#d1d5db',
-                                            color: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading ? '#10b981' : '#9ca3af',
+                                            borderColor: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading && !sessionId ? '#10b981' : '#d1d5db',
+                                            color: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading && !sessionId ? '#10b981' : '#9ca3af',
                                             borderRadius: '16px',
-                                            boxShadow: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading
+                                            boxShadow: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading && !sessionId
                                                 ? '0 4px 12px rgba(16, 185, 129, 0.2)'
                                                 : 'none',
                                             display: 'flex',

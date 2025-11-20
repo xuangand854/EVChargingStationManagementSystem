@@ -18,13 +18,31 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 
+// Mapping trạng thái và loại giao dịch sang tiếng Việt
+const transactionTypeMapping = {
+    'OnlinePayment': 'Thanh toán online',
+    'OfflinePayment': 'Thanh toán tại chỗ',
+    'Refund': 'Hoàn tiền',
+    'Deposit': 'Đặt cọc',
+    'Withdrawal': 'Rút tiền'
+};
+
+const statusMapping = {
+    'Completed': 'Hoàn thành',
+    'Pending': 'Đang xử lý',
+    'Failed': 'Thất bại',
+    'Cancelled': 'Đã hủy',
+    'Processing': 'Đang xử lý',
+    'Refunded': 'Đã hoàn tiền'
+};
+
 const RevenueStatistics = () => {
     const [noData, setNoData] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [dateRange, setDateRange] = useState([dayjs().subtract(30, 'days'), dayjs()]);
-    const [filterPeriod, setFilterPeriod] = useState('30days');
+    const [dateRange, setDateRange] = useState([dayjs().subtract(1, 'year'), dayjs().add(1, 'year')]);
+    const [filterPeriod, setFilterPeriod] = useState('all');
     const [searchText, setSearchText] = useState('');
     const [statistics, setStatistics] = useState({
         totalRevenue: 0,
@@ -47,14 +65,29 @@ const RevenueStatistics = () => {
         setLoading(true);
         try {
             const response = await GetTransaction();
-            const data = Array.isArray(response.data) ? response.data :
-                Array.isArray(response) ? response : [];
+            console.log('📊 Full response:', response);
+            console.log('📊 response.data:', response?.data);
+            console.log('📊 response.data.data:', response?.data?.data);
+
+            // Parse data từ response - BE trả về { data: [...], message: "..." }
+            const data = Array.isArray(response?.data?.data) ? response.data.data :
+                Array.isArray(response?.data) ? response.data :
+                    Array.isArray(response) ? response : [];
+
+            console.log('📊 Parsed data:', data);
+            console.log('📊 Data length:', data.length);
+
+            if (data.length === 0) {
+                setNoData(true);
+                setHasError(false);
+            } else {
+                setNoData(false);
+                setHasError(false);
+            }
 
             setTransactions(data);
-            setNoData(false);
-            setHasError(false);
         } catch (error) {
-            console.log('Full error:', error);
+            console.log('❌ Full error:', error);
 
             const status = error?.response?.status;
             const message =
@@ -71,7 +104,7 @@ const RevenueStatistics = () => {
                 setNoData(true);
                 setHasError(false);
             } else {
-                toast.error(message); // ✅ Bắn toast cho tất cả lỗi khác
+                toast.error(message);
                 setHasError(true);
                 setNoData(false);
             }
@@ -95,7 +128,8 @@ const RevenueStatistics = () => {
             try {
                 const dateStr = t.referenceCode.split('-')[1]; // Lấy phần YYYYMMDD
                 const transDate = dayjs(dateStr, 'YYYYMMDD');
-                return transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
+                // Sử dụng isSameOrAfter và isSameOrBefore để bao gồm cả ngày bắt đầu và kết thúc
+                return transDate.isSameOrAfter(dateRange[0], 'day') && transDate.isSameOrBefore(dateRange[1], 'day');
             } catch {
                 return true; // Nếu parse lỗi thì vẫn hiển thị
             }
@@ -115,7 +149,7 @@ const RevenueStatistics = () => {
             try {
                 const dateStr = t.referenceCode.split('-')[1];
                 const transDate = dayjs(dateStr, 'YYYYMMDD');
-                return transDate.isAfter(previousStart) && transDate.isBefore(previousEnd);
+                return transDate.isSameOrAfter(previousStart, 'day') && transDate.isBefore(previousEnd, 'day');
             } catch {
                 return false;
             }
@@ -138,29 +172,39 @@ const RevenueStatistics = () => {
     const handlePeriodChange = (value) => {
         setFilterPeriod(value);
         const now = dayjs();
-        let start;
+        let start, end;
 
         switch (value) {
+            case 'all':
+                start = now.subtract(1, 'year');
+                end = now.add(1, 'year');
+                break;
             case 'today':
                 start = now.startOf('day');
+                end = now;
                 break;
             case '7days':
                 start = now.subtract(7, 'days');
+                end = now;
                 break;
             case '30days':
                 start = now.subtract(30, 'days');
+                end = now;
                 break;
             case '90days':
                 start = now.subtract(90, 'days');
+                end = now;
                 break;
             case 'year':
                 start = now.subtract(1, 'year');
+                end = now;
                 break;
             default:
-                start = now.subtract(30, 'days');
+                start = now.subtract(1, 'year');
+                end = now.add(1, 'year');
         }
 
-        setDateRange([start, now]);
+        setDateRange([start, end]);
     };
 
     const columns = [
@@ -192,7 +236,7 @@ const RevenueStatistics = () => {
             key: 'transactionType',
             render: (type) => (
                 <span className="text-xs">
-                    {type === 'OnlinePayment' ? 'Thanh toán online' : type}
+                    {transactionTypeMapping[type] || type}
                 </span>
             ),
             width: 150,
@@ -212,15 +256,30 @@ const RevenueStatistics = () => {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            render: (status) => (
-                <span className={`px-2 py-1 rounded text-xs ${status === 'Completed' ? 'bg-green-100 text-green-700' :
-                    status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                    }`}>
-                    {status === 'Completed' ? 'Hoàn thành' :
-                        status === 'Pending' ? 'Đang xử lý' : status}
-                </span>
-            ),
+            render: (status) => {
+                const getStatusColor = (status) => {
+                    switch (status) {
+                        case 'Completed':
+                            return 'bg-green-100 text-green-700';
+                        case 'Pending':
+                        case 'Processing':
+                            return 'bg-yellow-100 text-yellow-700';
+                        case 'Failed':
+                        case 'Cancelled':
+                            return 'bg-red-100 text-red-700';
+                        case 'Refunded':
+                            return 'bg-blue-100 text-blue-700';
+                        default:
+                            return 'bg-gray-100 text-gray-700';
+                    }
+                };
+
+                return (
+                    <span className={`px-2 py-1 rounded text-xs ${getStatusColor(status)}`}>
+                        {statusMapping[status] || status}
+                    </span>
+                );
+            },
             width: 120,
         },
     ];
@@ -232,7 +291,8 @@ const RevenueStatistics = () => {
             try {
                 const dateStr = t.referenceCode.split('-')[1];
                 const transDate = dayjs(dateStr, 'YYYYMMDD');
-                matchDate = transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
+                // Sử dụng isSameOrAfter và isSameOrBefore để bao gồm cả ngày bắt đầu và kết thúc
+                matchDate = transDate.isSameOrAfter(dateRange[0], 'day') && transDate.isSameOrBefore(dateRange[1], 'day');
             } catch {
                 matchDate = true;
             }
@@ -335,6 +395,7 @@ const RevenueStatistics = () => {
                             className="w-full"
                             placeholder="Khoảng thời gian"
                         >
+                            <Option value="all">Tất cả</Option>
                             <Option value="today">Hôm nay</Option>
                             <Option value="7days">7 ngày qua</Option>
                             <Option value="30days">30 ngày qua</Option>

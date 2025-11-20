@@ -30,7 +30,6 @@ const ProfilePage = () => {
               data.status === "Inactive" ? "Chưa kích hoạt" :
                 "Không xác định"
           );
-
           // Số xe liên kết
           setLinkedVehicles(data.vehicleModelIds?.length || 0);
         } else {

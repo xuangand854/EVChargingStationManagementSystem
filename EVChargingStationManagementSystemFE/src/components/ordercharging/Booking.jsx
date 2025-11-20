@@ -338,8 +338,9 @@ console.log("Lấy Role:", role);
         />
 
         <div className="popup-buttons">
-          <button className="add-btn" onClick={handleAddBooking}>Xác nhận</button>
           <button className="cancel-btn" onClick={onClose}>Hủy</button>
+          <button className="add-btn" onClick={handleAddBooking}>Xác nhận</button>
+          
         </div>
       </div>
 

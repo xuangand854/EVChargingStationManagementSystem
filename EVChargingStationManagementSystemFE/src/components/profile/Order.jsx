@@ -18,7 +18,7 @@ const Order = () => {
           setOrders([]);
         }
       } catch (err) {
-        console.error("Lỗi khi lấy đơn hàng:", err);
+        console.error("Lỗi khi lấy đơn đặt lịch:", err);
         setOrders([]);
       } finally {
         setLoading(false);
@@ -39,7 +39,7 @@ const Order = () => {
 const handleCancel = async (orderId) => {
   try {
     await AutoCancel(orderId); // gọi API PATCH cancel
-    toast.success("Hủy đơn hàng thành công!");
+    toast.success("Hủy đặt lịch thành công!");
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: "Cancelled" } : o
@@ -83,7 +83,7 @@ const handleCancel = async (orderId) => {
       <ToastContainer position="top-right" autoClose={3000} />
       <div className="order-history-content">
         <div className="order-history-topbar">
-          <h2>Lịch sử Đặt Hàng</h2>
+          <h2>Lịch sử Đặt Lịch Sạc</h2>
           <input
             type="text"
             placeholder="Tìm kiếm trạm hoặc thời gian..."
@@ -94,7 +94,7 @@ const handleCancel = async (orderId) => {
 
         <div className="order-history-list">
           {filteredOrders.length === 0 ? (
-            <p>Không có đơn hàng nào.</p>
+            <p>Không có đơn đặt lịch nào.</p>
           ) : (
             filteredOrders.map((order) => (
               <div className="order-history-card" key={order.id}>
@@ -115,7 +115,9 @@ const handleCancel = async (orderId) => {
                     {order.status === "Scheduled" && <span className={"scheduled"}>Chờ Hoàn Thành </span>}
                     {order.status === "Completed" && <span className={"completed"}>Đã Hoàn Thành</span>}
                     {order.status === "InProgress" && <span className={"inprogress"}>Đang trong quá trình xử lý</span>}
-                    {order.status === "Cancelled" && <span className={"cancelled"}>Yêu Cầu Đặt Lịch Sạc Của Bạn Đã Hủy  </span>}
+                    {order.status === "Cancelled" && <span className={"cancelled"}>Yêu Cầu Đặt Lịch Sạc Của Bạn Đã Hủy Hợp Lệ </span>}
+                    {order.status === "CompensatedCancelled" && <span className={"cancelled"}>Hủy Đặt Chổ Ko Hợp Lệ </span>}
+
                   </p>
                   {order.status === "Scheduled" && (
                     <button

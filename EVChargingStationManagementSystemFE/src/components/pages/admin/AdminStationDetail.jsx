@@ -36,6 +36,34 @@ import {
 
 const { Option } = Select;
 
+// Mapping trạng thái sang tiếng Việt
+const statusMapping = {
+    // Trạng thái trạm sạc
+    'Active': 'Hoạt động',
+    'InActive': 'Không hoạt động',
+    'Maintenance': 'Bảo trì',
+    'Busy': 'Bận',
+    'Unknown': 'Không xác định',
+
+    // Trạng thái charging post
+    'Maintained': 'Đã bảo trì',
+    'Available': 'Sẵn sàng',
+    'InActive': 'Không hoạt động',
+
+    // Trạng thái connector
+    'Reserved': 'Đã đặt',
+    'InUse': 'Đang sử dụng',
+    'Charging': 'Đang sạc',
+    'Preparing': 'Đang chuẩn bị',
+    'Faulted': 'Lỗi',
+    'Unavailable': 'Không khả dụng'
+};
+
+// Hàm helper để dịch trạng thái, nếu không có trong mapping thì trả về text gốc
+const translateStatus = (status) => {
+    return statusMapping[status] || status;
+};
+
 const AdminStationDetail = () => {
     const { stationId } = useParams();
     const navigate = useNavigate();
@@ -247,13 +275,11 @@ const AdminStationDetail = () => {
                 <Select
                     value={text}
                     onChange={(value) => handleChangePostStatus(record.id, value)}
-                    style={{ width: 150 }}
+                    style={{ width: 180 }}
                 >
-                    <Option value="Available">Available</Option>
-                    {/* <Option value="Busy">Busy</Option> */}
-                    <Option value="Maintained">Maintained</Option>
-                    <Option value="Inactive">Inactive</Option>
-                    {/* <Option value="Faulty">Faulty</Option> */}
+                    <Option value="InActive">Không hoạt động</Option>
+                    <Option value="Available">Sẵn sàng</Option>
+                    <Option value="Maintained">Đã bảo trì</Option>
                 </Select>
             ),
         },
@@ -298,12 +324,11 @@ const AdminStationDetail = () => {
                                 <Select
                                     value={station.status}
                                     onChange={handleChangeStationStatus}
-                                    style={{ width: 150 }}
+                                    style={{ width: 180 }}
                                 >
-                                    <Option value="Active">Active</Option>
-                                    <Option value="Inactive">Inactive</Option>
-                                    {/* <Option value="Discontinued">Discontinued</Option> */}
-                                    <Option value="Maintenance">Maintenance</Option>
+                                    <Option value="Inactive">Không hoạt động</Option>
+                                    <Option value="Active">Hoạt động</Option>
+                                    <Option value="Maintenance">Bảo trì</Option>
                                 </Select>
                                 <Button
                                     icon={<UserSwitchOutlined />}

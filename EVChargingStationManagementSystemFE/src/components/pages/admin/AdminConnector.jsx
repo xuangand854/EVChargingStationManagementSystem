@@ -7,6 +7,26 @@ import { toast } from "react-toastify";
 import { GetConnector, PostConnector } from "../../../API/Connector";
 import { useParams } from "react-router-dom";
 
+// Mapping trạng thái connector sang tiếng Việt
+const connectorStatusMapping = {
+    'Available': 'Sẵn sàng',
+    'Inactive': 'Không hoạt động',
+    'Busy': 'Bận',
+    'Maintained': 'Đã bảo trì',
+    'Unknown': 'Không xác định',
+    'Reserved': 'Đã đặt',
+    'InUse': 'Đang sử dụng',
+    'Charging': 'Đang sạc',
+    'Preparing': 'Đang chuẩn bị',
+    'Faulted': 'Lỗi',
+    'Unavailable': 'Không khả dụng'
+};
+
+// Hàm helper để dịch trạng thái
+const translateConnectorStatus = (status) => {
+    return connectorStatusMapping[status] || status;
+};
+
 const AdminConnector = () => {
     const { postId } = useParams(); // lấy id của trụ sạc
     const [connectors, setConnectors] = useState([]);
@@ -65,7 +85,12 @@ const AdminConnector = () => {
         { title: "Mã Connector", dataIndex: "id", key: "id" },
         { title: "Tên Connector", dataIndex: "connectorName", key: "connectorName" },
         { title: "Công suất (kW)", dataIndex: "powerKw", key: "powerKw" },
-        { title: "Trạng thái", dataIndex: "status", key: "status" },
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            render: (status) => translateConnectorStatus(status)
+        },
         {
             title: "Thao tác",
             render: (_, record) => (

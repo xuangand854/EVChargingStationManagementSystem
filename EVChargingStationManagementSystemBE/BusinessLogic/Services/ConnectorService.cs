@@ -238,89 +238,130 @@ namespace BusinessLogic.Services
                     .Include(v => v.ChargingPost)
                         .ThenInclude(c => c.ChargingStationNavigation)
                     .FirstOrDefaultAsync();
+
                 if (connector == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Cổng kết nối không tồn tại");
 
-                if (connector.ChargingPost == null)
+                var post = connector.ChargingPost;
+                var station = post?.ChargingStationNavigation;
+
+                if (post == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc không tồn tại");
 
-                if (connector.ChargingPost.ChargingStationNavigation == null)
-                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc đã chọn");
+                if (station == null)
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Không tìm thấy trạm sạc");
 
-                if (connector.Status.Equals(ConnectorStatus.Charging.ToString()))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại đang được sạc, không thể thay đổi trạng thái");
+                var status = Enum.Parse<ConnectorStatus>(connector.Status);
+
+
+                // ================== ❌ Không cho toggle ==================
+
+                if (status == ConnectorStatus.Charging)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng đang sạc, không thể thay đổi trạng thái.");
 
                 if (connector.IsLocked)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại không rút ra được, bạn phải thanh toán để mở khóa");
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng đang bị khóa. Hãy thanh toán để mở khóa.");
 
-                if (!connector.Status.Equals(ConnectorStatus.Available.ToString()) 
-                    && !connector.Status.Equals(ConnectorStatus.InUse.ToString()) 
-                    && !connector.Status.Equals(ConnectorStatus.Reserved.ToString()))
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng sạc này hiện tại đang được bảo trì hoặc bị hỏng hoặc không khả dụng hiện tại, vui lòng dùng cổng khác");
+                if (status == ConnectorStatus.Reserved && toggle == false)
+                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng đang được đặt trước, không thể cắm vào.");
 
-                if (connector.Status.Equals(ConnectorStatus.InUse.ToString()) && !toggle)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được rút ra, không thể rút ra thêm nữa");
 
-                if (connector.Status.Equals(ConnectorStatus.Available.ToString()) && toggle)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được cắm vào, không thể cắm vào thêm nữa");
 
-                if (connector.Status.Equals(ConnectorStatus.Reserved.ToString()) && !toggle)
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng kết nối này đã được đặt trước, vui lòng sử dụng cổng khác");
+                // ================== ❗ Cho phép override trong các trạng thái hư hỏng ==================
+                bool allowOverride =
+                    status == ConnectorStatus.OutOfService ||
+                    status == ConnectorStatus.Faulted ||
+                    status == ConnectorStatus.Unknown ||
+                    status == ConnectorStatus.Preparing;
 
-                // True: súng được cắm vào trụ, false: súng được rút ra khỏi trụ
-                if (toggle)
+
+
+                // ================== TRUE = RÚT | FALSE = CẮM ==================
+                bool isUnplug = toggle;      // true = rút
+                bool isPlugIn = !toggle;     // false = cắm
+
+
+                // ========== ❌ Kiểm tra logic nếu KHÔNG thuộc nhóm override ==========
+                if (!allowOverride)
+                {
+                    if (isUnplug && status == ConnectorStatus.Available)
+                        return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng này đã được rút ra rồi.");
+
+                    if (isPlugIn && status == ConnectorStatus.InUse)
+                        return new ServiceResult(Const.FAIL_UPDATE_CODE, "Cổng này đã được cắm vào rồi.");
+                }
+
+
+
+                // ================== ✔ Cập nhật trạng thái ==================
+
+                if (isUnplug) // TRUE = RÚT
                 {
                     connector.Status = ConnectorStatus.Available.ToString();
-                    // Tăng số cổng khả dụng trong bảng trụ
-                    connector.ChargingPost.AvailableConnectors += 1;
-                    if (connector.ChargingPost.VehicleTypeSupported.Equals("Car"))
-                        connector.ChargingPost.ChargingStationNavigation.AvailableCarConnectors += 1; // Tăng số cổng khả dụng trong bảng trạm
+
+                    post.AvailableConnectors += 1;
+
+                    if (post.VehicleTypeSupported == "Car")
+                        station.AvailableCarConnectors += 1;
                     else
-                        connector.ChargingPost.ChargingStationNavigation.AvailableBikeConnectors += 1;// Tăng số cổng khả dụng trong bảng trạm
+                        station.AvailableBikeConnectors += 1;
                 }
-                else
+                else // FALSE = CẮM
                 {
                     connector.Status = ConnectorStatus.InUse.ToString();
-                    connector.ChargingPost.AvailableConnectors -= 1;
-                    if (connector.ChargingPost.VehicleTypeSupported.Equals("Car"))
-                        connector.ChargingPost.ChargingStationNavigation.AvailableCarConnectors -= 1;
-                    else
-                        connector.ChargingPost.ChargingStationNavigation.AvailableBikeConnectors -= 1;
-                }                
 
-                if (connector.ChargingPost.AvailableConnectors == 0)
-                {
-                    connector.ChargingPost.Status = ChargingPostStatus.Busy.ToString();
-                    if (connector.ChargingPost.VehicleTypeSupported.Equals("Car"))
-                        connector.ChargingPost.ChargingStationNavigation.AvailableCarChargingPosts -= 1;
+                    post.AvailableConnectors = Math.Max(0, post.AvailableConnectors - 1);
+
+                    if (post.VehicleTypeSupported == "Car")
+                        station.AvailableCarConnectors = Math.Max(0, station.AvailableCarConnectors - 1);
                     else
-                        connector.ChargingPost.ChargingStationNavigation.AvailableBikeChargingPosts -= 1;
+                        station.AvailableBikeConnectors = Math.Max(0, station.AvailableBikeConnectors - 1);
+                }
+
+
+
+                // ================== ✔ Update trạng thái của Post ==================
+                if (post.AvailableConnectors <= 0)
+                {
+                    post.AvailableConnectors = 0;
+                    post.Status = ChargingPostStatus.Busy.ToString();
+
+                    if (post.VehicleTypeSupported == "Car")
+                        station.AvailableCarChargingPosts = Math.Max(0, station.AvailableCarChargingPosts - 1);
+                    else
+                        station.AvailableBikeChargingPosts = Math.Max(0, station.AvailableBikeChargingPosts - 1);
                 }
                 else
                 {
-                    connector.ChargingPost.Status = ChargingPostStatus.Available.ToString();
-                    if (connector.ChargingPost.VehicleTypeSupported.Equals("Car"))
-                        connector.ChargingPost.ChargingStationNavigation.AvailableCarChargingPosts += 1;
-                    else
-                        connector.ChargingPost.ChargingStationNavigation.AvailableBikeChargingPosts += 1;
-                }
-                connector.ChargingPost.UpdatedAt = DateTime.Now;
-                connector.UpdatedAt = DateTime.Now;
+                    post.Status = ChargingPostStatus.Available.ToString();
 
+                    if (post.VehicleTypeSupported == "Car")
+                        station.AvailableCarChargingPosts += 1;
+                    else
+                        station.AvailableBikeChargingPosts += 1;
+                }
+
+
+                connector.UpdatedAt = DateTime.Now;
+                post.UpdatedAt = DateTime.Now;
+
+                // Save
                 var result = await _unitOfWork.SaveChangesAsync();
                 if (result > 0)
                 {
                     var response = connector.Adapt<ConnectorViewListDto>();
                     return new ServiceResult(Const.SUCCESS_UPDATE_CODE, Const.SUCCESS_UPDATE_MSG, response);
                 }
-                else
-                    return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
+
+                return new ServiceResult(Const.FAIL_UPDATE_CODE, Const.FAIL_UPDATE_MSG);
             }
             catch (Exception ex)
             {
                 return new ServiceResult(Const.ERROR_EXCEPTION, ex.Message);
             }
         }
+
+
 
         public async Task<IServiceResult> Delete(Guid connectorId)
         {

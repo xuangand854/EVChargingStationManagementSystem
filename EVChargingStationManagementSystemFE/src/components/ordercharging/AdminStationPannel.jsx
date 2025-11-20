@@ -28,11 +28,11 @@ const AdminStationPanel = ({ onClose, onUpdated, onReloadAdminPannel }) => {
     status: "",
     operatorId: "",
   });
-  const statusVietnamese = {
-    Scheduled: "Đã lên lịch",
-    Charging: "Đang sạc",
-    Completed: "Hoàn thành",
-    Cancelled: "Đã hủy",
+  const statusLabel = {
+    InActive: "Ngưng hoạt động",
+    Active: "Sẵn sàng",
+    Maintained: "Bảo trì",
+    Busy: "Đang sử dụng", // BE trả Busy → FE hiển thị Đang sử dụng
   };
 
   // Load stations
@@ -247,17 +247,17 @@ const AdminStationPanel = ({ onClose, onUpdated, onReloadAdminPannel }) => {
                 <input type="text" value={formData.province} onChange={(e) => setFormData({ ...formData, province: e.target.value })} required />
               </label>
               <label>
-                Latitude:
+                Kinh Độ:
                 <input type="text" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} required />
               </label>
               <label>
-                Longitude:
+                Vĩ Độ:
                 <input type="text" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} required />
               </label>
 
               {!editingStation && (
                 <>
-                  <label>Chọn nhân viên Operator:</label>
+                  <label>Chọn nhân viên :</label>
                   <div className="autocomplete-container">
                     <input
                       type="text"
@@ -307,15 +307,15 @@ const AdminStationPanel = ({ onClose, onUpdated, onReloadAdminPannel }) => {
               filteredStations.map((st) => (
                 <div key={st.id} className="post-popup-item">
                   <span>
-                    {st.stationName} - {st.location}, {st.province} | Trạng thái: {st.status || "Chưa xác định"}
+                    {st.stationName} - {st.location}, {st.province} | Trạng thái: {statusLabel[st.status] || "Chưa xác định"}
                   </span>
                   {selectedAction === "update" && <button onClick={() => handleEditClick(st)}>Sửa</button>}
                   {selectedAction === "delete" && <button onClick={() => handleDelete(st.id)}>Xóa</button>}
                   {selectedAction === "status" && (
                     <select defaultValue={st.status || "Inactive"} onChange={(e) => handleChangeStatus(st, e.target.value)}>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Active">Active</option>
-                      <option value="Maintenance">Maintenance</option>
+                      <option value="Inactive">Ngưng Hoạt Động</option>
+                      <option value="Active">Hoạt Động</option>
+                      <option value="Maintenance">Bảo trì</option>
                     </select>
                   )}
                 </div>

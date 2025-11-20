@@ -35,7 +35,12 @@ const ChargingPost = ({ onClose, onUpdated }) => {
     Available: 1,
     Maintained: 2,
   };
-
+  const statusLabel = {
+    InActive: "Ngưng hoạt động",
+    Available: "Sẵn sàng",
+    Maintained: "Bảo trì",
+    Busy: "Đang sử dụng", // BE trả Busy → FE hiển thị Đang sử dụng
+  };
 
   //  Load danh sách trạm
   useEffect(() => {
@@ -262,7 +267,7 @@ const handleDelete = async (id) => {
                       <div key={p.id} className="post-popup-item">
                         <span>
                           {p.postName} - {p.connectorType} ({p.vehicleTypeSupported}) |{" "}
-                          Trạng thái: <b>{p.status}</b>
+                          Trạng thái: <b>{statusLabel[p.status] || p.status}</b>
                         </span>
                       </div>
                     ))
@@ -398,12 +403,12 @@ const handleDelete = async (id) => {
                         value={p.status || "InActive"}  
                         onChange={(e) => handleChangeStatus(p, e.target.value)}
                       >
-                        <option value="InActive">Inactive</option>
-                        <option value="Available">Active</option>
-                        <option value="Maintained">Maintained</option>
+                        <option value="InActive">Ngưng Hoạt Động</option>
+                        <option value="Available">Sẳn Sàng</option>
+                        <option value="Maintained">Bảo Trì</option>
                       </select>
                       <span className="status-label">
-                        {p.status || "InActive"} 
+                        {statusLabel[p.status] || p.status}
                       </span>
                     </div>
                   ))}

@@ -426,18 +426,18 @@ const OrderChargingST = () => {
           </button>
           )}
           {/* Chỉ ADMIN mới thấy Admin Panel */}
-          {user?.role === "Admin" && (
+          {/* {user?.role === "Admin" && (
             <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
               Quản lý trạm sạc
             </button>
-          )}
+          )} */}
 
           {/* Admin & Staff đều thấy Quản lý trụ sạc */}
-          {(user?.role === "Admin" || user?.role === "Staff") && (
+          {/* {(user?.role === "Admin" || user?.role === "Staff") && (
             <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
               Quản lý trụ sạc
             </button>
-          )}
+          )} */}
         </div>
 
         <div className="station-list">

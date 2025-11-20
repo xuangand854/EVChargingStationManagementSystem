@@ -103,6 +103,22 @@ namespace BusinessLogic.Services
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Trạm sạc hiện không có cổng sạc hoạt động.");
 
                 var usableConnectorIds = usableConnectors.Select(c => c.Id).ToList();
+                // Đếm số booking đã chiếm connector trong khoảng thời gian này
+                var overlappingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => !b.IsDeleted &&
+                         b.ConnectorId.HasValue &&
+                         usableConnectorIds.Contains(b.ConnectorId.Value) &&
+                         (bookingStartTime < b.EndTime && bookingEndTime > b.StartTime)
+                );
+
+                int connectorCount = usableConnectors.Count;
+                int bookingCount = overlappingBookings.Count;
+
+                // Nếu số booking >= số connector usable thì từ chối booking mới
+                if (bookingCount >= connectorCount)
+                {
+                    return new ServiceResult(Const.FAIL_CREATE_CODE, "Tất cả cổng sạc tại trạm đã được đặt, không thể tạo thêm booking.");
+                }
 
                 bool isFullyBooked = await _unitOfWork.BookingRepository.GetQueryable()
                     .AnyAsync(b =>
@@ -436,7 +452,7 @@ namespace BusinessLogic.Services
         // Khóa tài khoản EVDriver nếu trong ngày có >= 3 lần hủy không hợp lệ hoặc auto-cancel
         public async Task LockAccountsWithTooManyNoShows()
         {
-            int threshold = 1;
+            int threshold = 3;
             DateTime today = DateTime.Now.Date;
 
             var evDrivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
@@ -518,73 +534,72 @@ namespace BusinessLogic.Services
         //   sẽ được chuyển sang trạm khả dụng khác. Nếu không có trạm khả dụng, booking sẽ bị hủy.
         // - Chạy định kỳ bởi scheduler (ví dụ: background service hoặc cron job).
         // Tự động xử lý lại các booking thuộc các trạm sạc đang gặp lỗi
-        //public async Task AutoReassignBookingsForErrorStations()
-        //{
-        //    //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
-        //    var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
-        //        s => s.Status == "Error" && !s.IsDeleted, include: s => s.Include(x => x.ChargingPosts)
-        //    );
+        public async Task AutoReassignBookingsForErrorStations()
+        {
+            //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
+            var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
+                s => s.Status == "Error" && !s.IsDeleted, include: s => s.Include(x => x.ChargingPosts)
+            );
 
-        //    // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
-        //    if (errorStations == null || !errorStations.Any())
-        //        return;
+            // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
+            if (errorStations == null || !errorStations.Any())
+                return;
 
-        //    // 🔹 Cache (tải sẵn) danh sách trạm sạc đang khả dụng
-        //    //     Mục đích: tránh việc truy vấn database nhiều lần trong vòng lặp
-        //    var availableStations = (await _unitOfWork.ChargingStationRepository.GetAllAsync(
-        //        s => s.Status == "Available" && !s.IsDeleted,
-        //        include: s => s.Include(p => p.ChargingPosts)
-        //    )).ToList();
+            // 🔹 Cache (tải sẵn) danh sách trạm sạc đang khả dụng
+            //     Mục đích: tránh việc truy vấn database nhiều lần trong vòng lặp
+            var availableStations = (await _unitOfWork.ChargingStationRepository.GetAllAsync(
+                s => s.Status == "Available" && !s.IsDeleted,
+                include: s => s.Include(p => p.ChargingPosts)
+            )).ToList();
 
-        //    //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
-        //    var now = DateTime.Now;
+            //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
+            var now = DateTime.Now;
 
-        //    //  Duyệt từng trạm sạc đang bị lỗi
-        //    foreach (var station in errorStations)
-        //    {
-        //        //  Lấy toàn bộ booking thuộc trạm này có trạng thái "Scheduled" (đang chờ sạc)
-        //        var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-        //            b => b.StationId == station.Id && b.Status == "Scheduled"
-        //        );
+            //  Duyệt từng trạm sạc đang bị lỗi
+            foreach (var station in errorStations)
+            {
+                //  Lấy toàn bộ booking thuộc trạm này có trạng thái "Scheduled" (đang chờ sạc)
+                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+                    b => b.StationId == station.Id && b.Status == "Scheduled"
+                );
 
-        //        //  Duyệt từng booking cần xử lý
-        //        foreach (var booking in bookings)
-        //        {
-        //            //  Tìm một trạm thay thế có ít nhất 1 post đang ở trạng thái "Available"
-        //            //     => Ưu tiên trạm sẵn sàng phục vụ
-        //            var alternativeStation = availableStations.FirstOrDefault(
-        //                s => s.ChargingPosts.Any(p => p.Status == "Available")
-        //            );
+                //  Duyệt từng booking cần xử lý
+                foreach (var booking in bookings)
+                {
+                    //  Tìm một trạm thay thế có ít nhất 1 post đang ở trạng thái "Available"
+                    //     => Ưu tiên trạm sẵn sàng phục vụ
+                    var alternativeStation = availableStations.FirstOrDefault(
+                        s => s.ChargingPosts.Any(p => p.Status == "Available")
+                    );
 
-        //            if (alternativeStation != null)
-        //            {
-        //                //  Tìm thấy trạm thay thế phù hợp
-        //                //    → Cập nhật lại StationId của booking
-        //                booking.StationId = alternativeStation.Id;
-        //                booking.UpdatedAt = now;
+                    if (alternativeStation != null)
+                    {
+                        //  Tìm thấy trạm thay thế phù hợp
+                        //    → Cập nhật lại StationId của booking
+                        booking.StationId = alternativeStation.Id;
+                        booking.UpdatedAt = now;
 
-        //                //  Chọn một post đang Available trong trạm thay thế và đánh dấu nó là Reserved
-        //                var availablePost = alternativeStation.ChargingPosts
-        //                    .FirstOrDefault(p => p.Status == "Available");
+                        //  Chọn một post đang Available trong trạm thay thế và đánh dấu nó là Reserved
+                        var availablePost = alternativeStation.ChargingPosts
+                            .FirstOrDefault(p => p.Status == "Available");
 
-        //                if (availablePost != null)
-        //                {
-        //                    availablePost.Status = "Reserved";   // Post được giữ chỗ cho booking này
-        //                    availablePost.UpdatedAt = now;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                //  Không tìm thấy trạm thay thế nào phù hợp
-        //                //    → Hủy booking để tránh khách hàng chờ vô ích
-        //                booking.Status = "Cancelled";
-        //                booking.UpdatedAt = now;
-        //            }
-        //        }
-        //    }//  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
-        //    await _unitOfWork.SaveChangesAsync();
-        //}
-
+                        if (availablePost != null)
+                        {
+                            availablePost.Status = "Reserved";   // Post được giữ chỗ cho booking này
+                            availablePost.UpdatedAt = now;
+                        }
+                    }
+                    else
+                    {
+                        //  Không tìm thấy trạm thay thế nào phù hợp
+                        //    → Hủy booking để tránh khách hàng chờ vô ích
+                        booking.Status = "Cancelled";
+                        booking.UpdatedAt = now;
+                    }
+                }
+            }//  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
+            await _unitOfWork.SaveChangesAsync();
+        }
         public async Task AutoReserveConnectorBeforeStart()
         {
             var now = DateTime.Now;
@@ -605,14 +620,12 @@ namespace BusinessLogic.Services
             {
                 var station = booking.ChargingStationNavigation;
 
-                // Tìm connector khả dụng
                 var connector = station.ChargingPosts
                     .SelectMany(p => p.Connectors)
                     .FirstOrDefault(c => c.Status == ConnectorStatus.Available.ToString());
 
                 if (connector == null)
                 {
-                    // Không có connector khả dụng → kiểm tra booking khác trong trạm
                     var blockingBookings = await _unitOfWork.BookingRepository.GetAllAsync(
                         b => b.ChargingStationNavigation.Id == station.Id &&
                              b.Status == BookingStatus.Scheduled.ToString() &&
@@ -630,40 +643,27 @@ namespace BusinessLogic.Services
 
                         if (diff.TotalMinutes <= 10)
                         {
-                            // Cho booking mới chờ
+                            // Nếu chênh lệch <= 10 phút thì booking mới chuyển sang Waiting
                             booking.Status = BookingStatus.Waiting.ToString();
                             booking.UpdatedAt = now;
                             continue;
                         }
                         else
                         {
-                            // Hủy booking cũ nhưng bồi thường
-                            nearestBlocking.Status = BookingStatus.CompensatedCancelled.ToString();
-                            nearestBlocking.UpdatedAt = now;
+                            // Giữ nguyên booking cũ với connector của nó
+                            // => Hủy booking mới
+                            booking.Status = BookingStatus.CompensatedCancelled.ToString();
+                            booking.UpdatedAt = now;
 
-                            // Cộng điểm cho EVDriverProfile của booking cũ
-                            var driverProfile = await _unitOfWork.EVDriverProfileRepository
-                                .GetByAccountIdAsync(nearestBlocking.AccountId);
+                            // Cộng điểm cho driver profile của booking mới
+                            var driverProfiles = await _unitOfWork.EVDriverRepository
+                                .GetAllAsync(dp => dp.AccountId == booking.BookedBy && !dp.IsDeleted);
 
+                            var driverProfile = driverProfiles.FirstOrDefault();
                             if (driverProfile != null)
                             {
                                 driverProfile.Point += 100;
                                 driverProfile.UpdatedAt = now;
-                            }
-
-                            // Gán connector cho booking mới
-                            booking.ConnectorId = nearestBlocking.ConnectorId;
-                            booking.Status = BookingStatus.Scheduled.ToString();
-                            booking.UpdatedAt = now;
-
-                            var newConnector = booking.ConnectorNavigation;
-                            if (newConnector != null)
-                            {
-                                newConnector.Status = ConnectorStatus.Reserved.ToString();
-                                newConnector.IsLocked = true;
-                                newConnector.UpdatedAt = now;
-
-                                ApplyReserveLogic(newConnector, now);
                             }
 
                             continue;
@@ -671,16 +671,27 @@ namespace BusinessLogic.Services
                     }
                     else
                     {
-                        // Không có booking blocking nào nhưng connector vẫn full → từ chối
-                        booking.Status = BookingStatus.Rejected.ToString();
+                        // Không có connector khả dụng và không có booking để hoán đổi
+                        booking.Status = BookingStatus.CompensatedCancelled.ToString();
                         booking.UpdatedAt = now;
-                        booking.Note = "Trạm đã có booking trước, bạn không thể sử dụng lúc này.";
+
+                        // Cộng điểm cho driver profile của booking mới
+                        var driverProfiles = await _unitOfWork.EVDriverRepository
+                            .GetAllAsync(dp => dp.AccountId == booking.BookedBy && !dp.IsDeleted);
+
+                        var driverProfile = driverProfiles.FirstOrDefault();
+                        if (driverProfile != null)
+                        {
+                            driverProfile.Point += 100;
+                            driverProfile.UpdatedAt = now;
+                        }
+
                         continue;
                     }
                 }
                 else
                 {
-                    // Nếu connector rảnh → gán cho booking mới
+                    // Nếu có connector khả dụng thì gán cho booking mới
                     booking.ConnectorId = connector.Id;
                     booking.UpdatedAt = now;
 
@@ -694,8 +705,6 @@ namespace BusinessLogic.Services
 
             await _unitOfWork.SaveChangesAsync();
         }
-
-
 
         public async Task<IServiceResult> GetBookingsByStaff(Guid staffId)
         {

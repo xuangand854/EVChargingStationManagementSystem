@@ -20,6 +20,8 @@ namespace Common.Enum.Booking
         NoShow = 8,           // Người dùng không tới
         CancelledInvalid = 9,
         Waiting = 10,
-           // Người dùng hủy không hợp lệ (sau StartTime hoặc trước StartTime ≤ 2 phút)
+        CompensatedCancelled= 11,
+        Rejected=12,
+        // Người dùng hủy không hợp lệ (sau StartTime hoặc trước StartTime ≤ 2 phút)
     }
 }

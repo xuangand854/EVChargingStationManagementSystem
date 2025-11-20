@@ -55,7 +55,7 @@ namespace BusinessLogic.Services
                     .Include(c => c.ChargingPosts.Where(cp => !cp.IsDeleted).OrderByDescending( cp => cp.CreatedAt))
                     .Include(cp => cp.OperatorNavigation)
                     .OrderByDescending(cp => cp.CreatedAt)
-                    .ProjectToType<ChargingStationsViewDetailDto>()
+                    //.ProjectToType<ChargingStationsViewDetailDto>()
                     .FirstOrDefaultAsync();
                 if (chargingStation == null)
                     return new ServiceResult(
@@ -65,8 +65,8 @@ namespace BusinessLogic.Services
 
                 else
                 {
-                    //var response = chargingStation.Adapt<ChargingStationsViewDetailDto>();
-                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, chargingStation);
+                    var response = chargingStation.Adapt<ChargingStationsViewDetailDto>();
+                    return new ServiceResult(Const.SUCCESS_READ_CODE, Const.SUCCESS_READ_MSG, response);
                 }
             }
             catch (Exception ex)

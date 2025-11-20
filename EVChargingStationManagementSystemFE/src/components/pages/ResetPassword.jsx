@@ -133,8 +133,8 @@ const ResetPassword = () => {
             <div className="brand-icon">
               <Zap size={64} color="white" />
             </div>
-            <h1 className="brand-title">EV Charging Station</h1>
-            <p className="brand-subtitle">Hệ thống quản lý trạm sạc xe điện thông minh</p>
+            <h1 className="brand-title">Hệ thống quản lý trạm sạc xe điện </h1>
+        
             <div className="brand-features">
               <div className="feature-item">
                 <div className="feature-icon">🔐</div>

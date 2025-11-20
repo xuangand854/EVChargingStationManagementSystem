@@ -436,7 +436,7 @@ namespace BusinessLogic.Services
         // Khóa tài khoản EVDriver nếu trong ngày có >= 3 lần hủy không hợp lệ hoặc auto-cancel
         public async Task LockAccountsWithTooManyNoShows()
         {
-            int threshold = 3;
+            int threshold = 1;
             DateTime today = DateTime.Now.Date;
 
             var evDrivers = await _unitOfWork.EVDriverRepository.GetAllAsync(
@@ -518,72 +518,72 @@ namespace BusinessLogic.Services
         //   sẽ được chuyển sang trạm khả dụng khác. Nếu không có trạm khả dụng, booking sẽ bị hủy.
         // - Chạy định kỳ bởi scheduler (ví dụ: background service hoặc cron job).
         // Tự động xử lý lại các booking thuộc các trạm sạc đang gặp lỗi
-        public async Task AutoReassignBookingsForErrorStations()
-        {
-            //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
-            var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
-                s => s.Status == "Error" && !s.IsDeleted, include: s => s.Include(x => x.ChargingPosts)
-            );
+        //public async Task AutoReassignBookingsForErrorStations()
+        //{
+        //    //  Lấy tất cả các trạm sạc có trạng thái "Error" (đang bị lỗi) và chưa bị xóa
+        //    var errorStations = await _unitOfWork.ChargingStationRepository.GetAllAsync(
+        //        s => s.Status == "Error" && !s.IsDeleted, include: s => s.Include(x => x.ChargingPosts)
+        //    );
 
-            // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
-            if (errorStations == null || !errorStations.Any())
-                return;
+        //    // 🔹 Nếu không có trạm nào bị lỗi thì không cần xử lý tiếp
+        //    if (errorStations == null || !errorStations.Any())
+        //        return;
 
-            // 🔹 Cache (tải sẵn) danh sách trạm sạc đang khả dụng
-            //     Mục đích: tránh việc truy vấn database nhiều lần trong vòng lặp
-            var availableStations = (await _unitOfWork.ChargingStationRepository.GetAllAsync(
-                s => s.Status == "Available" && !s.IsDeleted,
-                include: s => s.Include(p => p.ChargingPosts)
-            )).ToList();
+        //    // 🔹 Cache (tải sẵn) danh sách trạm sạc đang khả dụng
+        //    //     Mục đích: tránh việc truy vấn database nhiều lần trong vòng lặp
+        //    var availableStations = (await _unitOfWork.ChargingStationRepository.GetAllAsync(
+        //        s => s.Status == "Available" && !s.IsDeleted,
+        //        include: s => s.Include(p => p.ChargingPosts)
+        //    )).ToList();
 
-            //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
-            var now = DateTime.Now;
+        //    //  Ghi nhận thời điểm hiện tại để tái sử dụng cho các bản ghi cập nhật
+        //    var now = DateTime.Now;
 
-            //  Duyệt từng trạm sạc đang bị lỗi
-            foreach (var station in errorStations)
-            {
-                //  Lấy toàn bộ booking thuộc trạm này có trạng thái "Scheduled" (đang chờ sạc)
-                var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
-                    b => b.StationId == station.Id && b.Status == "Scheduled"
-                );
+        //    //  Duyệt từng trạm sạc đang bị lỗi
+        //    foreach (var station in errorStations)
+        //    {
+        //        //  Lấy toàn bộ booking thuộc trạm này có trạng thái "Scheduled" (đang chờ sạc)
+        //        var bookings = await _unitOfWork.BookingRepository.GetAllAsync(
+        //            b => b.StationId == station.Id && b.Status == "Scheduled"
+        //        );
 
-                //  Duyệt từng booking cần xử lý
-                foreach (var booking in bookings)
-                {
-                    //  Tìm một trạm thay thế có ít nhất 1 post đang ở trạng thái "Available"
-                    //     => Ưu tiên trạm sẵn sàng phục vụ
-                    var alternativeStation = availableStations.FirstOrDefault(
-                        s => s.ChargingPosts.Any(p => p.Status == "Available")
-                    );
+        //        //  Duyệt từng booking cần xử lý
+        //        foreach (var booking in bookings)
+        //        {
+        //            //  Tìm một trạm thay thế có ít nhất 1 post đang ở trạng thái "Available"
+        //            //     => Ưu tiên trạm sẵn sàng phục vụ
+        //            var alternativeStation = availableStations.FirstOrDefault(
+        //                s => s.ChargingPosts.Any(p => p.Status == "Available")
+        //            );
 
-                    if (alternativeStation != null)
-                    {
-                        //  Tìm thấy trạm thay thế phù hợp
-                        //    → Cập nhật lại StationId của booking
-                        booking.StationId = alternativeStation.Id;
-                        booking.UpdatedAt = now;
+        //            if (alternativeStation != null)
+        //            {
+        //                //  Tìm thấy trạm thay thế phù hợp
+        //                //    → Cập nhật lại StationId của booking
+        //                booking.StationId = alternativeStation.Id;
+        //                booking.UpdatedAt = now;
 
-                        //  Chọn một post đang Available trong trạm thay thế và đánh dấu nó là Reserved
-                        var availablePost = alternativeStation.ChargingPosts
-                            .FirstOrDefault(p => p.Status == "Available");
+        //                //  Chọn một post đang Available trong trạm thay thế và đánh dấu nó là Reserved
+        //                var availablePost = alternativeStation.ChargingPosts
+        //                    .FirstOrDefault(p => p.Status == "Available");
 
-                        if (availablePost != null)
-                        {
-                            availablePost.Status = "Reserved";   // Post được giữ chỗ cho booking này
-                            availablePost.UpdatedAt = now;
-                        }
-                    }
-                    else
-                    {
-                        //  Không tìm thấy trạm thay thế nào phù hợp
-                        //    → Hủy booking để tránh khách hàng chờ vô ích
-                        booking.Status = "Cancelled";
-                        booking.UpdatedAt = now;
-                    }
-                }
-            }//  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
-            await _unitOfWork.SaveChangesAsync();
-        }
+        //                if (availablePost != null)
+        //                {
+        //                    availablePost.Status = "Reserved";   // Post được giữ chỗ cho booking này
+        //                    availablePost.UpdatedAt = now;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                //  Không tìm thấy trạm thay thế nào phù hợp
+        //                //    → Hủy booking để tránh khách hàng chờ vô ích
+        //                booking.Status = "Cancelled";
+        //                booking.UpdatedAt = now;
+        //            }
+        //        }
+        //    }//  Lưu toàn bộ thay đổi (booking + trạm + post) xuống cơ sở dữ liệu
+        //    await _unitOfWork.SaveChangesAsync();
+        //}
 
         public async Task AutoReserveConnectorBeforeStart()
         {

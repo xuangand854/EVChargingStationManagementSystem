@@ -7,6 +7,7 @@ import { getChargingPostId } from "../API/ChargingPost";
 import { PatchConnectorToggle, GetConnectorId } from "../API/Connector";
 import { GetVAT, GetPrice } from "../API/SystemConfiguration";
 import { BookCheckin } from "../API/Booking";
+import { PostPayment } from "../API/Payment";
 
 import {
     PlugZap,
@@ -231,6 +232,14 @@ const Session = () => {
         }
         return () => clearInterval(interval);
     }, [isCharging, pricingData]);
+
+    // Tự động dừng sạc khi đạt 100%
+    useEffect(() => {
+        if (isCharging && chargingData.batteryLevel >= 100) {
+            message.success("🎉 Pin đã đầy 100%! Phiên sạc đã tự động dừng.");
+            handleStopSession();
+        }
+    }, [chargingData.batteryLevel, isCharging]);
 
     const handleCheckin = async () => {
         const checkinCode = otpValues.join("");
@@ -476,12 +485,20 @@ const Session = () => {
     };
 
     const handlePayment = async () => {
+        console.log("🔍 handlePayment - sessionId:", sessionId);
+
         if (!sessionId) {
             message.error("Không tìm thấy mã phiên sạc!");
             return;
         }
         try {
             message.info("Đang chuyển đến trang thanh toán...");
+
+            // Lấy data từ state
+            const totalCost = chargingData.cost || 0;
+            const energyDelivered = chargingData.energyDelivered || 0;
+            const pricePerKWh = pricingData.pricePerKWh || 0;
+            const vatRate = pricingData.vatRate || 10;
 
             // Chuẩn bị data để truyền qua state
             const paymentData = {
@@ -490,12 +507,15 @@ const Session = () => {
                 totalCost: totalCost,
                 energyDelivered: energyDelivered,
                 pricePerKWh: pricePerKWh,
-                vatRate: paymentInfo.vatRate,
-                chargingTime: sessionInfo.duration,
+                vatRate: vatRate,
+                chargingTime: formatTime(timer),
                 stationInfo: stationInfo,
                 vehicleInfo: vehicleInfo,
                 connectorInfo: connectorInfo
             };
+
+            console.log("📦 Payment data:", paymentData);
+            console.log("🔗 Navigate to:", `/payment-method/${sessionId}`);
 
             // Backup vào sessionStorage
             try {
@@ -505,11 +525,11 @@ const Session = () => {
                 sessionStorage.setItem('payment.amount', String(totalCost));
                 sessionStorage.setItem('payment.energy', String(energyDelivered));
                 sessionStorage.setItem('payment.pricePerKWh', String(pricePerKWh));
-                sessionStorage.setItem('payment.vatRate', String(paymentInfo.vatRate));
-                sessionStorage.setItem('payment.chargingTime', sessionInfo.duration);
+                sessionStorage.setItem('payment.vatRate', String(vatRate));
+                sessionStorage.setItem('payment.chargingTime', formatTime(timer));
             } catch { }
 
-            // Navigate với state
+            // Navigate đến trang chọn phương thức thanh toán
             navigate(`/payment-method/${sessionId}`, { state: paymentData });
         } catch (error) {
             console.error("Lỗi khi điều hướng:", error);
@@ -551,28 +571,26 @@ const Session = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 md:p-8">
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                        style={{ backgroundColor: '#e6f7f5' }}
-                    >
-                        <Zap style={{ color: '#00b09b' }} size={32} />
-                    </div>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                        Trạm Sạc Xe Điện
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 md:p-6">
+            <style>{`
+                @keyframes pulse-ring {
+                    0% { box-shadow: 0 0 0 0 rgba(0, 176, 155, 0.7); }
+                    70% { box-shadow: 0 0 0 10px rgba(0, 176, 155, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(0, 176, 155, 0); }
+                }
+                .charging-pulse {
+                    animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+                }
+            `}</style>
+            <div className="max-w-7xl mx-auto">
+                {/* Header - Simple */}
+                <div className="text-center mb-6">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                        Phiên Sạc
                     </h1>
-                    <div className="flex items-center justify-center gap-2 text-gray-600">
-                        <span>Súng sạc: </span>
-                        <span
-                            className="px-3 py-1 rounded-full font-semibold"
-                            style={{
-                                background: 'linear-gradient(90deg, #00b09b, #96c93d)',
-                                color: 'white'
-                            }}
-                        >
+                    <div className="flex items-center justify-center gap-2">
+                        <span className="text-gray-600">Connector:</span>
+                        <span className="font-bold text-gray-800">
                             {connectorInfo.name || `#${connectorID}`}
                         </span>
                     </div>
@@ -757,56 +775,32 @@ const Session = () => {
                     </div>
                 </Modal>
 
-                {/* Trạng thái hiện tại - Nổi bật */}
-                <div className="mb-6">
-                    <Card className="shadow-lg" style={{ borderWidth: '2px', borderColor: '#00b09b' }}>
-                        <div className="flex items-center justify-center gap-3 py-2">
-                            {connectorStatus === "Charging" ? (
-                                <>
-                                    <div className="w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: '#00b09b' }}></div>
-                                    <span className="text-2xl font-bold" style={{ color: '#00b09b' }}>⚡ Đang sạc</span>
-                                    <div className="ml-4 px-4 py-1 rounded-full" style={{ backgroundColor: '#e6f7f5' }}>
-                                        <span className="font-semibold" style={{ color: '#00b09b' }}>{formatTime(timer)}</span>
-                                    </div>
-                                </>
-                            ) : connectorStatus === "InUse" ? (
-                                <>
-                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00b09b' }}></div>
-                                    <span className="text-2xl font-bold" style={{ color: '#00b09b' }}>🔌 Đã cắm - Sẵn sàng sạc</span>
-                                </>
-                            ) : connectorStatus === "Available" ? (
-                                <>
-                                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                                    <span className="text-2xl font-bold text-gray-600">⏸️ Chưa kết nối</span>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                                    <span className="text-2xl font-bold text-red-600">⚠️ {connectorStatus}</span>
-                                </>
-                            )}
-                        </div>
-                    </Card>
-                </div>
-
-                <Row gutter={[24, 24]}>
+                <Row gutter={[16, 16]}>
                     {/* Cột trái - Thông tin sạc */}
-                    <Col xs={24} lg={16}>
-                        {/* Mức pin - Card lớn */}
-                        <Card className="mb-6 shadow-lg border border-gray-200">
+                    <Col xs={24} lg={14}>
+                        {/* Mức pin - Clean Card */}
+                        <Card className="mb-5 shadow-xl border-0" style={{
+                            borderRadius: '20px',
+                            background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)'
+                        }}>
                             <div className="text-center mb-4">
-                                <Battery
-                                    className="mx-auto mb-2"
-                                    size={40}
-                                    style={{ color: '#00b09b' }}
-                                />
-                                <h3 className="text-lg font-semibold text-gray-700">Mức Pin</h3>
+                                <div className="inline-flex items-center gap-3 mb-3">
+                                    <div className="p-3 rounded-full" style={{
+                                        background: 'linear-gradient(135deg, #e6f7f5, #d1fae5)'
+                                    }}>
+                                        <Battery size={32} style={{ color: '#00b09b' }} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold m-0" style={{ color: '#1f2937' }}>
+                                        Mức Pin
+                                    </h3>
+                                </div>
                             </div>
-                            <div className="text-center mb-4">
+                            <div className="text-center mb-5">
                                 <span
-                                    className="text-6xl font-bold"
+                                    className="font-bold"
                                     style={{
-                                        background: 'linear-gradient(90deg, #00b09b, #96c93d)',
+                                        fontSize: '72px',
+                                        background: 'linear-gradient(135deg, #00b09b, #96c93d)',
                                         WebkitBackgroundClip: 'text',
                                         WebkitTextFillColor: 'transparent',
                                         backgroundClip: 'text'
@@ -814,7 +808,7 @@ const Session = () => {
                                 >
                                     {chargingData.batteryLevel.toFixed(1)}
                                 </span>
-                                <span className="text-3xl text-gray-500">%</span>
+                                <span className="text-4xl font-semibold text-gray-400">%</span>
                             </div>
                             <Progress
                                 percent={chargingData.batteryLevel.toFixed(1)}
@@ -824,43 +818,52 @@ const Session = () => {
                                     '50%': '#00b09b',
                                     '100%': '#96c93d'
                                 }}
-                                strokeWidth={12}
+                                strokeWidth={16}
                                 status={isCharging ? 'active' : 'normal'}
                             />
                         </Card>
 
-                        {/* Thống kê - Grid 2x2 */}
-                        <Row gutter={[16, 16]} className="mb-6">
+                        {/* Thống kê - Grid 2x2 Clean Cards */}
+                        <Row gutter={[12, 12]} className="mb-5">
                             <Col xs={12}>
-                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                    <div className="text-center">
-                                        <Zap className="text-yellow-500 mx-auto mb-2" size={28} />
-                                        <div className="text-2xl font-bold text-gray-800">
+                                <Card className="shadow-lg border-0 hover:shadow-xl transition-all" style={{
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+                                }}>
+                                    <div className="text-center py-3">
+                                        <Zap size={32} style={{ color: '#f59e0b' }} className="mx-auto mb-2" />
+                                        <div className="text-3xl font-bold" style={{ color: '#92400e' }}>
                                             {chargingData.energyDelivered.toFixed(2)}
                                         </div>
-                                        <div className="text-sm text-gray-500">kWh đã sạc</div>
+                                        <div className="text-sm font-medium" style={{ color: '#78350f' }}>kWh đã sạc</div>
                                     </div>
                                 </Card>
                             </Col>
                             <Col xs={12}>
-                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                    <div className="text-center">
-                                        <Gauge className="text-blue-500 mx-auto mb-2" size={28} />
-                                        <div className="text-2xl font-bold text-gray-800">
+                                <Card className="shadow-lg border-0 hover:shadow-xl transition-all" style={{
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)'
+                                }}>
+                                    <div className="text-center py-3">
+                                        <Gauge size={32} style={{ color: '#3b82f6' }} className="mx-auto mb-2" />
+                                        <div className="text-3xl font-bold" style={{ color: '#1e3a8a' }}>
                                             {isCharging ? chargingData.chargingPower.toFixed(1) : '0.0'}
                                         </div>
-                                        <div className="text-sm text-gray-500">kW công suất</div>
+                                        <div className="text-sm font-medium" style={{ color: '#1e40af' }}>kW công suất</div>
                                     </div>
                                 </Card>
                             </Col>
                             <Col xs={12}>
-                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                    <div className="text-center">
-                                        <Clock className="text-purple-500 mx-auto mb-2" size={28} />
-                                        <div className="text-2xl font-bold text-gray-800">
+                                <Card className="shadow-lg border-0 hover:shadow-xl transition-all" style={{
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
+                                }}>
+                                    <div className="text-center py-3">
+                                        <Clock size={32} style={{ color: '#a855f7' }} className="mx-auto mb-2" />
+                                        <div className="text-3xl font-bold" style={{ color: '#581c87' }}>
                                             {formatTime(timer)}
                                         </div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm font-medium" style={{ color: '#6b21a8' }}>
                                             {isCharging && chargingData.estimatedTime > 0
                                                 ? `Còn ${formatTime(Math.floor(chargingData.estimatedTime))}`
                                                 : 'Thời gian sạc'}
@@ -869,223 +872,301 @@ const Session = () => {
                                 </Card>
                             </Col>
                             <Col xs={12}>
-                                <Card className="shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                    <div className="text-center">
-                                        <Banknote style={{ color: '#00b09b' }} className="mx-auto mb-2" size={28} />
-                                        <div className="text-2xl font-bold text-gray-800">
+                                <Card className="shadow-lg border-0 hover:shadow-xl transition-all" style={{
+                                    borderRadius: '16px',
+                                    background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)'
+                                }}>
+                                    <div className="text-center py-3">
+                                        <Banknote size={32} style={{ color: '#10b981' }} className="mx-auto mb-2" />
+                                        <div className="text-3xl font-bold" style={{ color: '#064e3b' }}>
                                             {chargingData.cost.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}
                                         </div>
-                                        <div className="text-sm text-gray-500">VNĐ</div>
+                                        <div className="text-sm font-medium" style={{ color: '#065f46' }}>VNĐ</div>
                                     </div>
                                 </Card>
                             </Col>
                         </Row>
 
-                        {/* Bảng giá */}
-                        <Card className="shadow-md border border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                                <span>📋</span> Thông tin chi tiết
-                            </h3>
 
-                            {!pricingData.loading ? (
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-gray-600">Giá điện: </span>
-                                        <span className="font-semibold text-gray-800">
-                                            {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-gray-600">Thuế VAT: </span>
-                                        <span className="font-semibold text-gray-800">{pricingData.vatRate}%</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                        <span className="text-gray-700 font-medium">Công suất tối đa: </span>
-                                        <span className="font-bold text-green-600 text-lg">
-                                            {pricingData.maxPowerKw} kW
-                                        </span>
-                                    </div>
-                                    {chargingData.energyDelivered > 0 && (
-                                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                            <span className="text-gray-600">Tiền điện: </span>
-                                            <span className="font-semibold text-gray-800">
-                                                {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
-                                            </span>
-                                        </div>
-                                    )}
-                                    {sessionId && (
-                                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200 mt-4">
-                                            <span className="text-gray-700 font-medium">Mã phiên: </span>
-                                            <span className="font-mono text-green-700 font-semibold">{sessionId}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="text-center py-4 text-gray-500">Đang tải thông tin...</div>
-                            )}
-                        </Card>
                     </Col>
 
-                    {/* Cột phải - Điều khiển */}
-                    <Col xs={24} lg={8}>
-                        <Card
-                            className="shadow-xl border-2 sticky top-4"
-                            style={{
-                                borderColor: '#00b09b',
-                                background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)'
-                            }}
-                        >
-                            <Space direction="vertical" className="w-full" size="large">
+                    {/* Cột phải - Điều khiển Clean */}
+                    <Col xs={24} lg={10}>
+                        <Card className="shadow-2xl border-0 sticky top-4" style={{
+                            borderRadius: '20px',
+                            background: 'linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%)'
+                        }}>
+                            <h3 className="text-xl font-bold mb-3 text-center" style={{ color: '#1f2937' }}>
+                                🎮 Bảng Điều Khiển
+                            </h3>
+
+                            {/* Trạng thái Connector - Outlined Style */}
+                            <div className="mb-4" style={{
+                                height: '60px',
+                                fontSize: '15px',
+                                background: 'white',
+                                borderWidth: '2px',
+                                borderStyle: 'solid',
+                                borderColor: connectorStatus === "Charging"
+                                    ? '#00b09b'
+                                    : connectorStatus === "InUse"
+                                        ? '#10b981'
+                                        : connectorStatus === "Available"
+                                            ? '#d1d5db'
+                                            : '#ef4444',
+                                color: connectorStatus === "Charging"
+                                    ? '#00b09b'
+                                    : connectorStatus === "InUse"
+                                        ? '#10b981'
+                                        : connectorStatus === "Available"
+                                            ? '#9ca3af'
+                                            : '#ef4444',
+                                borderRadius: '16px',
+                                boxShadow: connectorStatus === "Charging"
+                                    ? '0 4px 12px rgba(0, 176, 155, 0.2)'
+                                    : connectorStatus === "InUse"
+                                        ? '0 4px 12px rgba(16, 185, 129, 0.2)'
+                                        : connectorStatus === "Available"
+                                            ? 'none'
+                                            : '0 4px 12px rgba(239, 68, 68, 0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                padding: '0 20px'
+                            }}>
+                                <span style={{ fontSize: '18px' }}>
+                                    {connectorStatus === "Charging" && "⚡"}
+                                    {connectorStatus === "InUse" && "🔌"}
+                                    {connectorStatus === "Available" && "⏸️"}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && "⚠️"}
+                                </span>
+                                <span className="font-bold">
+                                    {connectorStatus === "Charging" && "Đang sạc"}
+                                    {connectorStatus === "InUse" && "Đã cắm - Sẵn sàng"}
+                                    {connectorStatus === "Available" && "Chưa kết nối"}
+                                    {connectorStatus !== "Charging" && connectorStatus !== "InUse" && connectorStatus !== "Available" && connectorStatus}
+                                </span>
+                                {connectorStatus === "Charging" && (
+                                    <div className="ml-2 px-3 py-1.5 rounded-full" style={{
+                                        background: 'linear-gradient(135deg, #00b09b, #96c93d)',
+                                        boxShadow: '0 2px 8px rgba(0, 176, 155, 0.3)'
+                                    }}>
+                                        <span className="font-bold text-white text-sm">{formatTime(timer)}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <Row gutter={[12, 12]}>
                                 {/* Nút cắm sạc */}
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    onClick={handlePlugToCar}
-                                    disabled={connectorStatus !== "Available" || loading}
-                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
-                                    icon={<PlugZap size={24} />}
-                                    style={{
-                                        height: '64px',
-                                        fontSize: '16px',
-                                        background: connectorStatus === "Available" && !loading
-                                            ? 'linear-gradient(135deg, #00b09b 0%, #96c93d 100%)'
-                                            : undefined,
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '20px' }}>🔌</span>
-                                    <span>Cắm sạc vào xe</span>
-                                </Button>
+                                <Col span={24}>
+                                    <Button
+                                        size="large"
+                                        onClick={handlePlugToCar}
+                                        disabled={connectorStatus !== "Available" || loading}
+                                        className="w-full font-bold hover:scale-105 transition-all"
+                                        icon={<PlugZap size={20} />}
+                                        style={{
+                                            height: '60px',
+                                            fontSize: '15px',
+                                            width: '40%',
+                                            background: 'white',
+                                            borderWidth: '2px',
+                                            borderStyle: 'solid',
+                                            borderColor: connectorStatus === "Available" && !loading ? '#00b09b' : '#d1d5db',
+                                            color: connectorStatus === "Available" && !loading ? '#00b09b' : '#9ca3af',
+                                            borderRadius: '16px',
+                                            boxShadow: connectorStatus === "Available" && !loading
+                                                ? '0 4px 12px rgba(0, 176, 155, 0.2)'
+                                                : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px' }}>🔌</span>
+                                        <span>Cắm sạc vào xe</span>
+                                    </Button>
+                                </Col>
 
                                 {/* Nút bắt đầu phiên sạc */}
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    onClick={handleStartSession}
-                                    disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading}
-                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
-                                    icon={<Power size={24} />}
-                                    style={{
-                                        height: '64px',
-                                        fontSize: '16px',
-                                        background: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading
-                                            ? 'linear-gradient(135deg, #10b981 0%, #34d399 100%)'
-                                            : undefined,
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '20px' }}>⚡</span>
-                                    <span>{pricingData.loading ? 'Đang tải...' : 'Bắt đầu sạc'}</span>
-                                </Button>
+                                <Col span={24}>
+                                    <Button
+                                        size="large"
+                                        onClick={handleStartSession}
+                                        disabled={connectorStatus !== "InUse" || isCharging || loading || pricingData.loading}
+                                        className="w-full font-bold hover:scale-105 transition-all"
+                                        icon={<Power size={20} />}
+                                        style={{
+                                            height: '60px',
+                                            fontSize: '15px',
+                                            width: '40%',
+                                            background: 'white',
+                                            borderWidth: '2px',
+                                            borderStyle: 'solid',
+                                            borderColor: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading ? '#10b981' : '#d1d5db',
+                                            color: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading ? '#10b981' : '#9ca3af',
+                                            borderRadius: '16px',
+                                            boxShadow: connectorStatus === "InUse" && !isCharging && !loading && !pricingData.loading
+                                                ? '0 4px 12px rgba(16, 185, 129, 0.2)'
+                                                : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px' }}>⚡</span>
+                                        <span>{pricingData.loading ? 'Đang tải...' : 'Bắt đầu sạc'}</span>
+                                    </Button>
+                                </Col>
 
                                 {/* Nút dừng phiên sạc */}
-                                <Button
-                                    danger
-                                    size="large"
-                                    onClick={handleStopSession}
-                                    disabled={connectorStatus !== "Charging" || loading}
-                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
-                                    icon={<StopCircle size={24} />}
-                                    style={{
-                                        height: '64px',
-                                        fontSize: '16px',
-                                        background: connectorStatus === "Charging" && !loading
-                                            ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                                            : undefined,
-                                        borderColor: '#ef4444',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '20px' }}>🛑</span>
-                                    <span>Dừng sạc</span>
-                                </Button>
+                                <Col span={24}>
+                                    <Button
+                                        size="large"
+                                        onClick={handleStopSession}
+                                        disabled={connectorStatus !== "Charging" || loading}
+                                        className="w-full font-bold hover:scale-105 transition-all"
+                                        icon={<StopCircle size={20} />}
+                                        style={{
+                                            height: '60px',
+                                            fontSize: '15px',
+                                            width: '40%',
+                                            background: 'white',
+                                            borderWidth: '2px',
+                                            borderStyle: 'solid',
+                                            borderColor: connectorStatus === "Charging" && !loading ? '#ef4444' : '#d1d5db',
+                                            color: connectorStatus === "Charging" && !loading ? '#ef4444' : '#9ca3af',
+                                            borderRadius: '16px',
+                                            boxShadow: connectorStatus === "Charging" && !loading
+                                                ? '0 4px 12px rgba(239, 68, 68, 0.2)'
+                                                : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px' }}>🛑</span>
+                                        <span>Dừng sạc</span>
+                                    </Button>
+                                </Col>
 
-                                <Divider style={{ margin: '12px 0', borderColor: '#d1d5db' }} />
+                                <Col span={24}>
+                                    <div style={{ height: '1px', background: '#e5e7eb' }} />
+                                </Col>
 
                                 {/* Nút thanh toán */}
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    onClick={handlePayment}
-                                    disabled={connectorStatus === "Charging" || loading || !sessionId}
-                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
-                                    icon={<CreditCard size={24} />}
-                                    style={{
-                                        height: '64px',
-                                        fontSize: '16px',
-                                        background: connectorStatus !== "Charging" && !loading && sessionId
-                                            ? 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)'
-                                            : undefined,
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '20px' }}>💳</span>
-                                    <span>Thanh toán</span>
-                                </Button>
+                                <Col span={24}>
+                                    <Button
+                                        size="large"
+                                        onClick={handlePayment}
+                                        disabled={connectorStatus === "Charging" || loading || !sessionId}
+                                        className="w-full font-bold hover:scale-105 transition-all"
+                                        icon={<CreditCard size={20} />}
+                                        style={{
+                                            height: '60px',
+                                            fontSize: '15px',
+                                            width: '40%',
+                                            background: 'white',
+                                            borderWidth: '2px',
+                                            borderStyle: 'solid',
+                                            borderColor: connectorStatus !== "Charging" && !loading && sessionId ? '#f59e0b' : '#d1d5db',
+                                            color: connectorStatus !== "Charging" && !loading && sessionId ? '#f59e0b' : '#9ca3af',
+                                            borderRadius: '16px',
+                                            boxShadow: connectorStatus !== "Charging" && !loading && sessionId
+                                                ? '0 4px 12px rgba(245, 158, 11, 0.2)'
+                                                : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px' }}>💳</span>
+                                        <span>Thanh toán</span>
+                                    </Button>
+                                </Col>
 
                                 {/* Nút rút sạc */}
-                                <Button
-                                    size="large"
-                                    onClick={handleUnplugFromCar}
-                                    disabled={connectorStatus !== "InUse" || (!isPaid && sessionId)}
-                                    className="w-full font-bold shadow-lg hover:shadow-xl transition-all"
-                                    icon={<Plug size={24} />}
-                                    style={{
-                                        height: '64px',
-                                        fontSize: '16px',
-                                        background: connectorStatus === "InUse" && (isPaid || !sessionId)
-                                            ? 'white'
-                                            : undefined,
-                                        borderWidth: '2px',
-                                        borderColor: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : undefined,
-                                        color: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : undefined,
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '20px' }}>🔋</span>
-                                    <span>Rút sạc khỏi xe</span>
-                                </Button>
-                            </Space>
+                                <Col span={24}>
+                                    <Button
+                                        size="large"
+                                        onClick={handleUnplugFromCar}
+                                        disabled={connectorStatus !== "InUse" || (!isPaid && sessionId)}
+                                        className="w-full font-bold hover:scale-105 transition-all"
+                                        icon={<Plug size={20} />}
+                                        style={{
+                                            height: '60px',
+                                            fontSize: '15px',
+                                            width: '40%',
+                                            background: 'white',
+                                            borderWidth: '2px',
+                                            borderStyle: 'solid',
+                                            borderColor: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : '#d1d5db',
+                                            color: connectorStatus === "InUse" && (isPaid || !sessionId) ? '#00b09b' : '#9ca3af',
+                                            borderRadius: '16px',
+                                            boxShadow: connectorStatus === "InUse" && (isPaid || !sessionId)
+                                                ? '0 4px 12px rgba(0, 176, 155, 0.2)'
+                                                : 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '18px' }}>🔋</span>
+                                        <span>Rút sạc khỏi xe</span>
+                                    </Button>
+                                </Col>
+                            </Row>
 
-                            {/* Hướng dẫn nhanh */}
-                            <div
-                                className="mt-6 p-4 rounded-lg"
-                                style={{
-                                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                                    border: '1px solid #bfdbfe'
-                                }}
-                            >
-                                <p className="text-xs text-gray-600 font-medium mb-2">📌 Hướng dẫn:</p>
-                                <ol className="text-xs text-gray-600 space-y-1 ml-4">
-                                    <li>1. Cắm sạc vào xe</li>
-                                    <li>2. Bắt đầu phiên sạc</li>
-                                    <li>3. Dừng sạc khi đủ pin</li>
-                                    <li>4. Thanh toán</li>
-                                    <li>5. Rút sạc khỏi xe</li>
-                                </ol>
+                            {/* Thông tin chi tiết */}
+                            <div className="mt-4">
+                                <h4 className="text-base font-bold mb-3" style={{ color: '#1f2937' }}>
+                                    📋 Thông tin chi tiết
+                                </h4>
+
+                                {!pricingData.loading ? (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Giá điện</span>
+                                            <span className="text-sm font-bold text-gray-800">
+                                                {pricingData.pricePerKWh.toLocaleString()} VNĐ/kWh
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-gray-600">Thuế VAT</span>
+                                            <span className="text-sm font-bold text-gray-800">{pricingData.vatRate}%</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Công suất tối đa</span>
+                                            <span className="text-base font-bold" style={{ color: '#00b09b' }}>
+                                                {pricingData.maxPowerKw} kW
+                                            </span>
+                                        </div>
+                                        {chargingData.energyDelivered > 0 && (
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-600">Tiền điện</span>
+                                                <span className="text-sm font-bold text-gray-800">
+                                                    {(chargingData.energyDelivered * pricingData.pricePerKWh).toFixed(0).toLocaleString()} VNĐ
+                                                </span>
+                                            </div>
+                                        )}
+                                        {sessionId && (
+                                            <div className="flex justify-between items-center pt-2" style={{
+                                                borderTop: '1px solid #e5e7eb'
+                                            }}>
+                                                <span className="text-sm font-bold" style={{ color: '#00b09b' }}>Mã phiên</span>
+                                                <span className="text-sm font-mono font-bold" style={{ color: '#00b09b' }}>{sessionId}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-3 text-sm text-gray-500">Đang tải thông tin...</div>
+                                )}
                             </div>
                         </Card>
                     </Col>

@@ -9,9 +9,6 @@ const BASE_URL = '/Auth';
 export const getAuthStatus = () => {
   const token = localStorage.getItem('token');
 
-  // Debug: Log token để kiểm tra
-  console.log('Token từ localStorage:', token);
-
   if (token) {
     try {
       const decoded = jwtDecode(token);

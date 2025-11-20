@@ -232,6 +232,7 @@ const StaffDashboard = () => {
                     pagination={false}
                     size="small"
                     style={{ background: 'transparent' }}
+                    locale={{ emptyText: "Không có đơn hàng nào" }}
                 />
             </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Table,
     Card,
@@ -6,7 +6,6 @@ import {
     Button,
     message,
     Tooltip,
-    Switch,
 } from "antd";
 import { ReloadOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -43,19 +42,7 @@ const StaffStation = () => {
         fetchStations();
     }, []);
 
-    // 🔄 Cập nhật status trạm
-    const handleChangeStatus = async (stationId, checked) => {
-        try {
-            await updateChargingStationStatus(stationId, checked);
-            message.success("Cập nhật trạng thái thành công!");
-            fetchStations();
-        } catch (error) {
-            console.error("Error updating status:", error);
-            message.error("Cập nhật trạng thái thất bại!");
-        }
-    };
-
-    // 🔹 Xem chi tiết (chỉ xem)
+    // � Xem chi titết (chỉ xem)
     const handleViewDetail = (stationId) => {
         console.log("Station ID:", stationId); // kiểm tra log
         navigate(`/staff/station/${stationId}`); // 🔹 dùng đúng route bạn đã khai báo
@@ -77,7 +64,7 @@ const StaffStation = () => {
             dataIndex: "province",
             key: "province",
         },
-        
+
         {
             title: "Hành động",
             key: "action",
@@ -113,6 +100,9 @@ const StaffStation = () => {
                 rowKey="stationId"
                 loading={loading}
                 pagination={{ pageSize: 6 }}
+                locale={{
+                    emptyText: "Không có dữ liệu"
+                }}
             />
         </Card>
     );

@@ -111,7 +111,6 @@ const ProfileMenu = () => {
 
           <button onClick={() => handleNavigate("/order-charging")}>Đặt chỗ sạc</button>
           <button onClick={() => handleNavigate("/orders")}>Lịch sử đặt hàng</button>
-          {/* <button onClick={() => handleNavigate("/Payment")}>Thanh Toán</button> */}
           <button onClick={handleSimulate}>Mô Phỏng Sạc</button>
 
           <button className="logout-btn" onClick={() => { logout(); setOpen(false); }}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
     Button, Table, Modal, Input, Form,
-    Space, Tooltip, Select, Empty
+    Space, Tooltip, Select, Empty, Avatar
 } from "antd";
 import {
     EditOutlined, DeleteOutlined, PlusOutlined,
@@ -159,15 +159,16 @@ const AdminStaff = () => {
 
     const columns = [
         {
-            title: "Thông tin",
+            title: "Nhân viên",
             key: "info",
             render: (_, r) => (
-                <div className="flex items-center gap-3">
-                    <div>
-                        <div className="font-medium">ID: {r.id}</div>
-                        <div className="font-medium">AccID: {r.accountId}</div>
-                        <div className="font-medium">{r.name}</div>
-                        <div className="text-sm text-gray-500">{r.email}</div>
+                <div className="staff-info">
+                    <Avatar size={40} style={{ backgroundColor: '#3b82f6' }}>
+                        {(r.name || "?").charAt(0).toUpperCase()}
+                    </Avatar>
+                    <div className="staff-details">
+                        <div className="staff-name">{r.name || "Chưa cập nhật"}</div>
+                        <div className="staff-email">{r.email || "Không có email"}</div>
                     </div>
                 </div>
             ),

@@ -8,9 +8,7 @@ import { SettingOutlined } from '@ant-design/icons';
 import "react-toastify/dist/ReactToastify.css";
 
 const defaultAvatars = {
-  customer: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-  staff: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-  admin: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+  EVDriver: "https://cdn-icons-png.flaticon.com/512/847/847969.png"
 };
 
 const Profile = () => {
@@ -194,7 +192,11 @@ const handlePasswordChange = async () => {
         <div className="sidebar-card user-card">
           <div className="avatar-container">
             <img
-              src={formData.avatar || defaultAvatars[user.role]}
+              src={
+                formData.avatar
+                  ? formData.avatar
+                  : defaultAvatars[user.role] || defaultAvatars["EVDriver"]
+              }
               alt="avatars"
               className="avatars"
             />

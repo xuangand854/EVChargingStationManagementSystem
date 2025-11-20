@@ -589,7 +589,7 @@ const Session = () => {
                         Phiên Sạc
                     </h1>
                     <div className="flex items-center justify-center gap-2">
-                        <span className="text-gray-600">Connector:</span>
+                        <span className="text-gray-600">Súng sạc: </span>
                         <span className="font-bold text-gray-800">
                             {connectorInfo.name || `#${connectorID}`}
                         </span>
@@ -613,9 +613,9 @@ const Session = () => {
                                 border: '1px solid #00b09b',
                                 marginBottom: '12px'
                             }}>
-                                {/* <p style={{ margin: 0, color: '#00b09b', fontWeight: '600' }}>
+                                <p style={{ margin: 0, color: '#00b09b', fontWeight: '600' }}>
                                     ✅ Số điện thoại đã được tự động điền từ booking
-                                </p> */}
+                                </p>
                             </div>
                             <p style={{ marginBottom: '8px' }}>Số điện thoại của bạn:</p>
                         </div>

@@ -61,13 +61,28 @@ const TransactionHistory = () => {
         setLoading(true);
         try {
             const response = await GetTransaction();
-            const data = Array.isArray(response.data) ? response.data :
-                Array.isArray(response) ? response : [];
+            console.log('📊 Transaction History - Full response:', response);
+            console.log('📊 Transaction History - response.data:', response?.data);
+            console.log('📊 Transaction History - response.data.data:', response?.data?.data);
+
+            // Parse data từ response - BE trả về { data: [...], message: "..." }
+            const data = Array.isArray(response?.data?.data) ? response.data.data :
+                Array.isArray(response?.data) ? response.data :
+                    Array.isArray(response) ? response : [];
+
+            console.log('📊 Transaction History - Parsed data:', data);
+            console.log('📊 Transaction History - Data length:', data.length);
 
             setTransactions(data);
             calculateStatistics(data);
-            setNoData(false);
-            setHasError(false);
+
+            if (data.length === 0) {
+                setNoData(true);
+                setHasError(false);
+            } else {
+                setNoData(false);
+                setHasError(false);
+            }
         } catch (error) {
             console.log('Full error:', error);
 
@@ -140,7 +155,8 @@ const TransactionHistory = () => {
                 try {
                     const dateStr = t.referenceCode.split('-')[1];
                     const transDate = dayjs(dateStr, 'YYYYMMDD');
-                    return transDate.isAfter(dateRange[0]) && transDate.isBefore(dateRange[1]);
+                    // Sử dụng isSameOrAfter và isSameOrBefore để bao gồm cả ngày bắt đầu và kết thúc
+                    return transDate.isSameOrAfter(dateRange[0], 'day') && transDate.isSameOrBefore(dateRange[1], 'day');
                 } catch {
                     return false;
                 }

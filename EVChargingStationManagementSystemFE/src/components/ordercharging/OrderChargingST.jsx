@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Lottie from "lottie-react";
 import L from "leaflet";
+import { useNavigate } from "react-router-dom";
 import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin,User} from "lucide-react";
 import { getAuthStatus } from "../../API/Auth";
 import { ToastContainer, toast } from "react-toastify";
@@ -63,6 +64,7 @@ const OrderChargingST = () => {
   const [stationPosts, setStationPosts] = useState({});
   const [showUserLocation, setShowUserLocation] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true);
+   const navigate = useNavigate();
 
   const userAnimatedIcon = L.divIcon({
     className: "user-lottie-icon",
@@ -683,10 +685,22 @@ const OrderChargingST = () => {
 
                     {(!user || user.role === "EVDriver")&& (
                  <button
-                    className="btn-popup-book"
-                    onClick={() => {
-                        // Kiểm tra trạm active
-                   
+                  className="btn-popup-book"
+                  onClick={() => {
+                    // Kiểm tra user đã login và role
+                    if (!user || user.role !== "EVDriver") {
+                      toast.error("Bạn cần đăng nhập với tài khoản EVDriver để đặt lịch sạc!");
+                      navigate("/login"); // chuyển sang trang login
+                      return;
+                    }
+
+                    // Kiểm tra profile đầy đủ
+                    if (!user.fullName || !user.phone || !user.carModel) {
+                      toast.warning("Vui lòng cập nhật đầy đủ hồ sơ trước khi đặt lịch sạc!");
+                      return;
+                    }
+
+                    // Kiểm tra trạm active
                     if (!station || station.status !== "Active") {
                       toast.warning("Trạm này hiện không hoạt động!");
                       return;
@@ -707,25 +721,12 @@ const OrderChargingST = () => {
                       return;
                     }
 
-
-                    // (Optional) Kiểm tra còn trụ available
-                    const activePile = stationPosts[station.id]?.some(
-                        p => p.status?.toLowerCase() === "available"
-                      );
-
-                      if (!activePile) {
-                        toast.warning("Trạm này không còn trụ sạc nào khả dụng!");
-                        return;
-                      }
-
-                      setSelectedStation(station);
-                      setShowBookingPopup(true);
-                    }}
-                  >
-                    Đặt lịch sạc
-                  </button>
-
-
+                    setSelectedStation(station);
+                    setShowBookingPopup(true);
+                  }}
+                >
+                  Đặt lịch sạc
+                </button>
                     )}
                   </div>
                 </Popup>

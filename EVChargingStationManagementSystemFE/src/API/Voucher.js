@@ -78,4 +78,15 @@ export const useVoucher = async (userVoucherId, sessionId) => {
     }
 }
 
+//voucher của user
+export const GetUserVouchers = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/my`);
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi lấy danh sách voucher của user:', error);
+        throw error;
+    }
+}
+
 

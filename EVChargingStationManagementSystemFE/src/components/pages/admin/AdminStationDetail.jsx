@@ -48,7 +48,6 @@ const statusMapping = {
     // Trạng thái charging post
     'Maintained': 'Đã bảo trì',
     'Available': 'Sẵn sàng',
-    'InActive': 'Không hoạt động',
 
     // Trạng thái connector
     'Reserved': 'Đã đặt',

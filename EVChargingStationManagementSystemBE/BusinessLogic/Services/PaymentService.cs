@@ -160,7 +160,7 @@ namespace BusinessLogic.Services
 
                         if (user != null && user.EVDriverProfile != null)
                         {
-                            user.EVDriverProfile.Point = (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
+                            user.EVDriverProfile.Point += (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
                             user.EVDriverProfile.UpdatedAt = DateTime.Now;
                         }
                     }
@@ -329,7 +329,7 @@ namespace BusinessLogic.Services
 
                     if (user != null && user.EVDriverProfile != null)
                     {
-                        user.EVDriverProfile.Point = (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
+                        user.EVDriverProfile.Point += (int)((decimal)chargingSession.EnergyDeliveredKWh * pointValue);
                         user.EVDriverProfile.UpdatedAt = DateTime.Now;
                     }
                 }

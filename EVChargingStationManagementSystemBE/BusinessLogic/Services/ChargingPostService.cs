@@ -228,6 +228,8 @@ namespace BusinessLogic.Services
 
                 if (chargingPost == null)
                     return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc không tồn tại");
+                if (chargingPost.Status.Equals(ChargingPostStatus.Busy.ToString()))
+                    return new ServiceResult(Const.WARNING_NO_DATA_CODE, "Trụ sạc hiện tại không khả dụng, tất cả các cổng sạc đều đang không khả dụng");
 
 
                 if (chargingPost.ChargingStationNavigation == null)

@@ -41,8 +41,12 @@ namespace APIs.Configs
 
             // Map model vào dto
             TypeAdapterConfig<SCStaffProfile, StaffViewDto>.NewConfig()
-                .Map(dest => dest.Name, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Name : null)
-                .Map(dest => dest.Email, src => src.UserAccountNavigation != null ? src.UserAccountNavigation.Email : null);
+               .Map(dest => dest.Name, src => src.UserAccountNavigation.Name)
+               .Map(dest => dest.Email, src => src.UserAccountNavigation.Email)
+               .Map(dest => dest.PhoneNumber, src => src.UserAccountNavigation.PhoneNumber)
+               .Map(dest => dest.Address, src => src.UserAccountNavigation.Address)
+               .Map(dest => dest.ProfilePictureUrl, src => src.UserAccountNavigation.ProfilePictureUrl);
+
 
             TypeAdapterConfig<VehicleModelUpdateDto, VehicleModel>.NewConfig()
                 .IgnoreNullValues(true);

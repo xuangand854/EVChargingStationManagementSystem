@@ -1,7 +1,6 @@
 // src/pages/Admin/Station/AdminStationDetail.jsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import {
     getChargingStationId,
     updateChargingStationStatus,
@@ -14,17 +13,16 @@ import {
     updateChargingPost,
     updateChargingPostStatus,
 } from "../../../API/ChargingPost";
-import { getMyAccountStaff } from "../../../API/Staff";
 import {
     Card,
     Table,
     Button,
     Space,
+    message,
     Select,
     Modal,
     Input,
     Form,
-    Empty,
 } from "antd";
 import {
     ArrowLeftOutlined,
@@ -36,34 +34,6 @@ import {
 
 const { Option } = Select;
 
-// Mapping trạng thái sang tiếng Việt
-const statusMapping = {
-    // Trạng thái trạm sạc
-    'Active': 'Hoạt động',
-    'InActive': 'Không hoạt động',
-    'Maintenance': 'Bảo trì',
-    'Busy': 'Bận',
-    'Unknown': 'Không xác định',
-
-    // Trạng thái charging post
-    'Maintained': 'Đã bảo trì',
-    'Available': 'Sẵn sàng',
-    'InActive': 'Không hoạt động',
-
-    // Trạng thái connector
-    'Reserved': 'Đã đặt',
-    'InUse': 'Đang sử dụng',
-    'Charging': 'Đang sạc',
-    'Preparing': 'Đang chuẩn bị',
-    'Faulted': 'Lỗi',
-    'Unavailable': 'Không khả dụng'
-};
-
-// Hàm helper để dịch trạng thái, nếu không có trong mapping thì trả về text gốc
-const translateStatus = (status) => {
-    return statusMapping[status] || status;
-};
-
 const AdminStationDetail = () => {
     const { stationId } = useParams();
     const navigate = useNavigate();
@@ -71,14 +41,10 @@ const AdminStationDetail = () => {
     const [station, setStation] = useState(null);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [noData, setNoData] = useState(false);
-    const [hasError, setHasError] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingPost, setEditingPost] = useState(null);
     const [staffModalVisible, setStaffModalVisible] = useState(false);
     const [selectedOperatorId, setSelectedOperatorId] = useState("");
-    const [staffList, setStaffList] = useState([]);
-    const [loadingStaff, setLoadingStaff] = useState(false);
 
     // 🔹 Load trạm & trụ
     const fetchStationAndPosts = async () => {
@@ -91,26 +57,9 @@ const AdminStationDetail = () => {
 
             const postRes = await getAllChargingPost(stationId);
             setPosts(Array.isArray(postRes) ? postRes : postRes?.data || []);
-            setNoData(false);
-            setHasError(false);
         } catch (error) {
-            console.log('Full error:', error);
-
-            const status = error?.response?.status;
-            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
-
-            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
-            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
-
-            if (isNoDataError) {
-                console.log('Không có dữ liệu trạm sạc');
-                setNoData(true);
-                setHasError(false);
-            } else {
-                toast.error(`Không thể tải dữ liệu trạm sạc: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
-                setHasError(true);
-                setNoData(false);
-            }
+            console.error("fetchStationAndPosts error:", error);
+            message.error("Không thể tải dữ liệu trạm sạc!");
         } finally {
             setLoading(false);
         }
@@ -120,57 +69,32 @@ const AdminStationDetail = () => {
         if (stationId) fetchStationAndPosts();
     }, [stationId]);
 
-    // Load danh sách nhân viên khi mở modal
-    useEffect(() => {
-        if (staffModalVisible) {
-            fetchStaffList();
-        }
-    }, [staffModalVisible]);
-
     // 🔹 Cập nhật trạng thái trạm (không ảnh hưởng trụ)
     const handleChangeStationStatus = async (status) => {
         try {
             await updateChargingStationStatus(stationId, status);
-            toast.success("Cập nhật trạng thái trạm thành công!");
+            message.success(" Cập nhật trạng thái trạm thành công!");
             fetchStationAndPosts();
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể cập nhật trạng thái trạm: ${errorMsg}`);
-        }
-    };
-
-    // 🔹 Load danh sách nhân viên
-    const fetchStaffList = async () => {
-        setLoadingStaff(true);
-        try {
-            const response = await getMyAccountStaff();
-            const allStaff = response?.data || [];
-            // Chỉ lấy nhân viên có status = "Active"
-            const activeStaff = allStaff.filter(staff => staff.status === "Active");
-            setStaffList(activeStaff);
-        } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể tải danh sách nhân viên: ${errorMsg}`);
-        } finally {
-            setLoadingStaff(false);
+            console.error("updateStationStatus error:", error);
+            message.error("Không thể cập nhật trạng thái trạm!");
         }
     };
 
     // 🔹 Cập nhật nhân viên phụ trách
     const handleUpdateStaff = async () => {
         if (!selectedOperatorId) {
-            toast.warning("Vui lòng chọn nhân viên!");
+            message.warning("Vui lòng nhập mã nhân viên!");
             return;
         }
         try {
             await updateChargingStation(stationId, { operatorId: selectedOperatorId });
-            toast.success("Cập nhật nhân viên phụ trách thành công!");
+            message.success("✅ Cập nhật nhân viên phụ trách thành công!");
             setStaffModalVisible(false);
-            setSelectedOperatorId("");
             fetchStationAndPosts();
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể cập nhật nhân viên: ${errorMsg}`);
+            console.error("updateStaff error:", error);
+            message.error("Không thể cập nhật nhân viên!");
         }
     };
 
@@ -179,31 +103,31 @@ const AdminStationDetail = () => {
         if (!confirmDelete) return;
 
         try {
+            console.log("Attempting to delete post:", postId);
             await deleteChargingPost(postId);
-            toast.success("Xóa trụ sạc thành công!");
+            message.success("🗑️ Xóa trụ sạc thành công!");
             fetchStationAndPosts();
         } catch (error) {
+            console.error("deletePost error:", error);
             if (error.response) {
                 const status = error.response.status;
-                const msg = error.response.data?.message || "Không xác định";
                 switch (status) {
                     case 404:
-                        toast.error("Không tìm thấy trụ sạc để xóa!");
+                        message.error("Không tìm thấy trụ sạc để xóa!");
                         break;
                     case 400:
-                        toast.error(`Yêu cầu không hợp lệ: ${msg}`);
+                        message.error("Yêu cầu không hợp lệ!");
                         break;
                     case 500:
-                        toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                         break;
                     default:
-                        toast.error(`Lỗi ${status}: ${msg}`);
+                        message.error(`Lỗi ${status}: ${error.response.data?.message || "Không xác định"}`);
                 }
             } else if (error.request) {
-                toast.error("Không thể kết nối đến máy chủ!");
+                message.error("Không thể kết nối đến máy chủ!");
             } else {
-                const errorMsg = error?.message || "Lỗi không xác định";
-                toast.error(`Có lỗi xảy ra khi xóa trụ sạc: ${errorMsg}`);
+                message.error("Có lỗi xảy ra khi xóa trụ sạc!");
             }
         }
     };
@@ -236,17 +160,17 @@ const AdminStationDetail = () => {
 
             if (editingPost) {
                 await updateChargingPost(editingPost.id, payload);
-                toast.success("Cập nhật trụ sạc thành công!");
+                message.success("✅ Cập nhật trụ sạc thành công!");
             } else {
                 await addChargingPost(payload);
-                toast.success("Thêm trụ sạc thành công!");
+                message.success("✅ Thêm trụ sạc thành công!");
             }
 
             setModalVisible(false);
             fetchStationAndPosts();
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể lưu trụ sạc: ${errorMsg}`);
+            console.error("handleSavePost error:", error);
+            message.error("Không thể lưu trụ sạc!");
         }
     };
 
@@ -254,11 +178,11 @@ const AdminStationDetail = () => {
     const handleChangePostStatus = async (postId, newStatus) => {
         try {
             await updateChargingPostStatus(postId, newStatus);
-            toast.success("Cập nhật trạng thái trụ sạc thành công!");
+            message.success("⚙️ Cập nhật trạng thái trụ sạc thành công!");
             fetchStationAndPosts();
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            toast.error(`Không thể cập nhật trạng thái trụ: ${errorMsg}`);
+            console.error("updateChargingPostStatus error:", error);
+            message.error("Không thể cập nhật trạng thái trụ!");
         }
     };
 
@@ -275,11 +199,13 @@ const AdminStationDetail = () => {
                 <Select
                     value={text}
                     onChange={(value) => handleChangePostStatus(record.id, value)}
-                    style={{ width: 180 }}
+                    style={{ width: 150 }}
                 >
-                    <Option value="InActive">Không hoạt động</Option>
-                    <Option value="Available">Sẵn sàng</Option>
-                    <Option value="Maintained">Đã bảo trì</Option>
+                    <Option value="Available">Available</Option>
+                    {/* <Option value="Busy">Busy</Option> */}
+                    <Option value="Maintained">Maintained</Option>
+                    <Option value="Inactive">Inactive</Option>
+                    {/* <Option value="Faulty">Faulty</Option> */}
                 </Select>
             ),
         },
@@ -324,11 +250,12 @@ const AdminStationDetail = () => {
                                 <Select
                                     value={station.status}
                                     onChange={handleChangeStationStatus}
-                                    style={{ width: 180 }}
+                                    style={{ width: 150 }}
                                 >
-                                    <Option value="Inactive">Không hoạt động</Option>
-                                    <Option value="Active">Hoạt động</Option>
-                                    <Option value="Maintenance">Bảo trì</Option>
+                                    <Option value="Active">Active</Option>
+                                    <Option value="Inactive">Inactive</Option>
+                                    {/* <Option value="Discontinued">Discontinued</Option> */}
+                                    <Option value="Maintenance">Maintenance</Option>
                                 </Select>
                                 <Button
                                     icon={<UserSwitchOutlined />}
@@ -350,19 +277,13 @@ const AdminStationDetail = () => {
                         className="mt-4"
                         extra={<Button icon={<PlusOutlined />} onClick={handleAddPost}>Thêm trụ</Button>}
                     >
-                        {hasError ? (
-                            <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
-                        ) : noData || posts.length === 0 ? (
-                            <Empty description="Không có trụ sạc nào" />
-                        ) : (
-                            <Table
-                                rowKey="id"
-                                loading={loading}
-                                dataSource={posts}
-                                columns={columns}
-                                pagination={{ pageSize: 5 }}
-                            />
-                        )}
+                        <Table
+                            rowKey="id"
+                            loading={loading}
+                            dataSource={posts}
+                            columns={columns}
+                            pagination={{ pageSize: 5 }}
+                        />
                     </Card>
 
                     {/* Modal thêm/sửa trụ */}
@@ -451,38 +372,18 @@ const AdminStationDetail = () => {
                     <Modal
                         title="Cập nhật nhân viên phụ trách"
                         open={staffModalVisible}
-                        onCancel={() => {
-                            setStaffModalVisible(false);
-                            setSelectedOperatorId("");
-                        }}
+                        onCancel={() => setStaffModalVisible(false)}
                         onOk={handleUpdateStaff}
                         okText="Lưu"
                         cancelText="Hủy"
                     >
                         <Form layout="vertical">
-                            <Form.Item label="Chọn nhân viên">
-                                <Select
-                                    placeholder="Chọn nhân viên phụ trách"
-                                    value={selectedOperatorId || undefined}
-                                    onChange={(value) => setSelectedOperatorId(value)}
-                                    loading={loadingStaff}
-                                    showSearch
-                                    filterOption={(input, option) =>
-                                        option.children.toLowerCase().includes(input.toLowerCase())
-                                    }
-                                    style={{ width: "100%" }}
-                                >
-                                    {staffList.map((staff) => (
-                                        <Option key={staff.id} value={staff.id}>
-                                            {staff.name} - {staff.email}
-                                        </Option>
-                                    ))}
-                                </Select>
-                                {staffList.length === 0 && !loadingStaff && (
-                                    <p className="text-gray-500 text-sm mt-2">
-                                        Không có nhân viên Active nào
-                                    </p>
-                                )}
+                            <Form.Item label="Mã nhân viên mới">
+                                <Input
+                                    placeholder="Nhập mã nhân viên (operatorId)"
+                                    value={selectedOperatorId}
+                                    onChange={(e) => setSelectedOperatorId(e.target.value)}
+                                />
                             </Form.Item>
                         </Form>
                     </Modal>

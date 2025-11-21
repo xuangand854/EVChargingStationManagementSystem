@@ -13,11 +13,12 @@ using BusinessLogic.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔗 Kết nối database
+//  Kết nối database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<EVCSMSContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<EVCSMSContext>(options =>
+    options.UseSqlServer(connectionString));
 
-// 🔧 Đăng ký DI services
+//  Đăng ký DI services
 builder.Services.ExtensionServices();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -39,9 +40,12 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICheckInCodeService, CheckInCodeService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
+
+// Background jobs
 builder.Services.AddHostedService<VoucherExpiryJob>();
 builder.Services.AddHostedService<BookingBackgroundJob>();
-// 🔐 Cấu hình JWT + Google OAuth
+
+//  Cấu hình JWT + Google OAuth
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -57,7 +61,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 })
 .AddGoogle(options =>
@@ -67,12 +72,12 @@ builder.Services.AddAuthentication(options =>
     options.CallbackPath = "/signin-google";
 });
 
-// 👤 Identity
+//  Identity
 builder.Services.AddIdentityApiEndpoints<UserAccount>()
     .AddRoles<Role>()
     .AddEntityFrameworkStores<EVCSMSContext>();
 
-// 📦 Controllers + Swagger
+//  Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
@@ -109,7 +114,7 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-// 🌐 CORS
+//  CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
@@ -122,23 +127,32 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 🚀 Middleware pipeline
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//  Middleware pipeline
+//  Middleware pipeline
+app.UseSwagger();
+app.UseSwaggerUI();
 
+app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Endpoint mặc định để test root URL
+
+app.UseRouting(); //  Quan trọng: thêm UseRouting
+app.UseCors("AllowAllOrigins");
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
+////  Identity endpoints
+//app.MapIdentityApi<UserAccount>();
+
+//  Endpoint mặc định để test root URL
 app.MapGet("/", () => "EVCSMS API is running...");
 
-// 📌 Map controller routes
+//  Map controller routes
 app.MapControllers();
 
-// 🔚 Run app
+//  Run app
 app.Run();

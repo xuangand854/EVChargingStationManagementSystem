@@ -1,8 +1,6 @@
-// RatingPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { addFeedBack } from "../../API/FeedBack";
 import "react-toastify/dist/ReactToastify.css";
 import "./RatingPage.css";
 
@@ -10,47 +8,24 @@ const RatingPage = () => {
   const navigate = useNavigate();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [comment, setComment] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validate dữ liệu trước khi gửi
-    if (!subject.trim()) {
-      toast.error("Vui lòng nhập chủ đề đánh giá!");
+    if (rating === 0) {
+      toast.error("Vui lòng chọn số sao trước khi gửi!");
       return;
     }
-
-    if (!message.trim()) {
-      toast.error("Vui lòng nhập nội dung nhận xét!");
-      return;
-    }
-
-    if (rating < 1 || rating > 5) {
-      toast.error("Vui lòng chọn số sao hợp lệ!");
-      return;
-    }
-
-    try {
-      await addFeedBack(subject.trim(), rating, message.trim());
-      toast.success("✅ Cảm ơn đánh giá của bạn!");
-      // reset form
-      setRating(0);
-      setHoverRating(0);
-      setSubject("");
-      setMessage("");
-      setTimeout(() => {
-        navigate("/profile-page");
-      }, 1500);
-    } catch (error) {
-      console.log("Error sending feedback:", error);
-      toast.error("Gửi đánh giá thất bại! Vui lòng thử lại.");
-    }
+    toast.success("✅ Cảm ơn đánh giá của bạn!");
+    setTimeout(() => {
+      navigate("/profile-page");
+    }, 1500);
+    setRating(0);
+    setHoverRating(0);
+    setComment("");
   };
-
   const handleGoBack = () => {
-    navigate("/profile-page");
+    navigate("/profile-page"); // chỉ quay lại, không validate
   };
 
   return (
@@ -76,25 +51,17 @@ const RatingPage = () => {
               </span>
             ))}
           </div>
-          <h3>Chủ đề đánh giá</h3>
-          <input
-            type="text"
-            placeholder="Nhập chủ đề..."
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-          />
 
-          <h3>Nhận xét</h3>
           <textarea
-            placeholder="Nhập nhận xét..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Nhập nhận xét (tùy chọn)..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
           />
 
           <button className="submit-btn" onClick={handleSubmit}>
             Gửi đánh giá
           </button>
-          <button className="back-btn" onClick={handleGoBack}>
+          <button className="submit-btn" onClick={handleGoBack}>
             Quay lại
           </button>
         </div>

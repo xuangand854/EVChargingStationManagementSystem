@@ -1,17 +1,15 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { addBooking ,MyBooking} from "../../API/Booking.js";
 import { getVehicleModels } from "../../API/Admin";
-import { getEVDriverProfile} from "../../API/EVDriver.js";
+import { getEVDriverProfile } from "../../API/EVDriver.js";
 import { jwtDecode } from "jwt-decode";
-import { useNotifications } from "../notification/NotificationContext.jsx";
-import {getChargingStationId} from "../../API/Station.js"
-
 
 import "react-toastify/dist/ReactToastify.css";
 import "./Booking.css";
+import Login from "../pages/Login.jsx";
 export default function BookingPopup({ stations = [], stationId, onClose, onAdded }) {
   const [termStation, setTermStation] = useState("");
   const [termVehicle, setTermVehicle] = useState("");
@@ -22,8 +20,9 @@ export default function BookingPopup({ stations = [], stationId, onClose, onAdde
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [checkInCode,setcheckInCode]= useState(null);
   const [isStationLocked, setIsStationLocked] = useState(false);
-  const { addNotification } = useNotifications();
-  const navigate = useNavigate();
+  
+  // const navigate = useNavigate();
+  
 
   const [bookingData, setBookingData] = useState({
     stationId: stationId || "",
@@ -98,14 +97,7 @@ console.log("Lấy Role:", role);
       <div className="popup-overlay" onClick={onClose}>
         <div className="popup-container" onClick={(e) => e.stopPropagation()}>
           <h3> Xin hãy đăng nhập để có thể sử dụng dịch vụ.</h3>
-          <div className="btn-buttonlogin">
-              <button
-                className="btn-login"
-                onClick={() => navigate("/login")}
-              >
-                Đăng nhập
-              </button>
-            </div>
+          <div className="btn-buttonlogin"><Login /></div>
           
         </div>
       </div>
@@ -138,9 +130,6 @@ console.log("Lấy Role:", role);
       </div>
     );
   }
-  const userVehicles = vehicleModels.filter(v =>
-    profile?.selectedVehicles?.includes(v.id)
-  );
 
   const normalize = (str = "") =>
     str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -157,12 +146,12 @@ console.log("Lấy Role:", role);
     : stations;
 
   const filteredVehicles = termVehicle
-    ? userVehicles.filter(
+    ? vehicleModels.filter(
         (v) =>
           normalize(v.modelName).includes(normalize(termVehicle)) ||
           normalize(v.vehicleType).includes(normalize(termVehicle))
       )
-    : userVehicles;
+    : vehicleModels;
 
   const handleSelectStation = (st) => {
     setTermStation(st.stationName);
@@ -177,79 +166,69 @@ console.log("Lấy Role:", role);
   };
 
   const handleAddBooking = async () => {
-  if (!bookingData.stationId || !bookingData.vehicleId || !bookingData.startTime) {
+    if (!bookingData.stationId || !bookingData.vehicleId || !bookingData.startTime) {
+      toast.warning("⚠️ Vui lòng nhập đủ thông tin!");
+      return;
+    }
+    // //kiểm tra trạm active  
+    // const station = stations.find(st => st.id === bookingData.stationId);
+
+    //  if (!station || station.status !== "active") {
+    // toast.warning("Trạm này hiện không hoạt động!");
+    // return;
+    // }
+    // //kiểm tra trụ active 
+    // const activePile = station.piles?.some(p => p.status === "active"); // hoặc station.stations tùy data
+    // if (!activePile) {
+    //   toast.warning("Trạm này không còn trụ sạc nào hoạt động!");
+    //   return;
+    // }
+    if (!bookingData.stationId || !bookingData.vehicleId || !bookingData.startTime) {
     toast.warning("⚠️ Vui lòng nhập đủ thông tin!");
     return;
-  }
-
-  try {
-    // --- Lấy dữ liệu trạm mới nhất ---
-    const stationDetail = await getChargingStationId(bookingData.stationId);
-    const posts = stationDetail.chargingPosts || [];
-
-    // Lấy thông tin xe người dùng chọn
-    const selectedVehicle = vehicleModels.find(v => v.id === bookingData.vehicleId);
-    if (!selectedVehicle) {
-      toast.error("Xe không hợp lệ, vui lòng chọn lại!");
-      return;
-    }
-    const userVehicleType = selectedVehicle.vehicleType.toLowerCase(); // 'car' hoặc 'bike'
-
-    // Kiểm tra trạm có hỗ trợ loại xe này không
-    const hasSupported = posts.some(
-      (p) =>
-        p.vehicleTypeSupported?.toLowerCase().includes(userVehicleType) &&
-        p.status?.toLowerCase() === "available"
-    );
-
-    if (!hasSupported) {
-      toast.error("❌ Trạm này không hỗ trợ loại xe của bạn hoặc không còn trụ khả dụng!");
-      return;
     }
 
-    // Chuyển thời gian về ISO VN
     const localTime = new Date(bookingData.startTime);
     const startTimeVN = new Date(localTime.getTime() - localTime.getTimezoneOffset() * 60000);
     const startTimeISO = startTimeVN.toISOString();
 
-    // --- Thêm booking ---
-    const res = await addBooking(
-      bookingData.stationId,
-      bookingData.vehicleId,
-      startTimeISO,
-      parseInt(bookingData.currentBattery),
-      parseInt(bookingData.targetBattery)
-    );
+    try {
+      const res = await addBooking(
+        bookingData.stationId,
+        bookingData.vehicleId,
+        startTimeISO,
+        parseInt(bookingData.currentBattery),
+        parseInt(bookingData.targetBattery)
+      );
 
-    if (res?.data?.message) {
-      toast.success(res.data.message);
+      //  Nếu API trả về message từ backend (ví dụ thành công)
+      if (res?.data?.message) {
+        toast.success(res.data.message);
+      }
+      setcheckInCode(res?.data?.checkInCode || null);
+      setShowSuccessPopup(true);
+    } catch (error) {
+      console.error("Booking error:", error);
+
+      //  Lấy message cụ thể từ backend hoặc object lỗi
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "";
+
+      if (msg.includes("Bạn đã có booking đang hoạt động")) {
+        toast.warning(" Bạn đã có một đơn đặt lịch trước đó, vui lòng hoàn thành đơn hàng cũ!");
+      } else if (msg.includes("Thời gian bắt đầu phải cách hiện tại")) {
+        toast.warning(" Bạn cần đặt lịch sạc trước ít nhất 15 phút so với hiện tại!");
+      } 
+        else if (msg.includes("Tài khoản chưa được xác thực")){
+          toast.error("Tài khoản của bạn chưa được xác thực. Vui lòng xác thực trước khi đặt lịch!");
+        }
+       else {
+        toast.error(" Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
+      }
     }
-
-    setcheckInCode(res?.data?.checkInCode || null);
-    setShowSuccessPopup(true);
-    if (res?.data?.checkInCode) {
-      addNotification(`Booking thành công! Mã check-in: ${res.data.checkInCode}`);
-    }
-  } catch (error) {
-    console.error("Booking error:", error);
-    const msg = error?.response?.data?.message || error?.message || "";
-    if (msg.includes("Bạn đã có booking đang hoạt động")) {
-      toast.warning("Bạn đã có một đơn đặt lịch trước đó, vui lòng hoàn thành đơn hàng cũ!");
-    } else if (msg.includes("Thời gian bắt đầu phải cách hiện tại")) {
-      toast.warning("Bạn cần đặt lịch sạc trước ít nhất 5 phút so với hiện tại!");
-    } else if (msg.includes("Tài khoản chưa được xác thực")) {
-      toast.error("Tài khoản của bạn chưa được xác thực. Vui lòng xác thực trước khi đặt lịch!");
-    } else if (msg.includes("Tất cả cổng sạc tại trạm đều đã được đặt trong thời gian này.")) {
-      toast.warning("Trạm sạc hiện không có cổng sạc khả dụng, vui lòng thử lại trạm khác!");
-    }else if (msg.includes("Trạm sạc hiện không có cổng sạc hoạt động.")) {
-      toast.warning("Trạm sạc hiện không có cổng sạc hoạt động vui lòng chọn trạm khác ");
-    } else {
-      toast.error("Lỗi khi thêm đặt lịch sạc hoặc chọn sai thời gian bắt đầu!");
-    }
-  }
-};
-
-
+  };
 
   const closeSuccessPopup = () => {
     setShowSuccessPopup(false);
@@ -315,7 +294,7 @@ console.log("Lấy Role:", role);
             <div className="autocomplete-list">
               {filteredVehicles.map((v) => {
                 const regex = new RegExp(`(${escapeRegex(termVehicle)})`, "i");
-                const parts =`${v.vehicleType} ${v.modelName}`.split(regex);
+                const parts = `${v.vehicleType} ${v.modelName}`.split(regex);
                 return (
                   <div
                     key={v.id}
@@ -340,9 +319,8 @@ console.log("Lấy Role:", role);
         />
 
         <div className="popup-buttons">
-          <button className="cancel-btn" onClick={onClose}>Hủy</button>
           <button className="add-btn" onClick={handleAddBooking}>Xác nhận</button>
-          
+          <button className="cancel-btn" onClick={onClose}>Hủy</button>
         </div>
       </div>
 
@@ -350,7 +328,7 @@ console.log("Lấy Role:", role);
       {showSuccessPopup && (
         <div className="popup-overlay">
           <div className="popup-container success-popup" onClick={(e) => e.stopPropagation()}>
-            <h3>🎉 Đặt Lịch Thành Công!</h3>
+            <h3>🎉 Đặt Booking Thành Công!</h3>
             <p>---------------------------------------</p>
             {checkInCode && (
               <p>

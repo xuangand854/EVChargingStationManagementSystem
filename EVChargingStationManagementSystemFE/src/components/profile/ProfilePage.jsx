@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Wallet, Calendar, BarChart2, HelpCircle, Star, MapPin, User, Receipt } from "lucide-react";
+import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin, User } from "lucide-react";
 import { getEVDriverProfile } from "../../API/EVDriver";
 import { MyBooking } from "../../API/Booking"; // API lấy lịch sử đặt trạm
 import "./ProfilePage.css";
@@ -27,9 +27,10 @@ const ProfilePage = () => {
 
           setAccountStatus(
             data.status === "Active" ? "Đã kích hoạt" :
-              data.status === "Inactive" ? "Chưa kích hoạt" :
-                "Không xác định"
+            data.status === "Inactive" ? "Chưa kích hoạt" :
+            "Không xác định"
           );
+
           // Số xe liên kết
           setLinkedVehicles(data.vehicleModelIds?.length || 0);
         } else {
@@ -44,7 +45,7 @@ const ProfilePage = () => {
       }
     };
 
-    const fetchRecentOrders = async () => {
+  const fetchRecentOrders = async () => {
       try {
         const res = await MyBooking();
         if (res?.data) {
@@ -72,11 +73,11 @@ const ProfilePage = () => {
 
   const quickActions = [
     { title: "Tìm trạm sạc", icon: <MapPin size={20} />, path: "/order-charging" },
-    { title: "Lịch sử đặt lịch", icon: <Calendar size={20} />, path: "/orders" },
-    { title: "Lịch sử thanh toán", icon: <Receipt size={20} />, path: "/payment-history", rolesAllowed: ["EVDriver", "user"] },
-    { title: "Tài khoản", icon: <User size={20} />, path: "/profile", rolesAllowed: ["EVDriver", "user"] }, // chỉ user/EVDriver
-    { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/user-report", rolesAllowed: ["EVDriver", "user"] },
-    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page", rolesAllowed: ["EVDriver", "user"] },
+    { title: "Lịch sử sạc", icon: <Calendar size={20} />, path: "/orders" },
+     { title: "Tài khoản", icon: <User size={20} />, path: "/profile", rolesAllowed: ["EVDriver", "user"] }, // chỉ user/EVDriver
+    { title: "Gói dịch vụ", icon: <BarChart2 size={20} />, path: "#" },
+    { title: "Hỗ trợ", icon: <HelpCircle size={20} />, path: "/user-report" },
+    { title: "Đánh giá", icon: <Star size={20} />, path: "/rating-page" },
   ];
 
   const formatDateTime = (isoString) => {
@@ -126,41 +127,43 @@ const ProfilePage = () => {
 
       {/* Giao dịch gần đây */}
       <div className="bottom-section">
-        <div className="recent-transactions">
-          <h3>Hoạt Động Gần Đây</h3>
-          {recentOrders.length === 0 ? (
-            <p>Chưa có hoạt động nào cả.</p>
-          ) : (
-            (() => {
-              // Sort giảm dần theo startTime nếu chưa sort
-              const sortedOrders = [...recentOrders].sort(
-                (a, b) => new Date(b.startTime) - new Date(a.startTime)
-              );
-              const latestOrder = sortedOrders[0]; // chỉ lấy booking mới nhất
-              return (
-                <div className="transaction-item" key={latestOrder.id}>
-                  <p>
-                    Đặc sạc tại {latestOrder.stationName} <span className="positive"></span>
-                  </p>
-                  <p><small>Mã CheckIn Của Bạn: {latestOrder.checkInCode}</small></p>
-                  <small>Thời gian bắt đầu: {formatDateTime(latestOrder.startTime)}</small>
-                </div>
-              );
-            })()
-          )}
-          <button onClick={() => navigate("/orders")}>Xem tất cả giao dịch →</button>
-        </div>
-
-
-        {/* Trạng thái tài khoản & thông tin */}
-        <div className="account-status">
-          <h3>Trạng thái tài khoản</h3>
-          <p>Số lần đặt : <span className="green">{totalBookingCount} lần</span></p>
-          <p>Phương tiện đã liên kết: {linkedVehicles} xe</p>
-          <p>Đánh giá trung bình: <span className="star">★ 4.8/5</span></p>
-
-        </div>
+      <div className="recent-transactions">
+        <h3>Hoạt Động Gần Đây</h3>
+        {recentOrders.length === 0 ? (
+          <p>Chưa có hoạt động nào cả.</p>
+        ) : (
+          (() => {
+            // Sort giảm dần theo startTime nếu chưa sort
+            const sortedOrders = [...recentOrders].sort(
+              (a, b) => new Date(b.startTime) - new Date(a.startTime)
+            );
+            const latestOrder = sortedOrders[0]; // chỉ lấy booking mới nhất
+            return (
+              <div className="transaction-item" key={latestOrder.id}>
+                <p>
+                  Đặc sạc tại {latestOrder.stationName} <span className="positive"></span>
+                </p>
+                <p><small>Mã CheckIn Của Bạn: {latestOrder.checkInCode}</small></p>
+                <small>Thời gian bắt đầu: {formatDateTime(latestOrder.startTime)}</small>
+              </div>
+            );
+          })()
+        )}
+        <button onClick={() => navigate("/orders")}>Xem tất cả giao dịch →</button>
       </div>
+
+
+      {/* Trạng thái tài khoản & thông tin */}
+      <div className="account-status">
+        <h3>Trạng thái tài khoản</h3>
+        <p>Số lần đặt : <span className="green">{totalBookingCount} lần</span></p>
+        <p>Phương tiện đã liên kết: {linkedVehicles} xe</p>
+        <p>Đánh giá trung bình: <span className="star">★ 4.8/5</span></p>
+        <button className="manage-btn" onClick={() => navigate("/Payment")}>
+          Quản lý gói dịch vụ
+        </button>
+      </div>
+    </div>
 
       {/* Hỗ trợ */}
       <div className="support-section">
@@ -169,8 +172,8 @@ const ProfilePage = () => {
           <p>Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7</p>
         </div>
         <div className="support-buttons">
-          <button onClick={() => navigate("/user-report")}>Gửi yêu cầu hỗ trợ</button>
-          <button onClick={() => navigate("/rating-page")}>Đánh giá dịch vụ</button>
+          <button onClick={() => navigate("/report-page")}>Gửi yêu cầu hỗ trợ</button>
+          <button onClick={() => navigate("#")}>Đánh giá dịch vụ</button>
         </div>
       </div>
     </div>

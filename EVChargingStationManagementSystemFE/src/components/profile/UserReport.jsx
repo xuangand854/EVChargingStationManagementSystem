@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { addReportByEVDriver } from "../../API/Report";
 import "./UserReport.css";
-import { useNavigate } from "react-router-dom";
 
-const UserReport = ({ stations = []}) => {
+const UserReport = ({ stations = [], onBack }) => {
   const [title, setTitle] = useState("");
   const [reportType, setReportType] = useState("");
   const [severity, setSeverity] = useState("");
@@ -12,7 +11,6 @@ const UserReport = ({ stations = []}) => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,9 +31,6 @@ const UserReport = ({ stations = []}) => {
     } finally {
       setLoading(false);
     }
-  };
-  const handleGoBack = () => {
-    navigate("/profile-page"); // đổi về trang mong muốn
   };
 
   return (
@@ -106,12 +101,11 @@ const UserReport = ({ stations = []}) => {
           </button>
         </form>
 
-        
-       {
-          <button className="nav-buttonrollbackRP" onClick={handleGoBack}>
+        {onBack && (
+          <button className="nav-buttonrollbackRP" onClick={onBack}>
             Quay lại
           </button>
-        }
+        )}
       </div>
     </div>
   );

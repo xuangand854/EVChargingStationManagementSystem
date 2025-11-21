@@ -8,6 +8,7 @@ namespace Common.DTOs.FeedbackDto
         public string Subject { get; set; }
         public double Stars { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Message { get; set; }
         public bool IsResolved { get; set; }
     }
 }

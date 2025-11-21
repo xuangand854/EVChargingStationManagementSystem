@@ -6,20 +6,6 @@ import { CheckCircle } from "lucide-react";
 import stationAPI from "../API/Station";
 import { MyBooking, BookCheckin } from "../API/Booking";
 
-// Mapping trạng thái trụ sạc sang tiếng Việt
-const postStatusMap = {
-    InActive: "Không hoạt động",
-    Available: "Sẵn sàng",
-    Busy: "Đang bận",
-    Maintained: "Đang bảo trì"
-};
-
-// Mapping loại phương tiện sang tiếng Việt
-const vehicleTypeMap = {
-    Bike: "Xe máy",
-    Car: "Ô tô"
-};
-
 const ChargingPostList = () => {
     const { stationID } = useParams();
     const [posts, setPosts] = useState([]);
@@ -206,9 +192,9 @@ const ChargingPostList = () => {
                                         )
                                     }
                                 >
-                                    <p><strong>Trạng thái:</strong> {postStatusMap[post.status] || post.status || "Chưa có"}</p>
+                                    <p><strong>Trạng thái:</strong> {post.status || "Chưa có"}</p>
                                     <p><strong>Loại cổng:</strong> {post.connectorType || "Chưa có"}</p>
-                                    <p><strong>Hỗ trợ:</strong> {vehicleTypeMap[post.vehicleTypeSupported] || post.vehicleTypeSupported || "Chưa có"}</p>
+                                    <p><strong>Hỗ trợ:</strong> {post.vehicleTypeSupported || "Chưa có"}</p>
                                     <p><strong>Công suất tối đa:</strong> {post.maxPowerKw || "Chưa có"} kW</p>
                                     <p><strong>Số cổng:</strong> {post.totalConnectors || "Chưa có"}</p>
                                 </Card>

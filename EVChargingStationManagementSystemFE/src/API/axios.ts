@@ -1,10 +1,8 @@
 import axios, { AxiosInstance } from "axios";
 import { HTTP_ERROR_MESSAGES } from "./constants/httpErrors";
 
-// Đọc biến môi trường theo Vite, fallback về localhost để dev nhanh
-const apiUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  (typeof process !== 'undefined' ? (process as any).env?.VITE_API_URL : undefined) ||
-  'https://localhost:7252/api';
+// Đọc biến môi trường từ Vite, fallback về localhost khi dev
+const apiUrl = import.meta.env.VITE_API_URL || "https://localhost:7252/api";
 
 const api: AxiosInstance = axios.create({
   baseURL: apiUrl,
@@ -51,18 +49,13 @@ api.interceptors.response.use(
       const status = error.response.status;
 
       if (status === 401) {
-        error.customMessage = "Phiên đăng nhập đã hết hạn";
-        return Promise.reject(error);
+        return Promise.reject(new Error("Phiên đăng nhập đã hết hạn"));
       }
 
       if (status === 403) {
-        error.customMessage = "Không có quyền truy cập";
-        return Promise.reject(error);
+        return Promise.reject(new Error("Không có quyền truy cập"));
       }
 
-
-
-      // Giữ nguyên cấu trúc lỗi validation (400 Bad Request)
       if (status === 400 && error.response.data?.errors) {
         return Promise.reject(error.response.data);
       }
@@ -70,22 +63,19 @@ api.interceptors.response.use(
       if (status === 409 && error.response.data?.message) {
         return Promise.reject(error.response.data);
       }
+
       let message = "";
       if (typeof error.response.data === "string" && error.response.data.trim() !== "") {
         message = error.response.data;
       } else {
         message =
           error.response.data?.message ||
+          error.response.data ||
           HTTP_ERROR_MESSAGES[status] ||
           `Lỗi HTTP status ${status}`;
       }
 
-      // gắn thêm customMessage để frontend dùng
-      error.customMessage = message;
-      return Promise.reject(error);
-
-
-
+      return Promise.reject(message);
     }
 
     return Promise.reject(error);

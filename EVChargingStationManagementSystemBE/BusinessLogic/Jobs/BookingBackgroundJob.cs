@@ -9,7 +9,12 @@ namespace BusinessLogic.Jobs
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<BookingBackgroundJob> _logger;
-        private readonly TimeSpan _interval = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _interval = TimeSpan.FromSeconds(15);
+
+        private readonly SemaphoreSlim _lockNoShows = new(1, 1);
+        private readonly SemaphoreSlim _lockCancelExpired = new(1, 1);
+        private readonly SemaphoreSlim _lockReserveConnector = new(1, 1);
+        private readonly SemaphoreSlim _lockCompleteBooking = new(1, 1);
 
         public BookingBackgroundJob(IServiceScopeFactory scopeFactory, ILogger<BookingBackgroundJob> logger)
         {
@@ -19,29 +24,59 @@ namespace BusinessLogic.Jobs
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("[BookingBackgroundJob] Service started.");
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                try
-                {
-                    using var scope = _scopeFactory.CreateScope();
-                    var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                using var scope = _scopeFactory.CreateScope();
+                var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
-                    _logger.LogInformation("[BookingBackgroundJob] bắt đầu chạy lúc {time}", DateTime.Now);
+                // --- Xử lý từng job riêng biệt ---
+                await RunJobSafely(
+                    _lockNoShows,
+                    () => bookingService.LockAccountsWithTooManyNoShows(),
+                    "LockAccountsWithTooManyNoShows"
+                );
 
-                    await bookingService.LockAccountsWithTooManyNoShows();
-                    await bookingService.AutoCancelExpiredBookings();
-                    //await bookingService.AutoReassignBookingsForErrorStations();
-                    await bookingService.AutoReserveConnectorBeforeStart();
-                    await bookingService.AutoCompleteBookingsAsync();
+                await RunJobSafely(
+                    _lockCancelExpired,
+                    () => bookingService.AutoCancelExpiredBookings(),
+                    "AutoCancelExpiredBookings"
+                );
 
-                    _logger.LogInformation("[BookingBackgroundJob] hoàn tất vòng chạy lúc {time}", DateTime.Now);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "[BookingBackgroundJob] lỗi trong vòng chạy");
-                }
+                await RunJobSafely(
+                    _lockReserveConnector,
+                    () => bookingService.AutoReserveConnectorBeforeStart(),
+                    "AutoReserveConnectorBeforeStart"
+                );
 
+                await RunJobSafely(
+                    _lockCompleteBooking,
+                    () => bookingService.AutoCompleteBookingsAsync(),
+                    "AutoCompleteBookingsAsync"
+                );
+
+                // Delay giữa các vòng
                 await Task.Delay(_interval, stoppingToken);
+            }
+
+            _logger.LogInformation("[BookingBackgroundJob] Service stopped.");
+        }
+
+        private async Task RunJobSafely(SemaphoreSlim semaphore, Func<Task> job, string jobName)
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                await job();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[BookingBackgroundJob] Lỗi khi chạy job {jobName}: {ex.Message}");
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
     }

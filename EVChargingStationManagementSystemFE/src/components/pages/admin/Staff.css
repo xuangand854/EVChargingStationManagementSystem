@@ -51,7 +51,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #00b09b, #96c93d);
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
     border-radius: 20px 20px 0 0;
 }
 
@@ -129,42 +129,28 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    min-width: 0;
 }
 
 .admin-staff .staff-avatar {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(135deg, #00b09b, #96c93d);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
-    flex-shrink: 0;
-}
-
-.admin-staff .staff-details {
-    min-width: 0;
-    flex: 1;
-    overflow: hidden;
 }
 
 .admin-staff .staff-details .staff-name {
     font-weight: 500;
     color: #1f2937;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .admin-staff .staff-details .staff-email {
     font-size: 0.875rem;
     color: #6b7280;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Status Tags */
@@ -209,13 +195,12 @@
 }
 
 .admin-staff .action-btn.edit {
-    background: linear-gradient(135deg, #00b09b, #96c93d);
+    background-color: #3b82f6;
     color: white;
 }
 
 .admin-staff .action-btn.edit:hover {
-    background: linear-gradient(135deg, #009688, #7cb342);
-    transform: translateY(-2px);
+    background-color: #2563eb;
 }
 
 .admin-staff .action-btn.delete {
@@ -235,7 +220,7 @@
 }
 
 .admin-staff .modal-icon {
-    color: #00b09b;
+    color: #3b82f6;
 }
 
 .admin-staff .form-container {
@@ -349,7 +334,7 @@
 
 /* Focus styles for accessibility */
 .admin-staff .action-btn:focus {
-    outline: 2px solid #00b09b;
+    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
@@ -374,47 +359,25 @@
 }
 
 .admin-staff .ant-pagination .ant-pagination-item-active {
-    background: linear-gradient(135deg, #00b09b, #96c93d);
-    border-color: #00b09b;
+    background-color: #3b82f6;
+    border-color: #3b82f6;
 }
 
 .admin-staff .ant-pagination .ant-pagination-item-active a {
     color: white;
 }
 
-/* Input and Select focus */
-.admin-staff .ant-input:focus,
-.admin-staff .ant-select-focused .ant-select-selector {
-    border-color: #00b09b !important;
-    box-shadow: 0 0 0 2px rgba(0, 176, 155, 0.1) !important;
+.ant-modal-content {
+    border-radius: 16px !important;
+    background: #fff0f5;
 }
 
-/* Green theme for Staff page */
-.admin-staff .ant-btn-primary,
-.ant-modal-wrap .ant-modal .ant-btn-primary {
-    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
-    border: none !important;
-    color: white !important;
+.ant-form-item-label>label {
+    color: #c2185b;
+    font-weight: 500;
 }
 
-.admin-staff .ant-btn-primary:hover,
-.ant-modal-wrap .ant-modal .ant-btn-primary:hover {
-    background: linear-gradient(135deg, #009688, #7cb342) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.3) !important;
-}
-
-.admin-staff .ant-btn-default:hover {
-    border-color: #00b09b !important;
-    color: #00b09b !important;
-}
-
-/* Modal footer buttons */
-.ant-modal-footer .ant-btn-primary {
-    background: linear-gradient(135deg, #00b09b, #96c93d) !important;
-    border-color: transparent !important;
-}
-
-.ant-modal-footer .ant-btn-primary:hover {
-    background: linear-gradient(135deg, #009688, #7cb342) !important;
+.ant-btn-primary {
+    background-color: #e91e63 !important;
+    border-color: #e91e63 !important;
 }

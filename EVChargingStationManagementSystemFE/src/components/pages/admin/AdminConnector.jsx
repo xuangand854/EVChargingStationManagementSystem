@@ -1,31 +1,10 @@
 // src/pages/admin/Station/AdminConnector.jsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Table, Button, Modal, Form, Input, Select, Popconfirm
+    Table, Button, Modal, Form, Input, Select, message, Popconfirm
 } from "antd";
-import { toast } from "react-toastify";
 import { GetConnector, PostConnector } from "../../../API/Connector";
 import { useParams } from "react-router-dom";
-
-// Mapping trạng thái connector sang tiếng Việt
-const connectorStatusMapping = {
-    'Available': 'Sẵn sàng',
-    'Inactive': 'Không hoạt động',
-    'Busy': 'Bận',
-    'Maintained': 'Đã bảo trì',
-    'Unknown': 'Không xác định',
-    'Reserved': 'Đã đặt',
-    'InUse': 'Đang sử dụng',
-    'Charging': 'Đang sạc',
-    'Preparing': 'Đang chuẩn bị',
-    'Faulted': 'Lỗi',
-    'Unavailable': 'Không khả dụng'
-};
-
-// Hàm helper để dịch trạng thái
-const translateConnectorStatus = (status) => {
-    return connectorStatusMapping[status] || status;
-};
 
 const AdminConnector = () => {
     const { postId } = useParams(); // lấy id của trụ sạc
@@ -38,11 +17,10 @@ const AdminConnector = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await GetConnector(postId);
+            const data = await getConnectors(postId);
             setConnectors(data);
         } catch (err) {
-            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
-            toast.error(`Không thể tải danh sách súng sạc: ${errorMsg}`);
+            message.error("Không thể tải danh sách súng sạc!");
         } finally {
             setLoading(false);
         }
@@ -56,28 +34,26 @@ const AdminConnector = () => {
         try {
             const values = await form.validateFields();
             if (editingConnector) {
-                // TODO: Cần thêm API UpdateConnector
-                toast.warning("Chức năng cập nhật chưa được triển khai!");
-                return;
+                await updateConnector(editingConnector.id, { ...values, postId });
+                message.success("Cập nhật súng sạc thành công!");
             } else {
-                await PostConnector({ ...values, postId });
-                toast.success("Thêm súng sạc mới thành công!");
+                await addConnector({ ...values, postId });
+                message.success("Thêm súng sạc mới thành công!");
             }
             setIsModalOpen(false);
             fetchData();
         } catch (err) {
-            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
-            toast.error(`Lưu thất bại: ${errorMsg}`);
+            message.error("Lưu thất bại!");
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            // TODO: Cần thêm API DeleteConnector
-            toast.warning("Chức năng xóa chưa được triển khai!");
-        } catch (err) {
-            const errorMsg = err?.response?.data?.message || err?.message || "Lỗi không xác định";
-            toast.error(`Không thể xóa: ${errorMsg}`);
+            await deleteConnector(id);
+            message.success("Xóa súng sạc thành công!");
+            fetchData();
+        } catch {
+            message.error("Không thể xóa!");
         }
     };
 
@@ -85,12 +61,7 @@ const AdminConnector = () => {
         { title: "Mã Connector", dataIndex: "id", key: "id" },
         { title: "Tên Connector", dataIndex: "connectorName", key: "connectorName" },
         { title: "Công suất (kW)", dataIndex: "powerKw", key: "powerKw" },
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            render: (status) => translateConnectorStatus(status)
-        },
+        { title: "Trạng thái", dataIndex: "status", key: "status" },
         {
             title: "Thao tác",
             render: (_, record) => (
@@ -138,9 +109,6 @@ const AdminConnector = () => {
                 dataSource={connectors}
                 columns={columns}
                 rowKey="id"
-                locale={{
-                    emptyText: "Không có dữ liệu"
-                }}
             />
 
             <Modal

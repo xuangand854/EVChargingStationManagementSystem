@@ -3,7 +3,6 @@ import "./Layout.css";
 import { getAuthStatus } from "../../API/Auth";
 import { useEffect, useState } from "react";
 import ProfileMenu from "../profile/ProfileMenu";
-import { jwtDecode } from "jwt-decode";
 // import AuthDebug from "../debug/AuthDebug";
 
 
@@ -13,46 +12,29 @@ const Layout = () => {
     // const isLoggedIn = !!roleName;
     const location = useLocation();
     const [auth, setAuth] = useState(getAuthStatus());
-    const [role, setRole] = useState(localStorage.getItem("user_role") || null);
 
     useEffect(() => {
-        const handleAuthChanged = () => {
-            const newAuth = getAuthStatus();
-            setAuth(newAuth);
+        const handleAuthChanged = () => setAuth(getAuthStatus());
+        window.addEventListener('auth-changed', handleAuthChanged);
+        return () => window.removeEventListener('auth-changed', handleAuthChanged);
+    }, []);
 
-            const token = localStorage.getItem("token");
-            if (token) {
-                try {
-                    const decoded = jwtDecode(token);
-                    if (decoded?.role) {
-                        localStorage.setItem("user_role", decoded.role);
-                        setRole(decoded.role);
-                    }
-                } catch (err) {
-                    console.error("Lỗi giải mã token:", err);
-                    localStorage.removeItem("user_role");
-                    setRole(null);
-                }
-            } else {
-                localStorage.removeItem("user_role");
-                setRole(null);
-            }
-        };
-
-        window.addEventListener("auth-changed", handleAuthChanged);
-        handleAuthChanged();
-        return () => window.removeEventListener("auth-changed", handleAuthChanged);
+    useEffect(() => {
+        // Mỗi lần route đổi cũng kiểm tra lại
+        setAuth(getAuthStatus());
     }, [location.pathname]);
 
     const { isAuthenticated, user } = auth;
-    console.log(" Auth Layout:", { isAuthenticated, user, role });
+    const role = user?.role;
+    const userRole = localStorage.getItem("user_role");
+    console.log("Auth status:", { isAuthenticated, user, role, userRole });
     return (
         <>
             {/* <AuthDebug /> */}
             <nav>
                 <ul>
                     <li>
-                        <Link to="/">Trang Chủ</Link>
+                        <Link to="/">Home</Link>
                     </li>
                     {/* <li>
                         <Link to="/about">About</Link>
@@ -61,12 +43,12 @@ const Layout = () => {
                         <Link to="/contact">Contact</Link>
                     </li> */}
                     {/* OrderCharging */}
-                    {role !== "Admin" && role !== "Staff" && (
+                    <>
                         <li>
                             <Link to="/order-charging">Đặt Trạm Sạc</Link>
                         </li>
-                    )}
-                    {role === "EVDriver" && (
+                    </>
+                    {isAuthenticated && (
                         <li>
                             <Link to="/profile-page">Thông Tin Tài Khoản</Link>
                         </li>
@@ -74,24 +56,22 @@ const Layout = () => {
 
                     {!isAuthenticated && (
                         <li>
-                            <Link to="/login">Đăng Nhập</Link>
+                            <Link to="/login">Login</Link>
                         </li>
                     )}
 
 
                     {/* Admin */}
-                    {role === "Admin" && (
+                    {userRole === "Admin" && (
                         <li>
-                            <Link to="/admin">Quản Lý Hệ Thống</Link>
+                            <Link to="/admin">Admin Dashboard</Link>
                         </li>
                     )}
 
                     {/* Staff (và Admin nếu muốn) */}
-
-
-                    {(role === "Staff" ) && (
+                    {(userRole === "Admin"  ) && (
                         <li>
-                            <Link to="/staff">Trang Nhân Viên</Link>
+                            <Link to="/staff">Staff Page</Link>
                         </li>
                     )}
                     {isAuthenticated && (

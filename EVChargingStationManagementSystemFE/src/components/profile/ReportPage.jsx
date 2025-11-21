@@ -4,7 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import "./ReportPage.css";
 
 import { addReport } from "../../API/Report";
-import { getChargingStation, getStaffWorkingStation } from "../../API/Station";
+import { getChargingStation } from "../../API/Station";
+import { getAllChargingPost } from "../../API/ChargingPost";
 
 const ReportPage = () => {
   const navigate = useNavigate();
@@ -27,75 +28,45 @@ const ReportPage = () => {
   const [showStationList, setShowStationList] = useState(false);
   const [showPostList, setShowPostList] = useState(false);
 
-  // Hàm bỏ dấu tiếng Việt
-  const removeVietnameseTones = (str) => {
-    return str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-  };
 
-  // Load trạm nhân viên + danh sách trạm
+  // Lấy danh sách trạm
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStations = async () => {
       try {
-        // Load trạm nhân viên
-        const staffRes = await getStaffWorkingStation();
-        const staffStation = staffRes?.data;
-
-        // Load toàn bộ trạm
-        const allStationsRes = await getChargingStation();
-        const allStations = Array.isArray(allStationsRes)
-          ? allStationsRes
-          : Array.isArray(allStationsRes.data)
-          ? allStationsRes.data
-          : [];
-
-        setStations(allStations);
-
-        if (staffStation) {
-          // Set trạm nhân viên tự động
-          setFormData((prev) => ({
-            ...prev,
-            stationId: staffStation.id,
-          }));
-          setStationSearch(staffStation.stationName || "");
-
-          // Set danh sách trụ sạc từ API
-          setPosts(
-            Array.isArray(staffStation.chargingPosts)
-              ? staffStation.chargingPosts
-              : []
-          );
-        }
+        const res = await getChargingStation();
+        const stationList = Array.isArray(res) ? res : Array.isArray(res.data) ? res.data : [];
+        setStations(stationList);
       } catch (err) {
         console.error("Lỗi khi lấy trạm:", err);
         setStations([]);
-        setPosts([]);
       }
     };
-    fetchData();
+    fetchStations();
   }, []);
 
-  // Lọc danh sách trạm
-  const filteredStations = Array.isArray(stations)
-    ? stations.filter((s) =>
-        s.stationName?.toLowerCase().includes(stationSearch.toLowerCase())
-      )
-    : [];
 
-  // Lọc danh sách trụ
-  const filteredPosts = Array.isArray(posts)
-    ? posts.filter((p) => {
-        const search = removeVietnameseTones(postSearch);
-        const code = removeVietnameseTones(p.postName || "");
-        const name = removeVietnameseTones(p.postName || "");
-        const idStr = (p.id || "").toString();
-        return code.includes(search) || name.includes(search) || idStr.includes(search);
-      })
-    : [];
+  // Lấy danh sách cột sạc theo trạm
+
+  useEffect(() => {
+    if (!formData.stationId) {
+      setPosts([]);
+      return;
+    }
+    const fetchPosts = async () => {
+      try {
+        const data = await getAllChargingPost(formData.stationId);
+        setPosts(data || []);
+      } catch (err) {
+        console.error("Lỗi khi lấy post:", err);
+      }
+    };
+    fetchPosts();
+  }, [formData.stationId]);
+
 
   // Submit form
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -113,7 +84,7 @@ const ReportPage = () => {
       postId: formData.postId || null,
     };
 
-    console.log("Payload gửi lên:", payload);
+    console.log(" Payload gửi lên:", payload);
 
     try {
       setLoading(true);
@@ -125,7 +96,7 @@ const ReportPage = () => {
         payload.stationId,
         payload.postId
       );
-      setMessage("✅ Báo cáo đã gửi thành công!");
+      setMessage(" Báo cáo đã gửi thành công!");
       setFormData({
         title: "",
         reportType: "",
@@ -138,20 +109,44 @@ const ReportPage = () => {
       setPostSearch("");
       setShowStationList(false);
       setShowPostList(false);
-      setTimeout(() => navigate("/staff/staff-report"), 1500);
+      setTimeout(() => navigate("/profile-page"), 1500);
     } catch (err) {
-      console.error("Lỗi gửi báo cáo:", err);
-      setMessage("❌ Gửi báo cáo thất bại!");
+      console.error(" Lỗi gửi báo cáo:", err);
+      setMessage(" Gửi báo cáo thất bại!");
     } finally {
       setLoading(false);
     }
   };
 
+
+  // Filter danh sách trạm & cột
+  // Hàm bỏ dấu
+const removeVietnameseTones = (str) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+    .toLowerCase();
+};
+
+  const filteredStations = Array.isArray(stations)
+    ? stations.filter((s) => s.stationName?.toLowerCase().includes(stationSearch.toLowerCase()))
+    : [];
+
+const filteredPosts = Array.isArray(posts)
+  ? posts.filter((p) => {
+      const search = removeVietnameseTones(postSearch);
+      const code = removeVietnameseTones(p.postCode || "");
+      const name = removeVietnameseTones(p.postName || "");
+      const idStr = (p.id || "").toString();
+      return code.includes(search) || name.includes(search) || idStr.includes(search);
+    })
+  : [];
+
   return (
     <div className="report-page">
       <div className="page-header">
         <h1>Gửi báo cáo</h1>
-        <p>Hãy mô tả vấn đề gửi cho hệ thống</p>
+        <p>Hãy mô tả vấn gửi cho hệ thống</p>
       </div>
 
       <div className="form-container">
@@ -177,10 +172,10 @@ const ReportPage = () => {
               required
             >
               <option value="">-- Chọn loại báo cáo --</option>
-              <option value="Lỗi">Lỗi hệ thống</option>
-              <option value="Yêu Cầu Tính Năng">Yêu cầu tính năng</option>
-              <option value="Bảo Trì">Bảo trì</option>
-              <option value="Khác">Khác</option>
+              <option value="Bug">Lỗi hệ thống</option>
+              <option value="FeatureRequest">Yêu cầu tính năng</option>
+              <option value="Maintenance">Bảo trì</option>
+              <option value="Other">Khác</option>
             </select>
           </div>
 
@@ -193,10 +188,10 @@ const ReportPage = () => {
               required
             >
               <option value="">-- Chọn mức độ --</option>
-              <option value="Thấp">Thấp</option>
-              <option value="Trung Bình">Trung bình</option>
-              <option value="Cao">Cao</option>
-              <option value="Nghiêm Trọng">Nghiêm trọng</option>
+              <option value="Low">Thấp</option>
+              <option value="Medium">Trung bình</option>
+              <option value="High">Cao</option>
+              <option value="Critical">Nghiêm trọng</option>
             </select>
           </div>
 
@@ -207,13 +202,36 @@ const ReportPage = () => {
               type="text"
               placeholder="Tìm trạm sạc..."
               value={stationSearch}
-              readOnly
               onFocus={() => setShowStationList(true)}
+              onChange={(e) => {
+                setStationSearch(e.target.value);
+                setShowStationList(true);
+              }}
             />
-            
+            {showStationList && stationSearch && (
+              <ul className="dropdown-list">
+                {filteredStations.length > 0 ? (
+                  filteredStations.map((s) => (
+                    <li
+                      key={s.id}
+                      onClick={() => {
+                        setFormData({ ...formData, stationId: s.id, postId: "" });
+                        setStationSearch(s.stationName);
+                        setShowStationList(false);
+                        setPostSearch("");
+                      }}
+                    >
+                      {s.stationName} ({s.province})
+                    </li>
+                  ))
+                ) : (
+                  <li className="no-result">Không tìm thấy trạm phù hợp</li>
+                )}
+              </ul>
+            )}
           </div>
 
-          {/* Trụ sạc */}
+          {/* Cột sạc */}
           <div className="form-group" style={{ position: "relative" }}>
             <label>Trụ sạc</label>
             <input
@@ -228,25 +246,26 @@ const ReportPage = () => {
               }}
             />
             {showPostList && (
-              <ul className="dropdown-list">
-                {filteredPosts.length > 0 ? (
-                  filteredPosts.map((p) => (
-                    <li
-                      key={p.id}
-                      onClick={() => {
-                        setFormData({ ...formData, postId: p.id });
-                        setPostSearch(p.postName || p.postCode || `Trụ:${p.id}`);
-                        setShowPostList(false);
-                      }}
-                    >
-                      {p.postName || p.postCode || `Trụ:${p.id}`}
-                    </li>
-                  ))
-                ) : (
-                  <li className="no-result">Không tìm thấy trụ phù hợp</li>
-                )}
-              </ul>
-            )}
+                <ul className="dropdown-list">
+                  {filteredPosts.length > 0 ? (
+                    filteredPosts.map((p) => (
+                      <li
+                        key={p.id}
+                        onClick={() => {
+                          setFormData({ ...formData, postId: p.id }); 
+                          setPostSearch(p.postName || p.postCode || `Trụ:${p.id}`);
+                          setShowPostList(false);
+                        }}
+                      >
+                        {p.postName || p.postCode || `Trụ:${p.id}`}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="no-result">Không tìm thấy trụ phù hợp</li>
+                  )}
+                </ul>
+              )}
+
           </div>
 
           {/* Mô tả */}
@@ -259,20 +278,19 @@ const ReportPage = () => {
             />
           </div>
 
-          {/* Button submit */}
+          {/* Buttons */}
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? "Đang gửi..." : "Gửi báo cáo"}
           </button>
 
-          {message && (
-            <div
-              className="notify"
-              style={{ marginTop: "10px", color: message.includes("✅") ? "green" : "red" }}
-            >
-              {message}
-            </div>
-          )}
+          
         </form>
+
+        {message && (
+          <div className="notify" style={{ marginTop: "10px", color: message.includes("✅") ? "green" : "red" }}>
+            {message}
+          </div>
+        )}
       </div>
     </div>
   );

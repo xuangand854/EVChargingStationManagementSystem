@@ -91,7 +91,7 @@ const Home = () => {
                 <header className="home-hero">
                     <div className="hero-content">
                         <h1>
-                            <span className="brand-orange">Quản Lý Trạm Sạc Xe Điện Thông Minh</span>
+                            <span className="brand-orange">Sạc xe điện thông minh</span>
                             <span className="brand-gradient"> EVOne</span>
                         </h1>
                         <p>Tìm, đặt chỗ và sạc nhanh ở mọi nơi bạn đến.</p>
@@ -146,7 +146,7 @@ const Home = () => {
                         </div>
                         <div className="feature-card">
                             <div className="icon">📊</div>
-                            <h3>Xác Thời Gian Thực</h3>
+                            <h3>Realtime</h3>
                             <p>Trạng thái trạm sạc, công suất và chi phí hiển thị theo thời gian thực, cập nhật liên tục.</p>
                         </div>
                     </div>
@@ -203,7 +203,7 @@ const Home = () => {
                                 <div className="stat-card">
                                     <div className="stat-icon">⚡</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">Hổ Trợ </span>
+                                        <span className="stat-value">500+</span>
                                         <span className="stat-label">Trạm sạc</span>
                                         <span className="stat-desc">Trên toàn quốc</span>
                                     </div>
@@ -211,16 +211,16 @@ const Home = () => {
                                 <div className="stat-card">
                                     <div className="stat-icon">🚗</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">Đảm Bảo</span>
-                                        <span className="stat-label">Tin Tưởng Dịch Vụ </span>
-                                        <span className="stat-desc">Hỗ Trợ Sạc Xe Điện Của Chúng Tôi</span>
+                                        <span className="stat-value">50K+</span>
+                                        <span className="stat-label">Người dùng</span>
+                                        <span className="stat-desc">Đã tin tưởng</span>
                                     </div>
                                 </div>
                                 <div className="stat-card">
                                     <div className="stat-icon">📊</div>
                                     <div className="stat-info">
-                                        <span className="stat-value">Hệ Thống Thuận Tiện</span>
-                                        <span className="stat-label">Hổ Trợ Dịch Vụ Tốt</span>
+                                        <span className="stat-value">99.9%</span>
+                                        <span className="stat-label">Uptime</span>
                                         <span className="stat-desc">Độ tin cậy cao</span>
                                     </div>
                                 </div>
@@ -239,23 +239,19 @@ const Home = () => {
             </section>
 
 
+            {/* Search Section */}
+            <section className="section section-search" id="search">
+                <section className="home-search">
+                    <h2 className="section-title">Tìm trạm sạc gần bạn</h2>
 
                     {/* Nút mở popup chọn trạm */}
                     <div className="search-bar">
                         <button
                             className="btn btn-primary"
-                            onClick={() => {
-                                const role = (localStorage.getItem("user_role") || "").toLowerCase();
-
-                                if (role === "admin") {
-                                navigate("/admin/admin-map");  
-                                } else {
-                                navigate("/order-charging");    
-                                }
-                            }}
+                            onClick={() => navigate("/order-charging")}
                             >
                             Chọn trạm sạc
-                        </button>
+                            </button>
                     </div>
 
                     {/* Popup danh sách trạm */}
@@ -288,8 +284,8 @@ const Home = () => {
 
                     {/* OpenStreetMap Integration */}
                     
-                
-      
+                </section>
+            </section>
 
 
 
@@ -371,19 +367,19 @@ const Home = () => {
             <div className="floating-social" aria-label="Liên kết mạng xã hội">
                 <a className="social-btn" href="https://www.facebook.com/" target="_blank" aria-label="Facebook" title="Facebook" rel="noopener noreferrer">
                     {/* Facebook SVG */}
-                    <svg viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d="M22 12.06C22 6.48 17.52 2 11.94 2S2 6.48 2 12.06c0 5.01 3.66 9.17 8.44 9.94v-7.03H7.9v-2.91h2.54V9.41c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.62.77-1.62 1.56v1.87h2.76l-.44 2.91h-2.32V22c4.78-.77 8.44-4.93 8.44-9.94Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.06C22 6.48 17.52 2 11.94 2S2 6.48 2 12.06c0 5.01 3.66 9.17 8.44 9.94v-7.03H7.9v-2.91h2.54V9.41c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.62.77-1.62 1.56v1.87h2.76l-.44 2.91h-2.32V22c4.78-.77 8.44-4.93 8.44-9.94Z" /></svg>
                 </a>
                 <a className="social-btn" href="https://www.youtube.com/" target="_blank" aria-label="YouTube" title="YouTube" rel="noopener noreferrer">
                     {/* YouTube SVG */}
-                    <svg viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true"><path d="M23.5 6.2s-.23-1.65-.95-2.37c-.91-.95-1.93-.96-2.4-1.02C16.58 2.5 12 2.5 12 2.5h-.01s-4.58 0-8.14.31c-.47.06-1.49.07-2.4 1.02C.73 4.55.5 6.2.5 6.2S.27 8.14.27 10.07v1.85c0 1.93.23 3.87.23 3.87s.23 1.65.95 2.37c.91.95 2.11.92 2.64 1.02 1.92.19 8 .31 8 .31s4.58 0 8.14-.31c.47-.06 1.49-.07 2.4-1.02.72-.72.95-2.37.95-2.37s.23-1.94.23-3.87v-1.85c0-1.93-.23-3.87-.23-3.87ZM9.75 13.88V7.94l5.8 2.97-5.8 2.97Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2s-.23-1.65-.95-2.37c-.91-.95-1.93-.96-2.4-1.02C16.58 2.5 12 2.5 12 2.5h-.01s-4.58 0-8.14.31c-.47.06-1.49.07-2.4 1.02C.73 4.55.5 6.2.5 6.2S.27 8.14.27 10.07v1.85c0 1.93.23 3.87.23 3.87s.23 1.65.95 2.37c.91.95 2.11.92 2.64 1.02 1.92.19 8 .31 8 .31s4.58 0 8.14-.31c.47-.06 1.49-.07 2.4-1.02.72-.72.95-2.37.95-2.37s.23-1.94.23-3.87v-1.85c0-1.93-.23-3.87-.23-3.87ZM9.75 13.88V7.94l5.8 2.97-5.8 2.97Z" /></svg>
                 </a>
                 <a className="social-btn" href="https://www.instagram.com/" target="_blank" aria-label="Instagram" title="Instagram" rel="noopener noreferrer">
                     {/* Instagram SVG */}
-                    <svg viewBox="0 0 24 24" fill="#E1306C" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.97.24 2.67.52.72.28 1.33.66 1.93 1.27.6.6.98 1.21 1.27 1.93.27.7.47 1.5.52 2.67.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.97-.52 2.67-.28.72-.66 1.33-1.27 1.93-.6.6-1.21.98-1.93 1.27-.7.27-1.5.47-2.67.52-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.97-.24-2.67-.52a5.49 5.49 0 0 1-1.93-1.27A5.49 5.49 0 0 1 .89 20.2c-.27-.7-.47-1.5-.52-2.67C.31 16.26.3 15.88.3 12.68s.01-3.58.07-4.85c.05-1.17.24-1.97.52-2.67.28-.72.66-1.33 1.27-1.93S3.37 1.25 4.09.97c.7-.27 1.5-.47 2.67-.52C8.03.39 8.41.38 11.61.38c3.2 0 3.58.01 4.85.07Zm0 1.8c-3.15 0-3.52.01-4.76.07-.98.05-1.51.21-1.86.34-.47.18-.81.39-1.17.74-.35.36-.56.7-.74 1.17-.13.35-.29.88-.34 1.86-.06 1.24-.07 1.61-.07 4.76s.01 3.52.07 4.76c.05.98.21 1.51.34 1.86.18.47.39.81.74 1.17.36.35.7.56 1.17.74.35.13.88.29 1.86.34 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c.98-.05 1.51-.21 1.86-.34.47-.18.81-.39 1.17-.74.35-.36.56-.7.74-1.17.13-.35.29-.88.34-1.86.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.05-.98-.21-1.51-.34-1.86a3.62 3.62 0 0 0-.74-1.17 3.62 3.62 0 0 0-1.17-.74c-.35-.13-.88-.29-1.86-.34-1.24-.06-1.61-.07-4.76-.07Zm0 3.13a6.91 6.91 0 1 1 0 13.82 6.91 6.91 0 0 1 0-13.82Zm0 1.8a5.11 5.11 0 1 0 0 10.22 5.11 5.11 0 0 0 0-10.22Zm6.99-2.3a1.62 1.62 0 1 1-3.24 0 1.62 1.62 0 0 1 3.24 0Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.97.24 2.67.52.72.28 1.33.66 1.93 1.27.6.6.98 1.21 1.27 1.93.27.7.47 1.5.52 2.67.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.97-.52 2.67-.28.72-.66 1.33-1.27 1.93-.6.6-1.21.98-1.93 1.27-.7.27-1.5.47-2.67.52-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.97-.24-2.67-.52a5.49 5.49 0 0 1-1.93-1.27A5.49 5.49 0 0 1 .89 20.2c-.27-.7-.47-1.5-.52-2.67C.31 16.26.3 15.88.3 12.68s.01-3.58.07-4.85c.05-1.17.24-1.97.52-2.67.28-.72.66-1.33 1.27-1.93S3.37 1.25 4.09.97c.7-.27 1.5-.47 2.67-.52C8.03.39 8.41.38 11.61.38c3.2 0 3.58.01 4.85.07Zm0 1.8c-3.15 0-3.52.01-4.76.07-.98.05-1.51.21-1.86.34-.47.18-.81.39-1.17.74-.35.36-.56.7-.74 1.17-.13.35-.29.88-.34 1.86-.06 1.24-.07 1.61-.07 4.76s.01 3.52.07 4.76c.05.98.21 1.51.34 1.86.18.47.39.81.74 1.17.36.35.7.56 1.17.74.35.13.88.29 1.86.34 1.24.06 1.61.07 4.76.07s3.52-.01 4.76-.07c.98-.05 1.51-.21 1.86-.34.47-.18.81-.39 1.17-.74.35-.36.56-.7.74-1.17.13-.35.29-.88.34-1.86.06-1.24.07-1.61.07-4.76s-.01-3.52-.07-4.76c-.05-.98-.21-1.51-.34-1.86a3.62 3.62 0 0 0-.74-1.17 3.62 3.62 0 0 0-1.17-.74c-.35-.13-.88-.29-1.86-.34-1.24-.06-1.61-.07-4.76-.07Zm0 3.13a6.91 6.91 0 1 1 0 13.82 6.91 6.91 0 0 1 0-13.82Zm0 1.8a5.11 5.11 0 1 0 0 10.22 5.11 5.11 0 0 0 0-10.22Zm6.99-2.3a1.62 1.62 0 1 1-3.24 0 1.62 1.62 0 0 1 3.24 0Z" /></svg>
                 </a>
                 <a className="social-btn" href="https://shopee.vn/" target="_blank" aria-label="Shopee" title="Shopee" rel="noopener noreferrer">
                     {/* Shopee SVG */}
-                    <svg viewBox="0 0 24 24" fill="#EE4D2D" aria-hidden="true"><path d="M17.7 8.5c-.33-2.74-2.9-4.85-5.7-4.85S6.63 5.76 6.3 8.5H4v10.06c0 .79.64 1.44 1.43 1.44h13.14c.79 0 1.43-.65 1.43-1.44V8.5h-2.3Zm-8.6 0c.3-1.76 1.87-3.05 3.9-3.05 2.03 0 3.6 1.29 3.9 3.05H9.1Zm1.5 9.33c-1.56 0-2.7-.83-2.7-2.05 0-.95.61-1.6 1.9-1.94l1.56-.42c.72-.19.96-.4.96-.8 0-.57-.56-.95-1.4-.95-.88 0-1.5.41-1.64 1.05H7.75c.1-1.47 1.37-2.43 3.3-2.43 1.86 0 3.2 1 3.2 2.4 0 1.02-.56 1.63-1.86 1.98l-1.5.4c-.76.2-1.06.43-1.06.86 0 .53.56.9 1.37.9.93 0 1.56-.4 1.72-1.08h1.24c-.18 1.55-1.47 2.24-3.1 2.24Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.7 8.5c-.33-2.74-2.9-4.85-5.7-4.85S6.63 5.76 6.3 8.5H4v10.06c0 .79.64 1.44 1.43 1.44h13.14c.79 0 1.43-.65 1.43-1.44V8.5h-2.3Zm-8.6 0c.3-1.76 1.87-3.05 3.9-3.05 2.03 0 3.6 1.29 3.9 3.05H9.1Zm1.5 9.33c-1.56 0-2.7-.83-2.7-2.05 0-.95.61-1.6 1.9-1.94l1.56-.42c.72-.19.96-.4.96-.8 0-.57-.56-.95-1.4-.95-.88 0-1.5.41-1.64 1.05H7.75c.1-1.47 1.37-2.43 3.3-2.43 1.86 0 3.2 1 3.2 2.4 0 1.02-.56 1.63-1.86 1.98l-1.5.4c-.76.2-1.06.43-1.06.86 0 .53.56.9 1.37.9.93 0 1.56-.4 1.72-1.08h1.24c-.18 1.55-1.47 2.24-3.1 2.24Z" /></svg>
                 </a>
             </div>
 

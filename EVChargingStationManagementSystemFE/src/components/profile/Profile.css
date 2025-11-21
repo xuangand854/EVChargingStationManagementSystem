@@ -1,552 +1,508 @@
-/* =====================================================
-   EV MODERN DASHBOARD – FULL REBUILD
-===================================================== */
-
-/* ===============================
-   COLORS & ROOT VARIABLES
-=============================== */
-:root {
-  --ev-primary: #0ea5e9;        /* Electric blue */
-  --ev-primary-dark: #0284c7;
-  --ev-bg: #f0f4f8;             /* Background page */
-  --ev-card-bg: #ffffff;        /* Card background */
-  --ev-text: #1e293b;           /* Dark text */
-  --ev-gray: #64748b;           /* Secondary text */
-  --ev-border: #e2e8f0;
-  --ev-shadow: 0 10px 24px rgba(0,0,0,0.08);
-}
-
-/* ===============================
-   GLOBAL
-=============================== */
-body {
-  font-family: "Inter", "Segoe UI", sans-serif;
-  background: var(--ev-bg);
-  margin: 0;
-  color: var(--ev-text);
-}
-
+/* ===========================
+   Tổng thể layout
+=========================== */
 .profile-wrapper {
   display: flex;
-  min-height: 80vh;
-  padding: 4px; 
-   
+  gap: 20px;
+  padding: 20px;
+  background: #f3f4f6;
+  color: #000;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
 }
 
-/* ===============================
-   SIDEBAR – Dark Card
-=============================== */
+/* ===========================
+   Sidebar
+=========================== */
 .profile-sidebar {
   width: 280px;
-  background: linear-gradient(180deg, #00b09b 0%, #96c93d 100%);
-  color: white;
-  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  flex-shrink: 0;  
-  border-radius: 24px 24px 24px 24px;
 }
 
 .sidebar-card {
-  background: rgba(255,255,255,0.08);
-  padding: 18px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  transition: transform 0.25s;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  color: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-
-.sidebar-card:hover {
-  transform: translateY(-3px);
-}
-
-/* ===============================
-   USER AVATAR
-=============================== */
+/* ===========================
+   Avatar + tên người dùng
+=========================== */
 .user-card {
   text-align: center;
-}
-
-.avatar-container {
-  width: 130px;
-  height: 130px;
-  margin: 0 auto 16px;
   position: relative;
 }
 
-.avatars {
-  width: 130px;
-  height: 130px;
+.avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px;
+}
+
+.avatars{
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #ffffff80;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  border: 3px solid #38bdf8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background-color: #e2e8f0;
 }
 
 .edit-avatar-icon {
   position: absolute;
   bottom: 6px;
   right: 6px;
-  width: 36px;
-  height: 36px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
   border-radius: 50%;
-  background: var(--ev-primary);
-  color: white;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .edit-avatar-icon:hover {
-  background: var(--ev-primary-dark);
-  transform: scale(1.15);
-}
-
-.user-card h3 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 8px 0 2px;
+  background: #2563eb;
+  transform: scale(1.05);
 }
 
 .user-card .welcome {
   font-size: 14px;
-  color: #cbd5e1;
+  color: #555;
+  margin-bottom: 4px;
 }
 
-/* ===============================
-   MAIN CONTENT
-=============================== */
+.user-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* ===========================
+   Thông báo phụ
+=========================== */
+.notice-card .warning {
+  font-weight: bold;
+  color: #111;
+  font-size: 15px;
+}
+
+.notice-card .desc {
+  font-size: 14px;
+  margin: 10px 0;
+  color: #444;
+}
+
+/* ===========================
+   Main content
+=========================== */
 .profile-main {
   flex: 1;
-  padding: 4px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 28px;
 }
 
-/* ===============================
-   CARD – GENERAL
-=============================== */
 .profile-card {
-  background: var(--ev-card-bg);
-  border-radius: 20px;
-  padding: 26px;
-  box-shadow: var(--ev-shadow);
-  transition: transform 0.25s;
-}
-
-.profile-card:hover {
-  
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
 }
 
 .profile-header h2 {
-  font-size: 22px;
-  font-weight: 700;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111;
 }
 
-/* ===============================
-   INFO ROWS
-=============================== */
+/* ===========================
+   Nút chỉnh sửa thông tin
+=========================== */
+.edit-btn {
+  border: none;
+  background: none;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.edit-btn:hover {
+  color: #1d4ed8;
+}
+
+/* ===========================
+   Thông tin hiển thị
+=========================== */
 .profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  margin-top: 15px;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--ev-border);
-  transition: background 0.2s;
-  border-radius: 12px;
-}
-
-.info-row:hover {
-  background: #f1f8ff;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  color: #000;
 }
 
 .label {
-  font-weight: 600;
-  color: var(--ev-gray);
+  font-weight: 500;
+  color: #000;
 }
 
-.info-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ev-text);
-}
-
-/* ===============================
-   BUTTONS
-=============================== */
-.edit-btn, .link-btn {
-  background: none;
+/* ===========================
+   Link chỉnh sửa và đổi mật khẩu
+=========================== */
+.link-btn {
   border: none;
-  color: var(--ev-primary);
-  font-weight: 600;
+  background: none;
+  color: #2563eb;
   cursor: pointer;
   text-decoration: underline;
-  transition: color 0.25s;
+  text-decoration-color: #2563eb;
+  font-size: 14px;
 }
 
-.edit-btn:hover, .link-btn:hover {
-  color: var(--ev-primary-dark);
+.link-btn:hover {
+  color: #1d4ed8;
 }
 
-.save {
-  background: var(--ev-primary);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.25s;
-}
-
-.save:hover {
-  background: var(--ev-primary-dark);
-}
-
-.cancel {
-  background: #f1f5f9;
-  color: var(--ev-text);
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.cancel:hover {
-  background: #e2e8f0;
-}
-
-/* ===============================
-   POPUPS
-=============================== */
-.popup-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.popup-img, .popup.vehicle-popup {
-  background: var(--ev-card-bg);
-  border-radius: 24px;
-  width: 700px;
-  max-width: 95%;
-  padding: 28px;
-  box-shadow: 0 14px 36px rgba(0,0,0,0.22);
-  animation: popupScale 0.25s ease;
-}
-
-@keyframes popupScale {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* ===============================
-   VEHICLE LIST – GRID
-=============================== */
-
-
-.scrollable {
-  background: #f0f4f8;
-  border-radius: 16px;
-  padding: 12px;
-  max-height: 260px;
-  overflow-y: auto;
-}
-
-
-.vehicle-item.selected {
-  color: black;
-}
-
-/* ===============================
-   DROPDOWN MODERN
-=============================== */
-.vehicle-dropdown {
-  position: relative;
-  width: 100%;
-}
-
-.dropdown-toggle {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 14px;
-  background: #f0f4f8;
-  border: 1px solid var(--ev-border);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.dropdown-toggle:hover {
-  background: #e2e8f0;
-}
-
-.dropdown-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  width: 100%;
-  max-height: 260px;
-  overflow-y: auto;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid var(--ev-border);
-  box-shadow: 0 14px 32px rgba(0,0,0,.12);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.25s;
-}
-
-.vehicle-dropdown.open .dropdown-panel {
-  opacity: 1;
-  visibility: visible;
-}
-
-.dropdown-item-row {
-  padding: 10px 12px;
-  border-radius: 12px;
-  margin-bottom: 6px;
-  display: flex;
-  justify-content: space-between;
-  transition: background 0.2s;
-}
-
-.dropdown-item-row:hover {
-  background: #f1f8ff;
-}
-
-.remove-vehicle-btn {
-  padding: 4px 8px;
-  border-radius: 10px;
-  background: #fee2e2;
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.remove-vehicle-btn:hover {
-  background: #fecaca;
-}
-
-.manage-btn {
-  background: var(--ev-primary);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 14px;
-}
-
-.manage-btn:hover {
-  background: var(--ev-primary-dark);
-}
-/* ===============================
-   FORM – CHUNG CHO EDIT & PASSWORD
-=============================== */
+/* ===========================
+   Form chỉnh sửa
+=========================== */
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px 0;
+  gap: 12px;
+  margin-top: 15px;
 }
 
-.profile-form h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ev-text);
-}
-
-.profile-form input[type="text"],
-.profile-form input[type="email"],
-.profile-form input[type="password"] {
-  padding: 10px 14px;
-  border: 1px solid var(--ev-border);
-  border-radius: 12px;
-  font-size: 14px;
+.profile-form input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  color: #000;
   width: 100%;
-  transition: border-color 0.25s, box-shadow 0.25s;
+  transition: border 0.2s;
 }
 
-.profile-form input[type="text"]:focus,
-.profile-form input[type="email"]:focus,
-.profile-form input[type="password"]:focus {
-  border-color: var(--ev-primary);
-  box-shadow: 0 0 8px rgba(14,165,233,0.3);
+.profile-form input:focus {
   outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 3px rgba(59,130,246,0.4);
 }
 
-/* ===============================
-   FORM BUTTONS
-=============================== */
+/* ===========================
+   Nút lưu & hủy
+=========================== */
 .form-buttons {
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.form-buttons .save {
-  background: var(--ev-primary);
+.form-buttons button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.save {
+  background: #3b82f6;
   color: white;
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.25s, transform 0.2s;
 }
 
-.form-buttons .save:hover {
-  background: var(--ev-primary-dark);
-  transform: scale(1.05);
+.save:hover {
+  background: #2563eb;
 }
 
-.form-buttons .cancel {
-  background: #f1f5f9;
-  color: var(--ev-text);
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.25s, transform 0.2s;
+.cancel {
+  background: #e5e7eb;
+  color: #111;
 }
 
-.form-buttons .cancel:hover {
-  background: #e2e8f0;
-  transform: scale(1.03);
+.cancel:hover {
+  background: #d1d5db;
 }
 
-/* ===============================
-   POPUP INPUT – AVATAR URL
-=============================== */
-.popup-img input[type="text"] {
-  padding: 10px 12px;
-  border: 1px solid var(--ev-border);
-  border-radius: 12px;
-  font-size: 14px;
-  transition: border-color 0.25s, box-shadow 0.25s;
+/* ===========================
+   Popup chỉnh ảnh / xe
+=========================== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(30, 41, 59, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
 }
 
-.popup-img input[type="text"]:focus {
-  border-color: var(--ev-primary);
-  box-shadow: 0 0 8px rgba(14,165,233,0.3);
-  outline: none;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* ===============================
-   PASSWORD CHANGE SPECIFIC
-=============================== */
-.profile-form input[type="password"] {
-  border: 1px solid var(--ev-border);
-  border-radius: 12px;
-  padding: 10px 12px;
+.popup-img {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  width: 340px;
+  text-align: center;
+  animation: popupFade 0.25s ease;
+}
+
+@keyframes popupFade {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.popup h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #111;
+}
+
+.avatar-url-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  color: #000;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+
+.popup-buttons .save {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popup-buttons .save:hover {
+  background: #2563eb;
+}
+
+.popup-buttons .cancel {
+  background: #e5e7eb;
+  color: #111;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.popup-buttons .cancel:hover {
+  background: #d1d5db;
+}
+
+/* ===========================
+   Loading text
+=========================== */
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  padding: 40px;
+}
+/* Xe + Chỉnh sửa gộp cùng 1 bên trái */
+
+.vehicle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.vehicle-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-weight: 500;
+  color: #111;
+  min-width: 60px;
+}
+
+.vehicle-row .link-btn {
+  border: none;
+  background: none;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #2563eb;
   font-size: 14px;
-  transition: border-color 0.25s, box-shadow 0.25s;
+  transition: color 0.2s ease;
 }
 
-.profile-form input[type="password"]:focus {
-  border-color: #52c41a;
-  box-shadow: 0 0 8px rgba(82,196,26,0.25);
+.vehicle-row .link-btn:hover {
+  color: #1d4ed8;
 }
 
-/* ===============================
-   RESPONSIVE POPUP FORM
-=============================== */
-.popup-img, .popup.vehicle-popup {
-  background: var(--ev-card-bg);
-  border-radius: 24px;
-  width: 800px;           /* tăng chiều rộng popup */
-  max-width: 95%;
-  max-height: 600px;      /* tăng chiều cao popup */
-  padding: 28px 32px;
-  box-shadow: 0 14px 36px rgba(0,0,0,0.22);
-  animation: popupScale 0.25s ease;
-  overflow: hidden;       /* ẩn overflow toàn popup */
+.info-value {
+  color: #0f172a;
+  font-size: 17px;
 }
 
-/* ===============================
-   VEHICLE POPUP BODY – 2 CỘT
-=============================== */
+
+/* ===========================
+   Popup Vehicle - full layout 2 cột
+=========================== */
+.popup.vehicle-popup {
+  width: 700px;          /* rộng hơn popup avatar */
+  max-width: 95vw;       /* responsive màn hình nhỏ */
+  min-height: 400px;     /* chiều cao tối thiểu */
+  padding: 25px 30px;    /* khoảng cách chữ không sát viền */
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  text-align: left;
+  display: flex;          /* dùng flex cho layout 2 cột */
+  flex-direction: column; /* nếu muốn theo cột */
+  gap: 20px;
+}
+
+
+.vehicle-popup h3 {
+  font-size: 16px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.vehicle-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Container 2 cột */
 .vehicle-popup-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;   /* cột bên trái: xe đã chọn, cột bên phải: xe có thể chọn */
-  gap: 24px;
-  max-height: 450px;               /* phần scrollable nội dung */
+  display: flex;
+  gap: 20px; /* khoảng cách giữa 2 cột */
+}
+
+/* Cột Xe đã chọn */
+.selected-vehicles.scrollable {
+  flex: 1;
+  max-height: 220px;
   overflow-y: auto;
-  padding-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  
+}
+.selected-vehicles.scrollable h3{
+  text-align: left;    /* canh chữ sang trái */
+  margin: 0 0 8px 0;   /* khoảng cách trên dưới nếu cần */
+       /* giữ size phù hợp */
+  color: #111; 
 }
 
-/* Scrollable area cho selected & available vehicles */
-.selected-vehicles.scrollable,
+/* Cột Xe hỗ trợ */
 .available-vehicles.scrollable {
-  height: 300px;           /* chiều cao cố định */
-  min-height: 300px;       /* đảm bảo không bị co nhỏ */
-  max-height: 300px;       /* đảm bảo không vượt quá */
-  overflow-y: auto;        /* scroll khi nội dung vượt */
-  padding: 12px;           /* khoảng cách bên trong */
-  border: 1px solid #e2e8f0; /* viền nhẹ */
-  border-radius: 12px;     /* bo góc */
-  background: #f9fafb;     /* nền nhạt */
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); /* bóng bên trong */
+  flex: 1;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f9fafb;
+}
+.available-vehicles.scrollable h3{
+  text-align: left;    /* canh chữ sang trái */
+  margin: 0 0 8px 0;   /* khoảng cách trên dưới nếu cần */
+       /* giữ size phù hợp */
+  color: #111; 
 }
 
-
-/* Xe item bên trong popup */
+/* Item trong danh sách */
 .vehicle-item {
-  background: #e6f6ff;
-  padding: 14px 16px;   /* to hơn, thoáng hơn */
-  border-radius: 14px;
   display: flex;
   justify-content: space-between;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 16px;      /* chữ lớn hơn */
+  align-items: center;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-size: 14px;
 }
 
-/* Footer quản lý xe */
-.popup.vehicle-popup .popup-buttons {
+.vehicle-item.selected {
+  background: #e0f2fe;
+  font-weight: 500;
+}
+
+.vehicle-item .link-btn {
+  font-size: 13px;
+  padding: 2px 6px;
+}
+
+/* Scroll bar đẹp */
+.selected-vehicles.scrollable::-webkit-scrollbar,
+.available-vehicles.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selected-vehicles.scrollable::-webkit-scrollbar-thumb,
+.available-vehicles.scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.5);
+  border-radius: 3px;
+}
+
+.selected-vehicles.scrollable::-webkit-scrollbar-track,
+.available-vehicles.scrollable::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+/* Popup buttons */
+.popup-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 15px;
 }
-
-/* Responsive cho mobile */
-@media (max-width: 800px) {
-  .popup-img, .popup.vehicle-popup {
-    width: 95%;
-    max-width: 95%;
-    max-height: 90%;
-    padding: 20px;
-  }
-  .vehicle-popup-body {
-    grid-template-columns: 1fr;  /* 1 cột trên điện thoại */
-    max-height: 300px;
-  }
-  .selected-vehicles.scrollable,
-  .available-vehicles.scrollable {
-    max-height: 200px;
-  }
-  .vehicle-item {
-    font-size: 14px;
-    padding: 12px;
-  }
-}
-
-

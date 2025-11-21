@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getChargingStationId, updateChargingStationStatus, deleteChargingStation } from "../../../API/Station";
-import { getAllChargingPost, deleteChargingPost, addChargingPost, updateChargingPost, updateChargingPostStatus } from "../../../API/ChargingPost";
+import { getAllChargingPost, deleteChargingPost, addChargingPost, updateChargingPost } from "../../../API/ChargingPost";
 import { Card, Table, Button, Space, message, Select, Modal, Input, Form } from "antd";
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 
@@ -102,40 +102,13 @@ const StaffStationDetail = () => {
             message.error("Lỗi khi lưu trụ sạc!");
         }
     };
-    const handleChangePostStatus = async (postId, newStatus) => {
-        try {
-            await updateChargingPostStatus(postId, newStatus);
-            message.success("⚙️ Cập nhật trạng thái trụ sạc thành công!");
-            fetchStationAndPosts();
-        } catch (error) {
-            console.error("updateChargingPostStatus error:", error);
-            message.error("Không thể cập nhật trạng thái trụ!");
-        }
-    };
 
     const columns = [
         { title: "Tên trụ sạc", dataIndex: "postName", key: "postName" },
         { title: "Kiểu kết nối", dataIndex: "connectorType", key: "connectorType" },
         { title: "Loại xe hỗ trợ", dataIndex: "vehicleTypeSupported", key: "vehicleTypeSupported" },
         { title: "Số cổng", dataIndex: "totalConnectors", key: "totalConnectors" },
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            render: (text, record) => (
-                <Select
-                    value={text}
-                    onChange={(value) => handleChangePostStatus(record.id, value)}
-                    style={{ width: 150 }}
-                >
-                    <Option value="Available">Available</Option>
-                    {/* <Option value="Busy">Busy</Option> */}
-                    <Option value="Maintained">Maintained</Option>
-                    <Option value="Inactive">Inactive</Option>
-                    {/* <Option value="Faulty">Faulty</Option> */}
-                </Select>
-            ),
-        },
+        { title: "Trạng thái", dataIndex: "status", key: "status" },
         // {
         //     title: "Hành động",
         //     key: "action",
@@ -179,14 +152,7 @@ const StaffStationDetail = () => {
                     </Card>
 
                     <Card title="Danh sách trụ sạc" className="mt-4" >
-                        <Table
-                            rowKey="chargingPostId"
-                            loading={loading}
-                            dataSource={posts}
-                            columns={columns}
-                            pagination={{ pageSize: 5 }}
-                            locale={{ emptyText: "Không có dữ liệu" }}
-                        />
+                        <Table rowKey="chargingPostId" loading={loading} dataSource={posts} columns={columns} pagination={{ pageSize: 5 }} />
                     </Card>
 
                     <Modal

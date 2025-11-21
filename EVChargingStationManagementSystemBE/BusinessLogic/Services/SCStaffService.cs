@@ -102,42 +102,46 @@ namespace BusinessLogic.Services
                 if (existedEmail != null)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Email đã tồn tại trong hệ thống.");
 
-                // 3. Kiểm tra số điện thoại đã tồn tại
-                var normalizedPhone = NormalizePhone(dto.PhoneNumber);
-                var existedPhone = await _unitOfWork.UserAccountRepository.GetQueryable()
-                    .FirstOrDefaultAsync(x => NormalizePhone(x.PhoneNumber) == normalizedPhone && !x.IsDeleted);
-                if (existedPhone != null)
+                // 3. KHÔNG normalize số điện thoại – dùng đúng số user nhập
+                var phone = dto.PhoneNumber;
+
+                // 4. Kiểm tra số điện thoại đã tồn tại
+                var existedUser = await _unitOfWork.UserAccountRepository.GetQueryable()
+                    .Where(u => !u.IsDeleted && u.PhoneNumber == phone)
+                    .FirstOrDefaultAsync();
+
+                if (existedUser != null)
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Số điện thoại đã tồn tại trong hệ thống.");
 
-                // 4. Tạo UserAccount
-                var user = dto.Adapt<UserAccount>();
-                user.Email = dto.Email.ToLowerInvariant();
-                user.UserName = dto.Email.ToLowerInvariant();
-                user.PhoneNumber = normalizedPhone;
-                user.RegistrationDate = DateTime.Now;
-                user.Status = "Active";
-                user.CreatedAt = DateTime.Now;
-                user.UpdatedAt = DateTime.Now;
+                // 5. Tạo UserAccount
+                var newUser = dto.Adapt<UserAccount>();
+                newUser.Email = dto.Email.ToLowerInvariant();
+                newUser.UserName = dto.Email.ToLowerInvariant();
+                newUser.PhoneNumber = phone;
+                newUser.RegistrationDate = DateTime.Now;
+                newUser.Status = "Active";
+                newUser.CreatedAt = DateTime.Now;
+                newUser.UpdatedAt = DateTime.Now;
 
-                var createResult = await _userManager.CreateAsync(user, dto.Password);
+                var createResult = await _userManager.CreateAsync(newUser, dto.Password);
                 if (!createResult.Succeeded)
                 {
                     var errors = createResult.Errors.Select(e => e.Description).ToList();
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể tạo tài khoản.", errors);
                 }
 
-                // 5. Gán role Staff
-                var roleResult = await _userManager.AddToRoleAsync(user, "Staff");
+                // 6. Gán role Staff
+                var roleResult = await _userManager.AddToRoleAsync(newUser, "Staff");
                 if (!roleResult.Succeeded)
                 {
                     var errors = roleResult.Errors.Select(e => e.Description).ToList();
                     return new ServiceResult(Const.FAIL_CREATE_CODE, "Không thể gán quyền Staff.", errors);
                 }
 
-                // 6. Tạo hồ sơ nhân viên
+                // 7. Tạo hồ sơ nhân viên
                 var staff = dto.Adapt<SCStaffProfile>();
                 staff.Id = Guid.NewGuid();
-                staff.AccountId = user.Id;
+                staff.AccountId = newUser.Id;
                 staff.Status = "Active";
                 staff.CreatedAt = DateTime.Now;
                 staff.UpdatedAt = DateTime.Now;
@@ -147,22 +151,14 @@ namespace BusinessLogic.Services
                 await _unitOfWork.SaveChangesAsync();
 
                 var response = staff.Adapt<StaffViewDto>();
-                return new ServiceResult(Const.SUCCESS_CREATE_CODE, "Tạo tài khoản và hồ sơ nhân viên thành công.", response);
+                return new ServiceResult(Const.SUCCESS_CREATE_CODE,
+                                         "Tạo tài khoản và hồ sơ nhân viên thành công.",
+                                         response);
             }
             catch (Exception ex)
             {
                 return new ServiceResult(Const.ERROR_EXCEPTION, $"Đã xảy ra lỗi: {ex.Message}");
             }
-        }
-
-        // Hàm chuẩn hóa số điện thoại
-        private string NormalizePhone(string phone)
-        {
-            if (string.IsNullOrWhiteSpace(phone)) return phone;
-            phone = phone.Replace(" ", "").Replace("-", "");
-            if (phone.StartsWith("+84"))
-                phone = "0" + phone.Substring(3);
-            return phone;
         }
 
 

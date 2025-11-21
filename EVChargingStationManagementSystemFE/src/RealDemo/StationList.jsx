@@ -1,16 +1,9 @@
 // src/components/RealDemo/StationList.jsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Row, Col, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import stationAPI from "../API/Station";
-
-// Mapping trạng thái sang tiếng Việt
-const statusMap = {
-    Inactive: "Không hoạt động",
-    Active: "Hoạt động",
-    Maintenance: "Bảo trì",
-    Busy: "Đang bận"
-};
+// import LiquidGlass from 'liquid-glass-react'
 
 const StationList = () => {
     const [stations, setStations] = useState([]);
@@ -69,7 +62,7 @@ const StationList = () => {
                                 >
                                     <p><strong>Địa chỉ:</strong> {station.location || "Chưa có"}</p>
                                     <p><strong>Tỉnh/TP:</strong> {station.province || "Chưa có"}</p>
-                                    <p><strong>Trạng thái:</strong> {statusMap[station.status] || station.status || "Chưa có"}</p>
+                                    <p><strong>Trạng thái:</strong> {station.status || "Chưa có"}</p>
                                 </Card>
                             </Col>
                         );

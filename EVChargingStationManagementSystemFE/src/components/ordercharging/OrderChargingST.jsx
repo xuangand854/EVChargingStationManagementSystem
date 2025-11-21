@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./OrderChargingST.css";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import Lottie from "lottie-react";
 import L from "leaflet";
 import { Wallet, Car, Calendar, BarChart2, HelpCircle, Star, MapPin,User} from "lucide-react";
 import { getAuthStatus } from "../../API/Auth";
@@ -13,8 +12,6 @@ import { getAllChargingPost } from "../../API/ChargingPost";
 import { getChargingStation, getChargingStationId } from "../../API/Station";
 import AdminStationPanel from "../../components/ordercharging/AdminStationPannel"
 import ChargingPost from "../../components/ordercharging/ChargingPost"
-import MapAnimation from "../animation/MapAnimation.json"
-import UserIcon from "../animation/UserIcon.json";
 
 // Icon marker
 const markerIcon = new L.Icon({
@@ -62,39 +59,6 @@ const OrderChargingST = () => {
   const [filterMode, setFilterMode] = useState("all");
   const [stationPosts, setStationPosts] = useState({});
   const [showUserLocation, setShowUserLocation] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(true);
-
-  const userAnimatedIcon = L.divIcon({
-    className: "user-lottie-icon",
-    html: `<div id="user-animation" style="width: 50px; height: 50px;"></div>`,
-    iconSize: [50, 50],
-    iconAnchor: [25, 50],
-  });
-  useEffect(() => {
-    if (userLocation) {
-      import("lottie-web").then((LottieWeb) => {
-        LottieWeb.loadAnimation({
-          container: document.getElementById("user-animation"),
-          renderer: "svg",
-          loop: true,
-          autoplay: true,
-          animationData: UserIcon,
-        });
-      });
-    }
-  }, [userLocation]);
-  //locj tieng viet cho laoi xe sp
-  const vehicleTypeMap = {
-    Car: "Xe hơi",
-    Bike: "Xe máy",
-  };
-
-
-  useEffect(() => {
-    // Giả sử animation chạy 3 giây
-    const timer = setTimeout(() => setShowAnimation(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
   
  
 
@@ -134,7 +98,7 @@ const OrderChargingST = () => {
 
   //Tính khoảng cách giữa 2 điểm (Haversine)
   const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;//ban kinh trai đat
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -142,7 +106,7 @@ const OrderChargingST = () => {
       Math.cos((lat1 * Math.PI) / 180) *
         Math.cos((lat2 * Math.PI) / 180) *
         Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));//trả về góc trung tâm giữa hai điểm.
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
   const formatDistance = (km) => {
   if (km < 1) return `${Math.round(km * 1000)} m`;
@@ -204,7 +168,8 @@ const OrderChargingST = () => {
               authStatus.user.role ||
               authStatus.user.user_role ||
               authStatus.user.user_role_raw ||
-              authStatus.role ||"",
+              authStatus.role ||
+              "",
           };
           setUser(userData);
         } else setUser(null);
@@ -246,7 +211,7 @@ const OrderChargingST = () => {
     }
   };
 
-  // --- Làm mới vị trí (ép cập nhật) ---
+  // --- Làm mới vị trí (nếu muốn ép cập nhật) ---
   const handleRefreshLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Trình duyệt không hỗ trợ định vị!");
@@ -356,13 +321,7 @@ const OrderChargingST = () => {
   if (loading) return <p>Đang tải dữ liệu trạm sạc...</p>;
 
 
-   if (showAnimation) {
-  return (
-    <div className="animation-container">
-      <Lottie className="my-animation" animationData={MapAnimation} loop={true} />
-    </div>
-  );
-  }
+  if (loading) return <p>Đang tải dữ liệu trạm sạc...</p>;
 
   return (
     <div className="order-container">
@@ -426,18 +385,18 @@ const OrderChargingST = () => {
           </button>
           )}
           {/* Chỉ ADMIN mới thấy Admin Panel */}
-          {/* {user?.role === "Admin" && (
+          {user?.role === "Admin" && (
             <button className="btn-admin" onClick={() => setShowAdminPopup(true)}>
               Quản lý trạm sạc
             </button>
-          )} */}
+          )}
 
           {/* Admin & Staff đều thấy Quản lý trụ sạc */}
-          {/* {(user?.role === "Admin" || user?.role === "Staff") && (
+          {(user?.role === "Admin" || user?.role === "Staff") && (
             <button className="btn-admin" onClick={() => setShowPostPopup(true)}>
               Quản lý trụ sạc
             </button>
-          )} */}
+          )}
         </div>
 
         <div className="station-list">
@@ -456,13 +415,13 @@ const OrderChargingST = () => {
                 {st.stationName}
                 
                 {st.status === "Inactive" && (
-                  <span className="inactive"> Ngưng Hoạt Động</span>
+                  <span className="inactive"> Inactive</span>
                 )}
                 {st.status === "Active" && (
                   <span className="active"> Đang Hoạt Động</span>
                 )}
                 {st.status === "Maintenance" && (
-                  <span className="maintenance"> Bảo Trì</span>
+                  <span className="maintenance"> Maintained</span>
                 )}
               </h4>
               {userLocation && (
@@ -478,7 +437,7 @@ const OrderChargingST = () => {
                   </span>
                 )}
               <p>
-                Địa Chỉ: {st.location}, {st.province}
+                {st.location}, {st.province}
               </p>
               <p>Nhân Viên Trạm: {st.operatorName}</p>
               <p>Số Điện Thoại Nhân Viên: {st.operatorPhone}</p>
@@ -594,10 +553,10 @@ const OrderChargingST = () => {
                     <div className="station-info">
                       <h3>{station.stationName}</h3>
                       <p>
-                        {station.status=== "Inactive"&& <span className="inactive"> Ngưng Hoạt Động</span>}
+                        {station.status=== "Inactive"&& <span className="inactive"> Inactive</span>}
                         {station.status=== "Active"&& <span className="active"> Đang Hoạt Động</span>}
-                        {station.status=== "Busy"&& <span className="busy"> Đang Sử Dụng</span>}
-                        {station.status=== "Maintenance"&& <span className="maintenance"> Bảo Trì</span>}
+                        {station.status=== "Busy"&& <span className="busy"> Busy</span>}
+                        {station.status=== "Maintenance"&& <span className="maintenance"> Maintained</span>}
                       </p>
                      <h4> Địa chỉ 
                       <button
@@ -659,7 +618,7 @@ const OrderChargingST = () => {
                           <div><ul>
                             <liv>
                             {Array.from(
-                              new Set(stationPosts[station.id]?.map((p) => vehicleTypeMap[p.vehicleTypeSupported] || p.vehicleTypeSupported))
+                              new Set(stationPosts[station.id]?.map(p => p.vehicleTypeSupported))
                             ).join(", ")}
                             </liv>
                             </ul>
@@ -685,37 +644,11 @@ const OrderChargingST = () => {
                  <button
                     className="btn-popup-book"
                     onClick={() => {
-                        // Kiểm tra trạm active
-                   
-                    if (!station || station.status !== "Active") {
-                      toast.warning("Trạm này hiện không hoạt động!");
-                      return;
-                    }
-
-                    const posts = stationPosts[station.id] || [];
-                    const userVehicleType = user.carModel.toLowerCase(); // 'car' hoặc 'bike'
-
-                    // Kiểm tra trạm có trụ phù hợp loại xe
-                    const hasSupported = posts.some(
-                      (p) =>
-                        p.vehicleTypeSupported?.toLowerCase().includes(userVehicleType) &&
-                        p.status?.toLowerCase() === "available"
-                    );
-
-                    if (!hasSupported) {
-                      toast.error("❌ Trạm này không hỗ trợ loại xe của bạn hoặc không còn trụ khả dụng!");
-                      return;
-                    }
-
-
-                    // (Optional) Kiểm tra còn trụ available
-                    const hasAvailablePost = posts.some(p => p.status?.toLowerCase() === "available");
-
-                    if (!hasAvailablePost) {
-                      toast.warning("Trạm này hiện không còn trụ nào khả dụng!");
-                      return;
-                    }
-
+                      // Kiểm tra trạm active
+                      if (!station || station.status !== "Active") {
+                        toast.warning("Trạm này hiện không hoạt động!");
+                        return;
+                      }
 
                       // Kiểm tra trụ active
                       const activePile = stationPosts[station.id]?.some(p => p.status === "Available");
@@ -741,8 +674,8 @@ const OrderChargingST = () => {
             );
           })}
           {showUserLocation && userLocation && (
-                <Marker position={[userLocation.lat, userLocation.lng]} icon={userAnimatedIcon}>
-                
+              <Marker position={[userLocation.lat, userLocation.lng]}>
+                <Popup> Bạn đang ở đây</Popup>
               </Marker>
             )}
 

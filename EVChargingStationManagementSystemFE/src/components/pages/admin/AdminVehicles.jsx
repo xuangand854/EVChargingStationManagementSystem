@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { Button, Table, Modal, Input, Form, Select, Space, Tooltip, Empty } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Table, Modal, Input, Form, Select, Space, message, Tooltip, Tag } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { toast } from "react-toastify";
 import {
     GetVehicleModel,
     GetVehicleModelById,
@@ -19,8 +18,6 @@ const AdminVehicles = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingModel, setEditingModel] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [noData, setNoData] = useState(false);
-    const [hasError, setHasError] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [deletingId, setDeletingId] = useState(null);
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -51,8 +48,7 @@ const AdminVehicles = () => {
                             status: statusRes?.status ?? statusRes?.data?.status ?? 2 // mặc định Inactive
                         };
                     } catch (statusError) {
-                        const errorMsg = statusError?.response?.data?.message || statusError?.message || "Không thể lấy trạng thái";
-                        toast.warning(`Không thể lấy trạng thái cho xe ${m.vehicleModelId ?? m.id}: ${errorMsg}`);
+                        console.warn(`Could not fetch status for ${m.vehicleModelId ?? m.id}:`, statusError);
                         return { ...m, status: 2 }; // mặc định Inactive
                     }
                 })
@@ -60,27 +56,9 @@ const AdminVehicles = () => {
 
             setModels(modelsWithStatus);
             setFilteredModels(modelsWithStatus);
-            setNoData(false);
-            setHasError(false);
         } catch (error) {
-            console.log('Full error:', error);
-
-            const status = error?.response?.status;
-            const errorMsg = error?.customMessage || error?.response?.data?.message || error?.message || "Đã xảy ra lỗi";
-
-            // Chỉ không bắn toast nếu là lỗi 404 VÀ thông điệp đúng
-            const isNoDataError = status === 404 && errorMsg.includes('Không tìm thấy');
-
-            if (isNoDataError) {
-                console.log('Không có mẫu xe nào');
-                setNoData(true);
-                setHasError(false);
-            } else {
-                toast.error(`Không thể tải danh sách mẫu xe: ${errorMsg}`); // ✅ Bắn toast cho tất cả lỗi khác
-                setHasError(true);
-                setNoData(false);
-            }
-
+            console.error("Error fetching vehicle models:", error);
+            message.error("Không thể tải danh sách mẫu xe");
             setModels([]);
             setFilteredModels([]);
         } finally {
@@ -112,7 +90,7 @@ const AdminVehicles = () => {
                 const vehicle = await GetVehicleModelById(id);
 
                 if (!vehicle) {
-                    toast.error("Không tìm thấy xe để cập nhật!");
+                    message.error("Không tìm thấy xe để cập nhật!");
                     return;
                 }
 
@@ -131,7 +109,7 @@ const AdminVehicles = () => {
                     imageUrl: values.imageUrl ?? null,
                     status: statusValue
                 });
-                toast.success("Cập nhật mẫu xe thành công!");
+                message.success("Cập nhật mẫu xe thành công!");
             } else {
                 // Chuyển đổi vehicleType cho tạo mới
                 const vehicleTypeValue = values.vehicleType === "Car" ? 1 : values.vehicleType === "Bike" ? 0 : Number(values.vehicleType);
@@ -146,7 +124,7 @@ const AdminVehicles = () => {
                     values.imageUrl ?? null,
                     statusValue
                 );
-                toast.success("Thêm mẫu xe thành công!");
+                message.success("Thêm mẫu xe thành công!");
             }
 
             setIsModalOpen(false);
@@ -154,18 +132,8 @@ const AdminVehicles = () => {
             setEditingModel(null);
             fetchModels();
         } catch (error) {
-            const errorMsg = error?.response?.data?.message || error?.message || "Lỗi không xác định";
-            const statusCode = error?.response?.status;
-
-            if (statusCode === 404) {
-                toast.error("Không tìm thấy mẫu xe để cập nhật!");
-            } else if (statusCode === 400) {
-                toast.error(`Dữ liệu không hợp lệ: ${errorMsg}`);
-            } else if (statusCode === 500) {
-                toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
-            } else {
-                toast.error(`Lỗi khi lưu mẫu xe: ${errorMsg}`);
-            }
+            console.error("Lỗi khi lưu mẫu xe:", error);
+            message.error("Có lỗi xảy ra khi lưu mẫu xe!");
         }
     };
 
@@ -173,31 +141,34 @@ const AdminVehicles = () => {
         if (window.confirm(`Bạn có chắc chắn muốn xóa mẫu xe "${modelName}"? Hành động này không thể hoàn tác.`)) {
             setDeletingId(id);
             try {
-                await DeleteVehicleModel(id);
-                toast.success("Xóa mẫu xe thành công!");
+                // console.log(`Attempting to delete vehicle with ID: ${id}`);
+                const response = await DeleteVehicleModel(id);
+                // console.log("Delete response:", response);
+
+                message.success("Xóa mẫu xe thành công!");
                 fetchModels();
             } catch (error) {
+                console.error("Lỗi khi xóa mẫu xe:", error);
                 if (error.response) {
                     const status = error.response.status;
                     const msg = error.response.data?.message || error.response.data?.error || "Lỗi không xác định";
                     switch (status) {
                         case 404:
-                            toast.error("Không tìm thấy mẫu xe để xóa!");
+                            message.error("Không tìm thấy mẫu xe để xóa!");
                             break;
                         case 400:
-                            toast.error(`Dữ liệu không hợp lệ: ${msg}`);
+                            message.error("Dữ liệu không hợp lệ!");
                             break;
                         case 500:
-                            toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                            message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                             break;
                         default:
-                            toast.error(`Lỗi ${status}: ${msg}`);
+                            message.error(`Lỗi ${status}: ${msg}`);
                     }
                 } else if (error.request) {
-                    toast.error("Không thể kết nối đến máy chủ!");
+                    message.error("Không thể kết nối đến máy chủ!");
                 } else {
-                    const errorMsg = error?.message || "Lỗi không xác định";
-                    toast.error(`Có lỗi xảy ra khi xóa mẫu xe: ${errorMsg}`);
+                    message.error("Có lỗi xảy ra khi xóa mẫu xe!");
                 }
             } finally {
                 setDeletingId(null);
@@ -209,10 +180,14 @@ const AdminVehicles = () => {
     const handleUpdateStatus = async (id, newStatus) => {
         setUpdatingStatusId(id);
         try {
-            await UpdateVehicleModelStatus(id, newStatus);
-            toast.success("Cập nhật trạng thái thành công!");
+            const response = await UpdateVehicleModelStatus(id, newStatus);
+            // console.log("Update status response:", response);
+
+            message.success("Cập nhật trạng thái thành công!");
             fetchModels();
         } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái:", error);
+
             // Xử lý các loại lỗi khác nhau
             if (error.response) {
                 const status = error.response.status;
@@ -220,22 +195,21 @@ const AdminVehicles = () => {
 
                 switch (status) {
                     case 404:
-                        toast.error("Không tìm thấy mẫu xe để cập nhật!");
+                        message.error("Không tìm thấy mẫu xe để cập nhật!");
                         break;
                     case 400:
-                        toast.error(`Dữ liệu không hợp lệ: ${errorMessage}`);
+                        message.error("Dữ liệu không hợp lệ!");
                         break;
                     case 500:
-                        toast.error("Lỗi máy chủ! Vui lòng thử lại sau.");
+                        message.error("Lỗi máy chủ! Vui lòng thử lại sau.");
                         break;
                     default:
-                        toast.error(`Lỗi ${status}: ${errorMessage}`);
+                        message.error(`Lỗi ${status}: ${errorMessage}`);
                 }
             } else if (error.request) {
-                toast.error("Không thể kết nối đến máy chủ!");
+                message.error("Không thể kết nối đến máy chủ!");
             } else {
-                const errorMsg = error?.message || "Lỗi không xác định";
-                toast.error(`Có lỗi xảy ra khi cập nhật trạng thái: ${errorMsg}`);
+                message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
             }
         } finally {
             setUpdatingStatusId(null);
@@ -245,53 +219,39 @@ const AdminVehicles = () => {
     const getStatusLabel = (status) => {
         // Xử lý null/undefined
         if (status === null || status === undefined) {
-            return "Không rõ";
+            return "Unknown";
         }
 
-        // Xử lý string - thêm case cho chữ hoa đầu
+        // Xử lý string
         if (typeof status === 'string') {
             const lowerStatus = status.toLowerCase();
             switch (lowerStatus) {
-                case "inactive":
+                case "Inactive":
                 case "0":
-                    return "Ngừng hoạt động";
+                    return "Inactive";
                 case "active":
                 case "1":
-                    return "Hoạt động";
+                    return "Active";
                 case "discontinued":
                 case "2":
-                    return "Ngừng sản xuất";
+                    return "Discontinued";
                 case "unknown":
                 case "3":
-                    return "Không rõ";
+                    return "unknown";
                 default:
-                    // Nếu không match, thử convert sang number
-                    const num = Number(status);
-                    if (!isNaN(num)) {
-                        switch (num) {
-                            case 0: return "Ngừng hoạt động";
-                            case 1: return "Hoạt động";
-                            case 2: return "Ngừng sản xuất";
-                            case 3: return "Không rõ";
-                        }
-                    }
                     return status; // Trả về nguyên gốc nếu không match
             }
         }
 
         // Xử lý number
         const numStatus = Number(status);
-        if (!isNaN(numStatus)) {
-            switch (numStatus) {
-                case 0: return "Ngừng hoạt động";
-                case 1: return "Hoạt động";
-                case 2: return "Ngừng sản xuất";
-                case 3: return "Không rõ";
-                default: return `Trạng thái ${numStatus}`;
-            }
+        switch (numStatus) {
+            case 0: return "Inactive";
+            case 1: return "Active";
+            case 2: return "Discontinued";
+            case 3: return "Unknown";
+            default: return `Status ${numStatus}`;
         }
-
-        return "Không rõ";
     };
 
     const getStatusColor = (status) => {
@@ -363,33 +323,26 @@ const AdminVehicles = () => {
                 const id = record.vehicleModelId ?? record.id;
                 const isUpdating = updatingStatusId === id;
 
-                // Convert status sang number để hiển thị trong Select
-                let normalizedStatus = status;
-                if (typeof status === 'string') {
-                    const lowerStatus = status.toLowerCase();
-                    if (lowerStatus === 'inactive' || lowerStatus === '0') normalizedStatus = 0;
-                    else if (lowerStatus === 'active' || lowerStatus === '1') normalizedStatus = 1;
-                    else if (lowerStatus === 'discontinued' || lowerStatus === '2') normalizedStatus = 2;
-                    else if (lowerStatus === 'unknown' || lowerStatus === '3') normalizedStatus = 3;
-                    else normalizedStatus = Number(status);
-                } else {
-                    normalizedStatus = Number(status);
-                }
-
                 return (
-                    <Select
-                        value={normalizedStatus}
-                        onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
-                        loading={isUpdating}
-                        disabled={isUpdating}
-                        style={{ minWidth: 150 }}
-                        size="small"
-                        placeholder="Thay đổi"
-                    >
-                        <Select.Option value={0}>Ngừng hoạt động</Select.Option>
-                        <Select.Option value={1}>Hoạt động</Select.Option>
-                        <Select.Option value={2}>Ngừng sản xuất</Select.Option>
-                    </Select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Tag color={getStatusColor(status)} style={{ margin: 0 }}>
+                            {getStatusLabel(status)}
+                        </Tag>
+                        <Select
+                            value={status}
+                            onChange={(newStatus) => handleUpdateStatus(id, newStatus)}
+                            loading={isUpdating}
+                            disabled={isUpdating}
+                            style={{ minWidth: 100 }}
+                            size="small"
+                            placeholder="Thay đổi"
+                        >
+                            <Select.Option value={0}>Inactive</Select.Option>
+                            <Select.Option value={1}>Active</Select.Option>
+                            <Select.Option value={2}>Discontinued</Select.Option>
+                            {/* <Select.Option value={3}>Unknown</Select.Option> */}
+                        </Select>
+                    </div>
                 );
             }
         },
@@ -494,24 +447,15 @@ const AdminVehicles = () => {
                 </div>
             </div>
 
-
             {/* Table Card */}
             <div className="table-card">
-                {hasError ? (
-                    <Empty description="Đã xảy ra lỗi khi tải dữ liệu" />
-                ) : noData || filteredModels.length === 0 ? (
-                    <Empty description="Không có mẫu xe nào" />
-                ) : (
-                    <Table
-                        dataSource={filteredModels}
-                        columns={columns}
-                        rowKey={(r) => r.vehicleModelId ?? r.id}
-                        loading={loading}
-                        pagination={false}
-                        scroll={{ x: 1200, y: 600 }}
-                        sticky
-                    />
-                )}
+                <Table
+                    dataSource={filteredModels}
+                    columns={columns}
+                    rowKey={(r) => r.vehicleModelId ?? r.id}
+                    loading={loading}
+                    pagination={{ pageSize: 10 }}
+                />
             </div>
 
             <Modal
@@ -548,6 +492,14 @@ const AdminVehicles = () => {
                     <Form.Item name="recommendedChargingPowerKW" label="Công suất sạc khuyến nghị (kW)" rules={[{ required: true }]}>
                         <Input type="number" />
                     </Form.Item>
+
+                    {/* <Form.Item name="status" label="Tình trạng xe" rules={[{ required: true }]}>
+                        <Select>
+                            <Select.Option value="Active">Active</Select.Option>
+                            <Select.Option value="Discontinued">Discontinued</Select.Option>
+                            <Select.Option value="Unknown">Unknown</Select.Option>
+                        </Select>
+                    </Form.Item> */}
 
                     <Form.Item name="imageUrl" label="Hình ảnh (URL)">
                         <Input placeholder="https://..." />
